@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Category Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "surface-dark": "#1c2433",
+                        "border-dark": "#2d3648"
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-tab {
+            border-bottom: 3px solid #135bec;
+            color: #135bec;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header -->
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-border-dark px-4 py-4">
+<div class="flex items-center justify-between max-w-5xl mx-auto w-full">
+<div class="flex items-center gap-3">
+<button class="p-2 hover:bg-slate-200 dark:hover:bg-primary/20 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">arrow_back</span>
+</button>
+<h1 class="text-xl font-bold tracking-tight">Manage Categories</h1>
+</div>
+<button class="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-semibold transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>New Category</span>
+</button>
+</div>
+</header>
+<main class="flex-1 max-w-5xl mx-auto w-full px-4 py-6">
+<!-- Search and Filter -->
+<div class="mb-8">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-white dark:bg-surface-dark border-slate-200 dark:border-border-dark focus:border-primary dark:focus:border-primary focus:ring-1 focus:ring-primary rounded-xl py-3 pl-12 pr-4 text-sm transition-all outline-none" placeholder="Search categories..." type="text"/>
+</div>
+</div>
+<!-- Tabs -->
+<div class="flex border-b border-slate-200 dark:border-border-dark mb-6">
+<button class="px-6 py-3 text-sm font-semibold active-tab transition-colors">Standard</button>
+<button class="px-6 py-3 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-primary transition-colors">Custom</button>
+<button class="px-6 py-3 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-primary transition-colors">Archived</button>
+</div>
+<!-- Category Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+<!-- Category Item 1 -->
+<div class="bg-white dark:bg-surface-dark p-4 rounded-xl border border-slate-200 dark:border-border-dark hover:border-primary/50 transition-all group cursor-pointer shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-500/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-orange-600 dark:text-orange-400">restaurant</span>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Dining &amp; Food</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">12 Transactions this month</p>
+</div>
+<div class="mt-4 flex items-center justify-between pt-4 border-t border-slate-100 dark:border-border-dark/50">
+<span class="text-xs font-medium px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">Standard</span>
+<span class="text-xs text-slate-500 dark:text-slate-400 font-medium">$452.20</span>
+</div>
+</div>
+<!-- Category Item 2 -->
+<div class="bg-white dark:bg-surface-dark p-4 rounded-xl border border-slate-200 dark:border-border-dark hover:border-primary/50 transition-all group cursor-pointer shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-blue-600 dark:text-blue-400">directions_car</span>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Transportation</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">8 Transactions this month</p>
+</div>
+<div class="mt-4 flex items-center justify-between pt-4 border-t border-slate-100 dark:border-border-dark/50">
+<span class="text-xs font-medium px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">Standard</span>
+<span class="text-xs text-slate-500 dark:text-slate-400 font-medium">$128.50</span>
+</div>
+</div>
+<!-- Category Item 3 -->
+<div class="bg-white dark:bg-surface-dark p-4 rounded-xl border border-slate-200 dark:border-border-dark hover:border-primary/50 transition-all group cursor-pointer shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-500/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-purple-600 dark:text-purple-400">movie</span>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Entertainment</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">4 Transactions this month</p>
+</div>
+<div class="mt-4 flex items-center justify-between pt-4 border-t border-slate-100 dark:border-border-dark/50">
+<span class="text-xs font-medium px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">Standard</span>
+<span class="text-xs text-slate-500 dark:text-slate-400 font-medium">$89.00</span>
+</div>
+</div>
+<!-- Category Item 4 (Custom) -->
+<div class="bg-white dark:bg-surface-dark p-4 rounded-xl border border-slate-200 dark:border-border-dark hover:border-primary/50 transition-all group cursor-pointer shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-emerald-600 dark:text-emerald-400">fitness_center</span>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Gym &amp; Fitness</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">1 Transaction this month</p>
+</div>
+<div class="mt-4 flex items-center justify-between pt-4 border-t border-slate-100 dark:border-border-dark/50">
+<span class="text-xs font-medium px-2 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded">Custom</span>
+<span class="text-xs text-slate-500 dark:text-slate-400 font-medium">$60.00</span>
+</div>
+</div>
+<!-- Category Item 5 -->
+<div class="bg-white dark:bg-surface-dark p-4 rounded-xl border border-slate-200 dark:border-border-dark hover:border-primary/50 transition-all group cursor-pointer shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="w-12 h-12 rounded-xl bg-rose-100 dark:bg-rose-500/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-rose-600 dark:text-rose-400">home</span>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Housing &amp; Rent</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">2 Transactions this month</p>
+</div>
+<div class="mt-4 flex items-center justify-between pt-4 border-t border-slate-100 dark:border-border-dark/50">
+<span class="text-xs font-medium px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">Standard</span>
+<span class="text-xs text-slate-500 dark:text-slate-400 font-medium">$1,850.00</span>
+</div>
+</div>
+<!-- Category Item 6 -->
+<div class="bg-white dark:bg-surface-dark p-4 rounded-xl border border-slate-200 dark:border-border-dark hover:border-primary/50 transition-all group cursor-pointer shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="w-12 h-12 rounded-xl bg-cyan-100 dark:bg-cyan-500/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-cyan-600 dark:text-cyan-400">shopping_bag</span>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Shopping</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">15 Transactions this month</p>
+</div>
+<div class="mt-4 flex items-center justify-between pt-4 border-t border-slate-100 dark:border-border-dark/50">
+<span class="text-xs font-medium px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">Standard</span>
+<span class="text-xs text-slate-500 dark:text-slate-400 font-medium">$312.75</span>
+</div>
+</div>
+</div>
+<!-- Section Title -->
+<div class="mt-12 mb-6">
+<h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">Unused Categories</h2>
+<p class="text-sm text-slate-500 dark:text-slate-400">Categories you haven't used recently</p>
+</div>
+<!-- List View for Unused Categories -->
+<div class="space-y-3">
+<div class="bg-white dark:bg-surface-dark p-3 rounded-xl border border-slate-200 dark:border-border-dark flex items-center gap-4 group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-500">medical_services</span>
+</div>
+<div class="flex-1">
+<h4 class="font-semibold text-sm">Healthcare</h4>
+<p class="text-xs text-slate-500">Last used 3 months ago</p>
+</div>
+<button class="text-primary text-xs font-bold px-3 py-1 bg-primary/10 rounded-lg hover:bg-primary/20">Enable</button>
+</div>
+<div class="bg-white dark:bg-surface-dark p-3 rounded-xl border border-slate-200 dark:border-border-dark flex items-center gap-4 group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer">
+<div class="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-500">flight</span>
+</div>
+<div class="flex-1">
+<h4 class="font-semibold text-sm">Travel</h4>
+<p class="text-xs text-slate-500">Last used 6 months ago</p>
+</div>
+<button class="text-primary text-xs font-bold px-3 py-1 bg-primary/10 rounded-lg hover:bg-primary/20">Enable</button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="sticky bottom-0 bg-white dark:bg-background-dark border-t border-slate-200 dark:border-border-dark pb-6 pt-2 px-4 shadow-2xl">
+<div class="max-w-md mx-auto flex items-center justify-around">
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">home</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">receipt_long</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary">History</span>
+</a>
+<a class="flex flex-col items-center gap-1" href="#">
+<div class="p-2 bg-primary/10 dark:bg-primary/20 rounded-xl">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">grid_view</span>
+</div>
+<span class="text-[10px] font-bold text-primary">Categories</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">settings</span>
+<span class="text-[10px] font-medium text-slate-400 group-hover:text-primary">Settings</span>
+</a>
+</div>
+</nav>
+<!-- FAB for mobile (if needed, but already have button in header) -->
+<div class="fixed bottom-24 right-6 md:hidden">
+<button class="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-xl shadow-primary/40 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+</div>
+</body></html>

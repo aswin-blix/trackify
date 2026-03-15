@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Monthly Report - Financial Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "accent-neon": "#39ff14",
+                        "accent-coral": "#ff7f50",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "card-dark": "#1c2433",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .donut-segment {
+            transition: stroke-dasharray 0.3s ease;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header Navigation -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center p-4 justify-between max-w-lg mx-auto w-full">
+<button class="flex items-center justify-center p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h2 class="text-lg font-bold leading-tight tracking-tight">Monthly Report</h2>
+<button class="flex items-center justify-center p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+<!-- Tab Switcher -->
+<div class="flex border-b border-slate-200 dark:border-slate-800 px-4 gap-8 max-w-lg mx-auto w-full">
+<a class="flex flex-col items-center justify-center border-b-2 border-primary text-primary pb-3 pt-4" href="#">
+<p class="text-sm font-bold">Overview</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 dark:text-slate-400 pb-3 pt-4 hover:text-slate-700 dark:hover:text-slate-200" href="#">
+<p class="text-sm font-bold">Expenses</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 dark:text-slate-400 pb-3 pt-4 hover:text-slate-700 dark:hover:text-slate-200" href="#">
+<p class="text-sm font-bold">Savings</p>
+</a>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto max-w-lg mx-auto w-full pb-24">
+<!-- Summary Card -->
+<section class="px-4 py-6">
+<div class="bg-card-dark rounded-xl p-6 border border-slate-800 shadow-xl relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-6xl">account_balance_wallet</span>
+</div>
+<p class="text-slate-400 text-sm font-medium uppercase tracking-wider">Total Expenses</p>
+<h3 class="text-4xl font-bold mt-1 text-slate-100">$4,250.00</h3>
+<div class="flex items-center gap-2 mt-2">
+<span class="text-accent-coral flex items-center text-sm font-bold">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                        12.4%
+                    </span>
+<p class="text-slate-500 text-sm">vs last month</p>
+</div>
+</div>
+</section>
+<!-- Donut Chart Section -->
+<section class="px-4 py-4">
+<h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">pie_chart</span>
+                Expenses by Category
+            </h3>
+<div class="flex flex-col items-center justify-center bg-card-dark rounded-xl p-8 border border-slate-800">
+<div class="relative w-64 h-64">
+<!-- SVG Donut -->
+<svg class="w-full h-full -rotate-90" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="rgba(255,255,255,0.05)" stroke-width="3.5"></circle>
+<!-- Rent: 40% -->
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#135bec" stroke-dasharray="40 100" stroke-dashoffset="0" stroke-width="3.8"></circle>
+<!-- Food: 25% -->
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#39ff14" stroke-dasharray="25 100" stroke-dashoffset="-40" stroke-width="3.8"></circle>
+<!-- Transport: 15% -->
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#ff7f50" stroke-dasharray="15 100" stroke-dashoffset="-65" stroke-width="3.8"></circle>
+<!-- Others: 20% -->
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#94a3b8" stroke-dasharray="20 100" stroke-dashoffset="-80" stroke-width="3.8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="text-slate-400 text-xs font-bold uppercase">Top Spend</span>
+<span class="text-2xl font-bold text-primary">Rent</span>
+<span class="text-slate-500 text-sm">$1,700</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="grid grid-cols-2 gap-4 mt-8 w-full">
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-primary"></div>
+<span class="text-sm text-slate-300">Rent (40%)</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-accent-neon"></div>
+<span class="text-sm text-slate-300">Food (25%)</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-accent-coral"></div>
+<span class="text-sm text-slate-300">Travel (15%)</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-slate-400"></div>
+<span class="text-sm text-slate-300">Others (20%)</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Bar Chart Comparison -->
+<section class="px-4 py-8">
+<h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-neon">equalizer</span>
+                Savings vs Expenses
+            </h3>
+<div class="bg-card-dark rounded-xl p-6 border border-slate-800">
+<div class="flex justify-between items-end gap-4 h-48 mb-4">
+<!-- Expenses Bar -->
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-accent-coral/20 rounded-t-lg relative flex flex-col justify-end overflow-hidden h-full">
+<div class="w-full bg-accent-coral rounded-t-lg h-[85%]"></div>
+</div>
+<span class="text-xs font-bold text-slate-400">Expenses</span>
+</div>
+<!-- Savings Bar -->
+<div class="flex-1 flex flex-col items-center gap-2 group">
+<div class="w-full bg-accent-neon/20 rounded-t-lg relative flex flex-col justify-end overflow-hidden h-full">
+<div class="w-full bg-accent-neon rounded-t-lg h-[45%]"></div>
+</div>
+<span class="text-xs font-bold text-slate-400">Savings</span>
+</div>
+</div>
+<div class="flex justify-between border-t border-slate-700 pt-4 mt-2">
+<div class="text-center">
+<p class="text-[10px] text-slate-500 uppercase font-bold">Burn Rate</p>
+<p class="text-accent-coral font-bold">85%</p>
+</div>
+<div class="text-center border-l border-slate-700 pl-4">
+<p class="text-[10px] text-slate-500 uppercase font-bold">Savings Rate</p>
+<p class="text-accent-neon font-bold">15%</p>
+</div>
+<div class="text-center border-l border-slate-700 pl-4">
+<p class="text-[10px] text-slate-500 uppercase font-bold">Leftover</p>
+<p class="text-slate-100 font-bold">$750</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Insights List -->
+<section class="px-4 py-4">
+<h3 class="text-lg font-bold mb-4">Smart Insights</h3>
+<div class="space-y-3">
+<div class="flex items-start gap-4 p-4 rounded-xl bg-accent-coral/10 border border-accent-coral/20">
+<span class="material-symbols-outlined text-accent-coral">warning</span>
+<div>
+<p class="text-sm font-bold text-accent-coral">Spending Alert</p>
+<p class="text-xs text-slate-300 mt-1">Dining out is 30% higher than last month. Consider cooking at home more often.</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 rounded-xl bg-accent-neon/10 border border-accent-neon/20">
+<span class="material-symbols-outlined text-accent-neon">auto_awesome</span>
+<div>
+<p class="text-sm font-bold text-accent-neon">Savings Goal</p>
+<p class="text-xs text-slate-300 mt-1">You're on track to reach your "New Car" goal by December. Keep it up!</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-card-dark/95 backdrop-blur-lg border-t border-slate-800 z-50">
+<div class="flex justify-around items-center max-w-lg mx-auto h-20 px-4">
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">analytics</span>
+<span class="text-[10px] font-bold">Reports</span>
+</a>
+<div class="relative -top-6">
+<button class="bg-primary hover:bg-primary/90 text-white size-14 rounded-full shadow-lg shadow-primary/25 flex items-center justify-center border-4 border-background-dark">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-[10px] font-medium">Wallet</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</div>
+</nav>
+</body></html>
