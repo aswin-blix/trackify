@@ -3,10 +3,11 @@ import 'package:provider/provider.dart';
 import '../models/category_model.dart';
 import '../models/transaction_model.dart';
 import '../providers/expense_provider.dart';
-import '../utils/constants.dart';
 
 class AddExpenseScreen extends StatefulWidget {
-  const AddExpenseScreen({super.key});
+  final TransactionModel? transaction;
+
+  const AddExpenseScreen({super.key, this.transaction});
 
   @override
   State<AddExpenseScreen> createState() => _AddExpenseScreenState();
@@ -18,19 +19,45 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   CategoryModel? _selectedCategory;
   DateTime _selectedDate = DateTime.now();
   String _notes = '';
+  late TextEditingController _notesController;
+
+  bool get _isEditMode => widget.transaction != null;
 
   @override
   void initState() {
     super.initState();
-    // Default to first category
+    if (_isEditMode) {
+      final tx = widget.transaction!;
+      _amount = tx.amount % 1 == 0
+          ? tx.amount.toInt().toString()
+          : tx.amount.toStringAsFixed(2);
+      _isExpense = tx.isExpense;
+      _selectedDate = tx.date;
+      _notes = tx.notes ?? '';
+    }
+    _notesController = TextEditingController(text: _notes);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-       final categories = Provider.of<ExpenseProvider>(context, listen: false).categories;
-       if (categories.isNotEmpty) {
-         setState(() {
-           _selectedCategory = categories.first;
-         });
-       }
+      final categories = Provider.of<ExpenseProvider>(context, listen: false).categories;
+      if (categories.isNotEmpty) {
+        setState(() {
+          if (_isEditMode) {
+            _selectedCategory = categories.firstWhere(
+              (cat) => cat.id == widget.transaction!.categoryId,
+              orElse: () => categories.first,
+            );
+          } else {
+            _selectedCategory = categories.first;
+          }
+        });
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
   }
 
   void _onNumpadTap(String value) {
@@ -49,12 +76,9 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         if (_amount == '0') {
           _amount = value;
         } else {
-          // Limit decimal places to 2
           if (_amount.contains('.')) {
-             final split = _amount.split('.');
-             if (split.length > 1 && split[1].length >= 2) {
-               return; 
-             }
+            final split = _amount.split('.');
+            if (split.length > 1 && split[1].length >= 2) return;
           }
           _amount += value;
         }
@@ -65,26 +89,61 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   Future<void> _saveTransaction() async {
     final double amountValue = double.tryParse(_amount) ?? 0.0;
     if (amountValue <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter an amount greater than 0.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter an amount greater than 0.')),
+      );
       return;
     }
     if (_selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a category.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a category.')),
+      );
       return;
     }
 
-    final newTransaction = TransactionModel(
-      amount: amountValue,
-      date: _selectedDate,
-      isExpense: _isExpense,
-      categoryId: _selectedCategory!.id!,
-      notes: _notes.isNotEmpty ? _notes : null,
+    final provider = Provider.of<ExpenseProvider>(context, listen: false);
+
+    if (_isEditMode) {
+      await provider.updateTransaction(TransactionModel(
+        id: widget.transaction!.id,
+        amount: amountValue,
+        date: _selectedDate,
+        isExpense: _isExpense,
+        categoryId: _selectedCategory!.id!,
+        notes: _notes.isNotEmpty ? _notes : null,
+      ));
+    } else {
+      await provider.addTransaction(TransactionModel(
+        amount: amountValue,
+        date: _selectedDate,
+        isExpense: _isExpense,
+        categoryId: _selectedCategory!.id!,
+        notes: _notes.isNotEmpty ? _notes : null,
+      ));
+    }
+
+    if (mounted) Navigator.pop(context);
+  }
+
+  Future<void> _deleteTransaction() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Transaction'),
+        content: const Text('Are you sure you want to delete this transaction?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
-
-    await Provider.of<ExpenseProvider>(context, listen: false).addTransaction(newTransaction);
-
-    if (mounted) {
-      Navigator.pop(context);
+    if (confirmed == true && mounted) {
+      await Provider.of<ExpenseProvider>(context, listen: false)
+          .deleteTransaction(widget.transaction!.id!);
+      if (mounted) Navigator.pop(context);
     }
   }
 
@@ -98,9 +157,17 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Add Transaction', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        title: Text(
+          _isEditMode ? 'Edit Transaction' : 'Add Transaction',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         actions: [
+          if (_isEditMode)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              onPressed: _deleteTransaction,
+            ),
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: TextButton(
@@ -206,7 +273,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text('\$', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 40, fontWeight: FontWeight.bold)),
+            Text('\$',
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold)),
             Text(
               _amount,
               style: const TextStyle(fontSize: 56, fontWeight: FontWeight.bold, letterSpacing: -1.5),
@@ -226,7 +297,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           children: [
             Expanded(child: _buildDatePicker()),
             const SizedBox(width: 16),
-            Expanded(child: _buildWalletSelector()), 
+            Expanded(child: _buildWalletSelector()),
           ],
         ),
         const SizedBox(height: 16),
@@ -241,14 +312,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+            backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
             child: Icon(Icons.category, color: Theme.of(context).colorScheme.primary),
           ),
           const SizedBox(width: 16),
@@ -256,7 +327,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('CATEGORY', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+                const Text('CATEGORY',
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                        letterSpacing: 1.2)),
                 DropdownButtonHideUnderline(
                   child: DropdownButton<CategoryModel>(
                     isExpanded: true,
@@ -268,11 +344,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                         child: Text(cat.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                       );
                     }).toList(),
-                    onChanged: (val) {
-                      setState(() {
-                         _selectedCategory = val;
-                      });
-                    },
+                    onChanged: (val) => setState(() => _selectedCategory = val),
                   ),
                 ),
               ],
@@ -292,17 +364,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
           firstDate: DateTime(2000),
           lastDate: DateTime.now().add(const Duration(days: 365)),
         );
-        if (picked != null) {
-          setState(() {
-            _selectedDate = picked;
-          });
-        }
+        if (picked != null) setState(() => _selectedDate = picked);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
-          border: Border.all(color: Colors.grey.withOpacity(0.2)),
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -316,7 +384,12 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('DATE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+                  const Text('DATE',
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                          letterSpacing: 1.2)),
                   const SizedBox(height: 4),
                   Text(
                     "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
@@ -337,8 +410,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -348,14 +421,19 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             child: const Icon(Icons.account_balance_wallet, color: Colors.grey),
           ),
           const SizedBox(width: 12),
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('ACCOUNT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
-                const SizedBox(height: 4),
-                const Text(
-                  "Main Bank", // Mocked for now to match UI design
+                Text('ACCOUNT',
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                        letterSpacing: 1.2)),
+                SizedBox(height: 4),
+                Text(
+                  'Main Bank',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -372,8 +450,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -392,9 +470,15 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 8),
-                const Text('NOTES', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 1.2)),
+                const Text('NOTES',
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                        letterSpacing: 1.2)),
                 const SizedBox(height: 4),
                 TextField(
+                  controller: _notesController,
                   onChanged: (val) => _notes = val,
                   decoration: const InputDecoration(
                     hintText: 'Add details...',
@@ -415,17 +499,17 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   Widget _buildNumpad() {
-    final keys = [
-      '1', '2', '3', 
-      '4', '5', '6', 
-      '7', '8', '9', 
-      '.', '0', 'backspace'
+    const keys = [
+      '1', '2', '3',
+      '4', '5', '6',
+      '7', '8', '9',
+      '.', '0', 'backspace',
     ];
 
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        border: Border(top: BorderSide(color: Colors.grey.withOpacity(0.2))),
+        border: Border(top: BorderSide(color: Colors.grey.withValues(alpha: 0.2))),
         boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, -5))],
       ),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -441,7 +525,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         itemCount: keys.length,
         itemBuilder: (context, index) {
           final keyStr = keys[index];
-          
+
           if (keyStr == 'backspace') {
             return InkWell(
               onTap: () => _onNumpadTap(keyStr),
@@ -457,9 +541,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             borderRadius: BorderRadius.circular(12),
             child: Container(
               alignment: Alignment.center,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
               child: Text(
                 keyStr,
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),

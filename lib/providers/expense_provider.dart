@@ -88,6 +88,11 @@ class ExpenseProvider with ChangeNotifier {
         .fold(0.0, (sum, item) => sum + item.amount);
   }
 
+  Future<void> clearAllTransactions() async {
+    await DatabaseHelper.instance.clearAllTransactions();
+    await loadData();
+  }
+
   /// Groups expenses by category for a specific month/year.
   /// Useful for pie charts or breakdown lists.
   Map<int, double> getExpensesByCategory(int year, int month) {

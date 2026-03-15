@@ -1,23 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/expense_provider.dart';
 import '../models/transaction_model.dart';
+import '../providers/expense_provider.dart';
+import '../providers/settings_provider.dart';
+import '../utils/icon_helpers.dart';
 import 'add_expense_screen.dart';
 import 'monthly_report_screen.dart';
+import 'profile_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
+  static const _monthNames = [
+    '', 'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final userName = Provider.of<SettingsProvider>(context).userName;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.8),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.8),
         elevation: 0,
         title: Row(
           children: [
             CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+              backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
               child: Icon(Icons.account_circle, color: Theme.of(context).colorScheme.primary),
             ),
             const SizedBox(width: 12),
@@ -26,31 +37,19 @@ class DashboardScreen extends StatelessWidget {
               children: [
                 Text(
                   'Welcome back,',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade500,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
                 ),
-                const Text(
-                  'Alex Johnson',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                Text(
+                  userName,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
-          ),
+          IconButton(icon: const Icon(Icons.notifications_none), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.search), onPressed: () {}),
         ],
       ),
       body: SafeArea(
@@ -59,15 +58,15 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildMonthHeader(),
+              _buildMonthHeader(now),
               const SizedBox(height: 24),
-              _buildBalanceCard(context),
+              _buildBalanceCard(context, now),
               const SizedBox(height: 32),
               _buildQuickInsightsTitle(context),
               const SizedBox(height: 16),
-              _buildQuickInsightsRow(context),
+              _buildQuickInsightsRow(context, now),
               const SizedBox(height: 32),
-              _buildRecentTransactionsTitle(context),
+              _buildRecentTransactionsTitle(),
               const SizedBox(height: 16),
               _buildRecentTransactionsList(context),
             ],
@@ -91,22 +90,23 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMonthHeader() {
+  Widget _buildMonthHeader(DateTime now) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text(
-          'October 2023', // Hardcoded to match mockup feeling, or could use current date
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        Text(
+          '${_monthNames[now.month]} ${now.year}',
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         Row(
           children: [
             Text(
               'This Month',
               style: TextStyle(
-                  color: Colors.blue.shade600,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold),
+                color: Colors.blue.shade600,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Icon(Icons.expand_more, color: Colors.blue.shade600, size: 16),
           ],
@@ -115,12 +115,12 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBalanceCard(BuildContext context) {
+  Widget _buildBalanceCard(BuildContext context, DateTime now) {
     return Consumer<ExpenseProvider>(
       builder: (context, provider, child) {
         final bal = provider.balance;
-        final expenses = provider.totalExpenses;
-        final income = provider.totalIncome;
+        final expenses = provider.getMonthlyTotal(now.year, now.month, isExpense: true);
+        final income = provider.getMonthlyTotal(now.year, now.month, isExpense: false);
 
         return Container(
           decoration: BoxDecoration(
@@ -135,7 +135,7 @@ class DashboardScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                 blurRadius: 10,
                 offset: const Offset(0, 5),
               ),
@@ -166,7 +166,7 @@ class DashboardScreen extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
+                        color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
@@ -189,7 +189,7 @@ class DashboardScreen extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
+                        color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
@@ -224,34 +224,72 @@ class DashboardScreen extends StatelessWidget {
           'Quick Insights',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        Text(
-          'View All',
-          style: TextStyle(
+        GestureDetector(
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (ctx, anim1, anim2) => const MonthlyReportScreen(),
+                transitionDuration: Duration.zero,
+              ),
+            );
+          },
+          child: Text(
+            'View All',
+            style: TextStyle(
               fontSize: 14,
               color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w500),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildQuickInsightsRow(BuildContext context) {
+  Widget _buildQuickInsightsRow(BuildContext context, DateTime now) {
     return Consumer<ExpenseProvider>(
       builder: (context, provider, child) {
-        // Build mock summary row, normally drawn dynamically from categories.
-        // For matching the mockup closely, using static dummy stats in UI.
+        final groupedData = provider.getExpensesByCategory(now.year, now.month);
+
+        if (groupedData.isEmpty) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1c2433).withValues(alpha: 0.5),
+              border: Border.all(color: Colors.white10),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Text(
+              'No expenses yet this month.\nTap + to add one!',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 13),
+            ),
+          );
+        }
+
+        final sortedEntries = groupedData.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+        final topEntries = sortedEntries.take(4).toList();
+
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
-            children: [
-              _buildInsightCard('Food', Icons.restaurant, Colors.orange, '\$840.00'),
-              const SizedBox(width: 16),
-              _buildInsightCard('Transport', Icons.directions_car, Colors.blue, '\$210.00'),
-              const SizedBox(width: 16),
-              _buildInsightCard('Shopping', Icons.shopping_bag, Colors.purple, '\$1,150.00'),
-              const SizedBox(width: 16),
-              _buildInsightCard('Rent', Icons.home, Colors.green, '\$1,040.00'),
-            ],
+            children: topEntries.map((entry) {
+              final cat = provider.getCategoryById(entry.key);
+              final color = IconHelpers.parseColor(cat?.colorCode);
+              final icon = IconHelpers.getIcon(cat?.iconCode);
+              return Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: _buildInsightCard(
+                  cat?.name ?? 'Other',
+                  icon,
+                  color,
+                  '\$${entry.value.toStringAsFixed(2)}',
+                ),
+              );
+            }).toList(),
           ),
         );
       },
@@ -263,7 +301,7 @@ class DashboardScreen extends StatelessWidget {
       width: 120,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1c2433).withOpacity(0.5),
+        color: const Color(0xFF1c2433).withValues(alpha: 0.5),
         border: Border.all(color: Colors.white10),
         borderRadius: BorderRadius.circular(16),
       ),
@@ -280,10 +318,10 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentTransactionsTitle(BuildContext context) {
-    return Row(
+  Widget _buildRecentTransactionsTitle() {
+    return const Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: const [
+      children: [
         Text(
           'Recent Transactions',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -313,89 +351,107 @@ class DashboardScreen extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: provider.transactions.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          separatorBuilder: (_, _) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final tx = provider.transactions[index];
             final category = provider.getCategoryById(tx.categoryId);
-            return _buildTransactionItem(context, tx, category);
+            return _buildTransactionItem(context, tx, category, provider);
           },
         );
       },
     );
   }
 
-  Widget _buildTransactionItem(BuildContext context, TransactionModel tx, category) {
+  Widget _buildTransactionItem(
+    BuildContext context,
+    TransactionModel tx,
+    category,
+    ExpenseProvider provider,
+  ) {
     final bool isExpense = tx.isExpense;
-    final colorString = category?.colorCode.replaceAll('#', '0xFF') ?? '0xFF94a3b8';
-    final color = Color(int.parse(colorString));
+    final color = isExpense ? IconHelpers.parseColor(category?.colorCode) : Colors.greenAccent;
+    final iconData = isExpense ? IconHelpers.getIcon(category?.iconCode) : Icons.payments;
 
-    IconData iconData = Icons.receipt;
-    if (category?.iconCode == 'restaurant') iconData = Icons.restaurant;
-    if (category?.iconCode == 'directions_car') iconData = Icons.directions_car;
-    if (category?.iconCode == 'shopping_bag') iconData = Icons.shopping_bag;
-    if (category?.iconCode == 'home') iconData = Icons.home;
-
-    if (!isExpense) {
-      iconData = Icons.payments; 
-      colorString.replaceAll(colorString, '0xFF39ff14'); // Green for income 
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(16),
+    return Dismissible(
+      key: Key('tx_${tx.id}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Icon(Icons.delete, color: Colors.white),
       ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: isExpense ? color.withOpacity(0.2) : Colors.greenAccent.withOpacity(0.2),
-            radius: 24,
-            child: Icon(iconData, color: isExpense ? color : Colors.greenAccent, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  tx.notes?.isNotEmpty == true ? tx.notes! : (category?.name ?? 'Unknown'),
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "${tx.date.day}/${tx.date.month}/${tx.date.year}",
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
+      onDismissed: (_) => provider.deleteTransaction(tx.id!),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AddExpenseScreen(transaction: tx),
             ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(16),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          child: Row(
             children: [
-              Text(
-                '${isExpense ? '-' : '+'}\$${tx.amount.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: isExpense ? const Color(0xFFff6b6b) : const Color(0xFF39ff14),
+              CircleAvatar(
+                backgroundColor: color.withValues(alpha: 0.2),
+                radius: 24,
+                child: Icon(iconData, color: color, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tx.notes?.isNotEmpty == true ? tx.notes! : (category?.name ?? 'Unknown'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "${tx.date.day}/${tx.date.month}/${tx.date.year}",
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                category?.name.toUpperCase() ?? 'OTHER',
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 10,
-                  letterSpacing: 1.2,
-                  fontWeight: FontWeight.w600,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${isExpense ? '-' : '+'}\$${tx.amount.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: isExpense ? const Color(0xFFff6b6b) : const Color(0xFF39ff14),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    category?.name.toUpperCase() ?? 'OTHER',
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 10,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  )
+                ],
               )
             ],
-          )
-        ],
+          ),
+        ),
       ),
     );
   }
@@ -418,14 +474,26 @@ class DashboardScreen extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => const MonthlyReportScreen(),
+                    pageBuilder: (ctx, anim1, anim2) => const MonthlyReportScreen(),
                     transitionDuration: Duration.zero,
                   ),
                 );
               }),
-              const SizedBox(width: 48), // Space for FAB
-              _buildNavItem(context, Icons.account_balance_wallet, 'Wallets', false, () {}),
-              _buildNavItem(context, Icons.person, 'Profile', false, () {}),
+              const SizedBox(width: 48),
+              _buildNavItem(context, Icons.account_balance_wallet, 'Wallets', false, () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Wallets coming soon!')),
+                );
+              }),
+              _buildNavItem(context, Icons.person, 'Profile', false, () {
+                Navigator.pushReplacement(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (ctx, anim1, anim2) => const ProfileScreen(),
+                    transitionDuration: Duration.zero,
+                  ),
+                );
+              }),
             ],
           ),
         ),
@@ -433,13 +501,20 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(BuildContext context, IconData icon, String label, bool isSelected, VoidCallback onTap) {
+  Widget _buildNavItem(
+    BuildContext context,
+    IconData icon,
+    String label,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey, size: 24),
+          Icon(icon,
+              color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey, size: 24),
           const SizedBox(height: 4),
           Text(
             label,
