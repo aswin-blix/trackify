@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'core/theme/app_theme.dart';
+import 'core/services/notification_service.dart';
+import 'core/utils/app_logger.dart';
 import 'data/models/transaction_model.dart';
 import 'data/models/category_model.dart';
 import 'data/models/bank_sms_message.dart';
@@ -71,6 +73,20 @@ void main() async {
     for (final cat in defaultCategories) {
       await catBox.put(cat.id, cat);
     }
+  }
+
+  // Initialize notification service
+  await NotificationService.instance.init();
+
+  // Reschedule daily reminder if it was previously enabled
+  final settingsBox = Hive.box<AppSettings>(kSettingsBox);
+  final savedSettings = settingsBox.get('app_settings');
+  if (savedSettings != null && savedSettings.notificationEnabled) {
+    AppLogger.i('main', 'Rescheduling daily reminder at ${savedSettings.notificationHour}:${savedSettings.notificationMinute}');
+    await NotificationService.instance.scheduleDailyReminder(
+      hour: savedSettings.notificationHour,
+      minute: savedSettings.notificationMinute,
+    );
   }
 
   runApp(const ProviderScope(child: TrackifyApp()));
