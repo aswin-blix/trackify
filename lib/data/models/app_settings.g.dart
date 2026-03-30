@@ -26,7 +26,7 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       notificationHour: fields[6] as int,
       notificationMinute: fields[7] as int,
       smsReaderEnabled: fields[8] as bool,
-      knownSenderIds: (fields[9] as List).cast<String>(),
+      knownSenderIds: (fields[9] as List?)?.cast<String>(),
       autoBackupEnabled: fields[10] as bool,
       autoBackupHour: fields[11] as int,
       autoBackupMinute: fields[12] as int,
