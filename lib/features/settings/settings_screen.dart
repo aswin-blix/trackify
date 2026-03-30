@@ -128,6 +128,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onTap: () => _pickTime(context, settings.notificationHour,
                           settings.notificationMinute),
                     ),
+                    _SettingsDivider(),
+                    _SettingsTile(
+                      icon: Icons.rocket_launch_rounded,
+                      iconColor: const Color(0xFFE84393),
+                      title: 'Test Live Alert',
+                      subtitle: 'Verify if OxygenOS is blocking alerts',
+                      onTap: () async {
+                        await NotificationService.instance.showTestNotification();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Test sent! If it fails, check App Info permissions.')),
+                          );
+                        }
+                      },
+                    ),
                   ],
                 ],
               ).animate(delay: 140.ms).fadeIn(duration: 350.ms),

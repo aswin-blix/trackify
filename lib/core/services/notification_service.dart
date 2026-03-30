@@ -116,7 +116,7 @@ class NotificationService {
         'Keep your finances on track — it only takes a minute.',
         scheduled,
         details,
-        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time, // repeats daily
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
@@ -138,6 +138,35 @@ class NotificationService {
       AppLogger.i('NotificationService', 'Daily reminder cancelled');
     } catch (e, stack) {
       AppLogger.e('NotificationService', 'Failed to cancel reminder', e, stack);
+    }
+  }
+
+  // ── Test Immediate Notification ───────────────────────────────────────────
+  Future<void> showTestNotification() async {
+    if (!_initialized) await init();
+    try {
+      const androidDetails = AndroidNotificationDetails(
+        'trackify_test',
+        'Test Alerts',
+        channelDescription: 'Testing channel for immediate verification',
+        importance: Importance.max,
+        priority: Priority.max,
+        icon: '@mipmap/ic_launcher',
+        enableVibration: true,
+        playSound: true,
+        fullScreenIntent: true,
+        visibility: NotificationVisibility.public,
+      );
+      const details = NotificationDetails(android: androidDetails);
+      await _plugin.show(
+        kDailyReminderNotifId + 1,
+        '🚀 Immediate Test Alert',
+        'If you can see this, your phone is allowing Trackify notifications natively!',
+        details,
+      );
+      AppLogger.i('NotificationService', 'Immediate test notification fired');
+    } catch (e, stack) {
+      AppLogger.e('NotificationService', 'Failed to send test notif', e, stack);
     }
   }
 
