@@ -1,0 +1,103 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
+import 'core/theme/app_theme.dart';
+import 'data/models/transaction_model.dart';
+import 'data/models/category_model.dart';
+import 'data/models/bank_sms_message.dart';
+import 'data/models/app_settings.dart';
+import 'core/constants/app_constants.dart';
+import 'features/splash/splash_screen.dart';
+import 'features/onboarding/onboarding_screen.dart';
+import 'features/dashboard/home_shell.dart';
+import 'features/backup/backup_screen.dart';
+import 'features/app_lock/app_lock_screen.dart';
+import 'features/sms/sms_inbox_screen.dart';
+import 'shared/providers/app_providers.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+  ));
+
+  // Initialize Hive
+  await Hive.initFlutter();
+
+  // Register adapters
+  if (!Hive.isAdapterRegistered(kTransactionTypeEnumId)) {
+    Hive.registerAdapter(TransactionTypeAdapter());
+  }
+  if (!Hive.isAdapterRegistered(kTransactionTypeId)) {
+    Hive.registerAdapter(TransactionModelAdapter());
+  }
+  if (!Hive.isAdapterRegistered(kCategoryTypeEnumId)) {
+    Hive.registerAdapter(CategoryTypeAdapter());
+  }
+  if (!Hive.isAdapterRegistered(kCategoryTypeId)) {
+    Hive.registerAdapter(CategoryModelAdapter());
+  }
+  if (!Hive.isAdapterRegistered(kSmsStatusEnumId)) {
+    Hive.registerAdapter(SmsStatusAdapter());
+  }
+  if (!Hive.isAdapterRegistered(kBankSmsMessageTypeId)) {
+    Hive.registerAdapter(BankSmsMessageAdapter());
+  }
+  if (!Hive.isAdapterRegistered(kAppSettingsTypeId)) {
+    Hive.registerAdapter(AppSettingsAdapter());
+  }
+
+  // Open boxes
+  await Future.wait([
+    Hive.openBox<TransactionModel>(kTransactionsBox),
+    Hive.openBox<CategoryModel>(kCategoriesBox),
+    Hive.openBox<BankSmsMessage>(kSmsMessagesBox),
+    Hive.openBox<AppSettings>(kSettingsBox),
+    Hive.openBox<bool>(kTipsFavoritesBox),
+  ]);
+
+  // Seed default categories if box is empty
+  final catBox = Hive.box<CategoryModel>(kCategoriesBox);
+  if (catBox.isEmpty) {
+    for (final cat in defaultCategories) {
+      await catBox.put(cat.id, cat);
+    }
+  }
+
+  runApp(const ProviderScope(child: TrackifyApp()));
+}
+
+class TrackifyApp extends ConsumerWidget {
+  const TrackifyApp({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+
+    return MaterialApp(
+      title: kAppName,
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: settings.resolvedThemeMode,
+      initialRoute: '/',
+      routes: {
+        '/': (ctx) => const SplashScreen(),
+        '/onboarding': (ctx) => const OnboardingScreen(),
+        '/home': (ctx) => const HomeShell(),
+        '/backup': (ctx) => const BackupScreen(),
+        '/lock': (ctx) => const AppLockScreen(),
+        '/sms': (ctx) => const SmsInboxScreen(),
+      },
+    );
+  }
+}
