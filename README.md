@@ -56,7 +56,7 @@ Beautiful glassmorphism UI · Riverpod state · Hive local database · Zero data
 | Typography | Google Fonts — Plus Jakarta Sans |
 | Biometric Auth | `local_auth` |
 | SMS Reading | `flutter_sms_inbox` |
-| Notifications | `flutter_local_notifications` |
+| Notifications | `flutter_local_notifications`, `flutter_timezone` |
 | Background Tasks | `workmanager` |
 | File Operations | `path_provider`, `share_plus`, `file_picker` |
 
@@ -137,6 +137,8 @@ lib/
 - **Settings state** — `AppSettings` is cloned via `fromJson`/`toJson` on every update so Riverpod detects the change. Mutation-in-place won't work.
 - **Tab indices** in `HomeShell`: `0`=Dashboard, `1`=Transactions, `2`=FAB (opens sheet), `3`=Analytics, `4`=Settings.
 - **fl_chart v0.68** — does not accept `duration`/`curve` at the chart widget level.
+- **Notifications** — `flutter_timezone` is used to resolve the device's local timezone at runtime via `FlutterTimezone.getLocalTimezone()`. This must be called during `NotificationService.init()` before any `zonedSchedule` call, otherwise notifications fire at UTC time on many devices.
+- **Week analytics** — uses a rolling last-7-days window (`today − 6` to `today`), not a Mon–Sun calendar week, so data is always visible regardless of the day of the week.
 
 ---
 
@@ -149,6 +151,7 @@ lib/
 | `POST_NOTIFICATIONS` | Daily reminder notifications |
 | `CAMERA` / `READ_MEDIA_IMAGES` | Profile avatar picker |
 | `RECEIVE_BOOT_COMPLETED` | Reschedule notifications after reboot |
+| `USE_FULL_SCREEN_INTENT` | Show heads-up notification display |
 
 All permissions are optional. Core tracking works without any of them.
 
