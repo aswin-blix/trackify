@@ -3,6 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter_timezone/flutter_timezone.dart';
 import '../constants/app_constants.dart';
 import '../utils/app_logger.dart';
 
@@ -20,6 +21,8 @@ class NotificationService {
     if (_initialized) return;
     try {
       tz_data.initializeTimeZones();
+      final timeZoneInfo = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(timeZoneInfo.toString()));
 
       const androidSettings =
           AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -95,11 +98,14 @@ class NotificationService {
         'trackify_daily_reminder',
         'Daily Reminder',
         channelDescription: 'Reminds you to log your daily expenses',
-        importance: Importance.high,
-        priority: Priority.high,
+        importance: Importance.max,
+        priority: Priority.max,
         icon: '@mipmap/ic_launcher',
         enableVibration: true,
         playSound: true,
+        fullScreenIntent: true,
+        category: AndroidNotificationCategory.reminder,
+        visibility: NotificationVisibility.public,
       );
 
       const details = NotificationDetails(android: androidDetails);
@@ -110,7 +116,7 @@ class NotificationService {
         'Keep your finances on track — it only takes a minute.',
         scheduled,
         details,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time, // repeats daily
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
