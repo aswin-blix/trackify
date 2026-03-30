@@ -3,7 +3,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:flutter_timezone/flutter_timezone.dart';
 import '../constants/app_constants.dart';
 import '../utils/app_logger.dart';
 
@@ -21,8 +20,16 @@ class NotificationService {
     if (_initialized) return;
     try {
       tz_data.initializeTimeZones();
-      final timeZoneInfo = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(timeZoneInfo.toString()));
+      // Resolve the device's local timezone using the UTC offset.
+      // Etc/GMT names use inverted sign convention (Etc/GMT-5 = UTC+5).
+      try {
+        final offset = DateTime.now().timeZoneOffset;
+        final sign = offset.isNegative ? '+' : '-';
+        final hours = offset.inHours.abs();
+        tz.setLocalLocation(tz.getLocation('Etc/GMT$sign$hours'));
+      } catch (_) {
+        // Falls back to UTC — still correct for whole-hour offset zones.
+      }
 
       const androidSettings =
           AndroidInitializationSettings('@mipmap/ic_launcher');
