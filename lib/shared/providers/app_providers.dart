@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/utils/app_logger.dart';
 import '../../data/repositories/transaction_repository.dart';
 import '../../data/repositories/category_repository.dart';
 import '../../data/repositories/settings_repository.dart';
@@ -38,9 +39,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   SettingsNotifier(this._repo) : super(_repo.settings);
 
   Future<void> update(void Function(AppSettings) updater) async {
-    await _repo.updateField(updater);
-    // Clone via JSON to get a new object instance so StateNotifier detects the change
-    state = AppSettings.fromJson(_repo.settings.toJson());
+    try {
+      await _repo.updateField(updater);
+      // Clone via JSON to get a new object instance so StateNotifier detects the change
+      state = AppSettings.fromJson(_repo.settings.toJson());
+    } catch (e, stack) {
+      AppLogger.e('SettingsNotifier', 'Failed to update settings', e, stack);
+      rethrow;
+    }
   }
 
   Future<void> setThemeMode(int mode) async {
@@ -135,18 +141,37 @@ class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
   }
 
   Future<void> add(TransactionModel tx) async {
-    await _repo.add(tx);
-    refresh();
+    try {
+      AppLogger.i('TransactionNotifier', 'Adding transaction id=${tx.id}');
+      await _repo.add(tx);
+      refresh();
+      AppLogger.i('TransactionNotifier', 'Transaction added, total=${state.length}');
+    } catch (e, stack) {
+      AppLogger.e('TransactionNotifier', 'Failed to add transaction id=${tx.id}', e, stack);
+      rethrow;
+    }
   }
 
   Future<void> update(TransactionModel tx) async {
-    await _repo.update(tx);
-    refresh();
+    try {
+      AppLogger.i('TransactionNotifier', 'Updating transaction id=${tx.id}');
+      await _repo.update(tx);
+      refresh();
+    } catch (e, stack) {
+      AppLogger.e('TransactionNotifier', 'Failed to update transaction id=${tx.id}', e, stack);
+      rethrow;
+    }
   }
 
   Future<void> delete(String id) async {
-    await _repo.delete(id);
-    refresh();
+    try {
+      AppLogger.i('TransactionNotifier', 'Deleting transaction id=$id');
+      await _repo.delete(id);
+      refresh();
+    } catch (e, stack) {
+      AppLogger.e('TransactionNotifier', 'Failed to delete transaction id=$id', e, stack);
+      rethrow;
+    }
   }
 
   List<TransactionModel> get thisMonth => _repo.getThisMonth();
