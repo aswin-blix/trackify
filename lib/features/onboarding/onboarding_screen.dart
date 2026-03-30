@@ -42,6 +42,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
+  void _previousPage() {
+    if (_currentPage > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutExpo,
+      );
+    }
+  }
+
   Future<void> _finish() async {
     final notifier = ref.read(settingsProvider.notifier);
     await notifier.setUserName(_nameController.text.trim());
@@ -71,18 +80,31 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Skip button
-              Align(
-                alignment: Alignment.topRight,
-                child: TextButton(
-                  onPressed: _finish,
-                  child: Text(
-                    'Skip',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w600,
+              // Navigation row: back (when applicable) + skip
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (_currentPage > 0)
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_rounded),
+                        color: Theme.of(context).colorScheme.primary,
+                        onPressed: _previousPage,
+                      )
+                    else
+                      const SizedBox(width: 48),
+                    TextButton(
+                      onPressed: _finish,
+                      child: Text(
+                        'Skip',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
               // Page content
@@ -167,10 +189,9 @@ class _WelcomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 32, 24, 32),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
             width: 80,
@@ -227,6 +248,7 @@ class _WelcomePage extends StatelessWidget {
                 const SizedBox(height: 12),
                 TextField(
                   controller: nameController,
+                  textInputAction: TextInputAction.done,
                   decoration: const InputDecoration(
                     hintText: 'Enter your name',
                     prefixIcon: Icon(Icons.person_outline_rounded),

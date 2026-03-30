@@ -54,94 +54,116 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ? (monthlyExpense / settings.monthlyBudget!).clamp(0.0, 1.0)
         : 0.0;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = Theme.of(context).colorScheme.primary;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
+          // Header section — greeting + balance card in a tinted container for light mode
           SliverToBoxAdapter(
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${AppFormatters.formatGreeting()},',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.6),
-                          ),
-                        ),
-                        Text(
-                          settings.userName.isNotEmpty
-                              ? '${settings.userName} 👋'
-                              : 'Welcome 👋',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
+            child: Container(
+              decoration: isDark
+                  ? null
+                  : BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          accent.withValues(alpha: 0.13),
+                          Theme.of(context).colorScheme.secondary.withValues(alpha: 0.07),
+                        ],
+                      ),
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(28),
+                      ),
                     ),
-                    if (settings.avatarPath != null)
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundImage: AssetImage(settings.avatarPath!),
-                      )
-                    else
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Theme.of(context).colorScheme.primary,
-                              Theme.of(context).colorScheme.secondary,
+              child: SafeArea(
+                bottom: false,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${AppFormatters.formatGreeting()},',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.6),
+                                ),
+                              ),
+                              Text(
+                                settings.userName.isNotEmpty
+                                    ? '${settings.userName} 👋'
+                                    : 'Welcome 👋',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
                             ],
                           ),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.person_rounded,
-                            color: Colors.white, size: 22),
+                          if (settings.avatarPath != null)
+                            CircleAvatar(
+                              radius: 22,
+                              backgroundImage: AssetImage(settings.avatarPath!),
+                            )
+                          else
+                            Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    accent,
+                                    Theme.of(context).colorScheme.secondary,
+                                  ],
+                                ),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.person_rounded,
+                                  color: Colors.white, size: 22),
+                            ),
+                        ],
                       ),
+                    )
+                        .animate(delay: 0.ms)
+                        .fadeIn(duration: 400.ms)
+                        .slideY(begin: -0.3, end: 0, duration: 400.ms, curve: Curves.easeOutExpo),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                      child: _BalanceCard(
+                        balance: balance,
+                        income: monthlyIncome,
+                        expense: monthlyExpense,
+                        budgetRatio: budgetRatio,
+                        currencySymbol: symbol,
+                        monthlyBudget: settings.monthlyBudget,
+                      ),
+                    )
+                        .animate(delay: 60.ms)
+                        .fadeIn(duration: 500.ms)
+                        .scale(
+                          begin: const Offset(0.92, 0.92),
+                          end: const Offset(1, 1),
+                          duration: 500.ms,
+                          curve: Curves.easeOutExpo,
+                        ),
                   ],
                 ),
               ),
-            )
-                .animate(delay: 0.ms)
-                .fadeIn(duration: 400.ms)
-                .slideY(begin: -0.3, end: 0, duration: 400.ms, curve: Curves.easeOutExpo),
-          ),
-
-          // Balance card
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: _BalanceCard(
-                balance: balance,
-                income: monthlyIncome,
-                expense: monthlyExpense,
-                budgetRatio: budgetRatio,
-                currencySymbol: symbol,
-                monthlyBudget: settings.monthlyBudget,
-              ),
-            )
-                .animate(delay: 60.ms)
-                .fadeIn(duration: 500.ms)
-                .scale(
-                  begin: const Offset(0.92, 0.92),
-                  end: const Offset(1, 1),
-                  duration: 500.ms,
-                  curve: Curves.easeOutExpo,
-                ),
+            ),
           ),
 
           // Quick actions
