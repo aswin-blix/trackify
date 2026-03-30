@@ -24,11 +24,16 @@ class NotificationService {
       // Etc/GMT names use inverted sign convention (Etc/GMT-5 = UTC+5).
       try {
         final offset = DateTime.now().timeZoneOffset;
-        final sign = offset.isNegative ? '+' : '-';
-        final hours = offset.inHours.abs();
-        tz.setLocalLocation(tz.getLocation('Etc/GMT$sign$hours'));
+        if (offset.inMinutes == 330) {
+          // India is UTC+5:30, which cannot be represented by whole-hour Etc/GMT offsets
+          tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
+        } else {
+          final sign = offset.isNegative ? '+' : '-';
+          final hours = offset.inHours.abs();
+          tz.setLocalLocation(tz.getLocation('Etc/GMT$sign$hours'));
+        }
       } catch (_) {
-        // Falls back to UTC — still correct for whole-hour offset zones.
+        // Falls back to UTC
       }
 
       const androidSettings =
