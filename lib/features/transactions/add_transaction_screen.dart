@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:uuid/uuid.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/app_logger.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/models/category_model.dart';
 import '../../shared/providers/app_providers.dart';
@@ -90,6 +91,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   }
 
   Future<void> _save() async {
+    // ── Input validation ──────────────────────────────────────────────────
     final amountText = _amountController.text.trim();
     if (amountText.isEmpty) {
       _showError('Please enter an amount');
@@ -97,7 +99,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     }
     final amount = double.tryParse(amountText);
     if (amount == null || amount <= 0) {
-      _showError('Please enter a valid amount');
+      _showError('Please enter a valid amount greater than 0');
       return;
     }
     if (_selectedCategoryId == null) {
@@ -107,49 +109,80 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
     setState(() => _isSaving = true);
     _saveButtonController.forward();
-    await Future.delayed(const Duration(milliseconds: 800));
 
-    final tags = _tagsController.text
-        .split(',')
-        .map((t) => t.trim())
-        .where((t) => t.isNotEmpty)
-        .toList();
+    try {
+      await Future.delayed(const Duration(milliseconds: 400));
 
-    final ex = widget.existingTransaction;
-    final transaction = TransactionModel(
-      id: ex?.id ?? const Uuid().v4(),
-      amount: amount,
-      type: _selectedType,
-      categoryId: _selectedCategoryId!,
-      note: _noteController.text.trim(),
-      tags: tags,
-      date: _selectedDate,
-      receiptImagePath: _receiptImagePath,
-      isFromSms: false,
-      createdAt: ex?.createdAt ?? DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
+      final tags = _tagsController.text
+          .split(',')
+          .map((t) => t.trim())
+          .where((t) => t.isNotEmpty)
+          .toList();
 
-    if (ex != null) {
-      await ref.read(transactionProvider.notifier).update(transaction);
-    } else {
-      await ref.read(transactionProvider.notifier).add(transaction);
+      final ex = widget.existingTransaction;
+      final now = DateTime.now();
+      final transaction = TransactionModel(
+        id: ex?.id ?? const Uuid().v4(),
+        amount: amount,
+        type: _selectedType,
+        categoryId: _selectedCategoryId!,
+        note: _noteController.text.trim(),
+        tags: tags,
+        date: _selectedDate,
+        receiptImagePath: _receiptImagePath,
+        isFromSms: ex?.isFromSms ?? false,
+        smsSource: ex?.smsSource,
+        createdAt: ex?.createdAt ?? now,
+        updatedAt: now,
+      );
+
+      AppLogger.i('AddTransaction', '${ex != null ? 'Updating' : 'Saving'} transaction id=${transaction.id} amount=${transaction.amount} type=${transaction.type.name} category=${transaction.categoryId}');
+
+      if (ex != null) {
+        await ref.read(transactionProvider.notifier).update(transaction);
+      } else {
+        await ref.read(transactionProvider.notifier).add(transaction);
+      }
+
+      AppLogger.i('AddTransaction', 'Transaction saved successfully');
+
+      HapticFeedback.mediumImpact();
+      _saveButtonController.reverse();
+      if (!mounted) return;
+      setState(() {
+        _isSaving = false;
+        _showSuccess = true;
+      });
+      _successController.forward();
+      await Future.delayed(const Duration(milliseconds: 800));
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (e, stack) {
+      AppLogger.e('AddTransaction', 'Failed to save transaction', e, stack);
+      _saveButtonController.reverse();
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      _showError('Failed to save transaction. Please try again.\n${e.toString()}');
     }
-
-    HapticFeedback.mediumImpact();
-    _saveButtonController.reverse();
-    setState(() {
-      _isSaving = false;
-      _showSuccess = true;
-    });
-    _successController.forward();
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (mounted) Navigator.of(context).pop(true);
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(msg)));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 10),
+            Expanded(child: Text(msg, style: const TextStyle(fontSize: 13))),
+          ],
+        ),
+        backgroundColor: const Color(0xFFE8365D),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   Future<void> _pickDate() async {

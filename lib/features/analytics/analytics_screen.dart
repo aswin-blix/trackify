@@ -37,10 +37,11 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen>
   DateTimeRange _getRange() {
     final now = DateTime.now();
     switch (_tabController.index) {
-      case 0: // Week
-        final start = now.subtract(Duration(days: now.weekday - 1));
+      case 0: // Week — rolling last 7 days
+        final start = DateTime(now.year, now.month, now.day)
+            .subtract(const Duration(days: 6));
         return DateTimeRange(
-          start: DateTime(start.year, start.month, start.day),
+          start: start,
           end: DateTime(now.year, now.month, now.day, 23, 59, 59),
         );
       case 1: // Month
@@ -248,7 +249,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen>
                       const SizedBox(height: 16),
                       if (_tabController.index == 0)
                         _WeeklyBarChart(
-                          transactions: allTransactions,
+                          transactions: periodTxs,
                           symbol: symbol,
                         )
                       else
@@ -682,25 +683,27 @@ class _WeeklyBarChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-    final start = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
+    final today = DateTime(now.year, now.month, now.day);
 
-    final weeklyData = <int, double>{};
+    // Index 0 = 6 days ago, index 6 = today
+    final dailyData = <int, double>{};
     for (int i = 0; i < 7; i++) {
-      weeklyData[i] = 0;
+      dailyData[i] = 0;
     }
 
     for (final t in transactions) {
       if (t.type == TransactionType.expense) {
-        if (t.date.isAfter(start.subtract(const Duration(seconds: 1))) &&
-            t.date.isBefore(start.add(const Duration(days: 7)))) {
-          final int dayIndex = t.date.weekday - 1;
-          weeklyData[dayIndex] = (weeklyData[dayIndex] ?? 0) + t.amount;
+        final txDay = DateTime(t.date.year, t.date.month, t.date.day);
+        final daysAgo = today.difference(txDay).inDays;
+        if (daysAgo >= 0 && daysAgo < 7) {
+          final index = 6 - daysAgo;
+          dailyData[index] = (dailyData[index] ?? 0) + t.amount;
         }
       }
     }
-    final maxVal = weeklyData.values.fold(0.0, (m, v) => v > m ? v : m);
+    final maxVal = dailyData.values.fold(0.0, (m, v) => v > m ? v : m);
     final accent = Theme.of(context).colorScheme.primary;
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     return SizedBox(
       height: 160,
@@ -730,9 +733,9 @@ class _WeeklyBarChart extends StatelessWidget {
                 reservedSize: 28,
                 getTitlesWidget: (v, _) {
                   final idx = v.toInt();
-                  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                  final day = today.subtract(Duration(days: 6 - idx));
                   return Text(
-                    days[idx],
+                    dayNames[day.weekday - 1],
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
                       color: Theme.of(context)
@@ -748,12 +751,12 @@ class _WeeklyBarChart extends StatelessWidget {
           gridData: const FlGridData(show: false),
           borderData: FlBorderData(show: false),
           barGroups: List.generate(7, (i) {
-            final isToday = i == (now.weekday - 1);
+            final isToday = i == 6;
             return BarChartGroupData(
               x: i,
               barRods: [
                 BarChartRodData(
-                  toY: weeklyData[i] ?? 0.0,
+                  toY: dailyData[i] ?? 0.0,
                   width: 14,
                   color: isToday ? accent : accent.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(4),

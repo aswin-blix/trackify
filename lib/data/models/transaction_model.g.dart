@@ -22,7 +22,7 @@ class TransactionModelAdapter extends TypeAdapter<TransactionModel> {
       type: fields[2] as TransactionType,
       categoryId: fields[3] as String,
       note: fields[4] as String,
-      tags: (fields[5] as List).cast<String>(),
+      tags: (fields[5] as List?)?.cast<String>(),
       date: fields[6] as DateTime,
       receiptImagePath: fields[7] as String?,
       isFromSms: fields[8] as bool,

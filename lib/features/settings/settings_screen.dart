@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:local_auth/local_auth.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/services/notification_service.dart';
+import '../../core/utils/app_logger.dart';
 import '../../shared/providers/app_providers.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -113,11 +115,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: 'Daily Reminder',
                     subtitle: 'Get reminded to log expenses',
                     value: settings.notificationEnabled,
-                    onChanged: (v) => notifier.setNotificationSettings(
-                      enabled: v,
-                      hour: settings.notificationHour,
-                      minute: settings.notificationMinute,
-                    ),
+                    onChanged: (v) => _toggleNotification(context, v),
                   ),
                   if (settings.notificationEnabled) ...[
                     _SettingsDivider(),
@@ -445,6 +443,52 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _toggleNotification(BuildContext context, bool enable) async {
+    final settings = ref.read(settingsProvider);
+    if (enable) {
+      final granted = await NotificationService.instance.requestPermission();
+      if (!granted) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Notification permission denied. Please enable it in app settings.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+      await ref.read(settingsProvider.notifier).setNotificationSettings(
+        enabled: true,
+        hour: settings.notificationHour,
+        minute: settings.notificationMinute,
+      );
+      await NotificationService.instance.scheduleDailyReminder(
+        hour: settings.notificationHour,
+        minute: settings.notificationMinute,
+      );
+      AppLogger.i('Settings', 'Daily reminder enabled at ${settings.notificationHour}:${settings.notificationMinute}');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Reminder set for ${settings.notificationHour.toString().padLeft(2, '0')}:${settings.notificationMinute.toString().padLeft(2, '0')} daily',
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } else {
+      await ref.read(settingsProvider.notifier).setNotificationSettings(
+        enabled: false,
+        hour: settings.notificationHour,
+        minute: settings.notificationMinute,
+      );
+      await NotificationService.instance.cancelDailyReminder();
+      AppLogger.i('Settings', 'Daily reminder disabled');
+    }
+  }
+
   Future<void> _pickTime(BuildContext context, int hour, int minute) async {
     final result = await showTimePicker(
       context: context,
@@ -452,11 +496,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
     if (result != null) {
       final settings = ref.read(settingsProvider);
-      ref.read(settingsProvider.notifier).setNotificationSettings(
+      await ref.read(settingsProvider.notifier).setNotificationSettings(
         enabled: settings.notificationEnabled,
         hour: result.hour,
         minute: result.minute,
       );
+      // Reschedule with the new time if enabled
+      if (settings.notificationEnabled) {
+        await NotificationService.instance.scheduleDailyReminder(
+          hour: result.hour,
+          minute: result.minute,
+        );
+        AppLogger.i('Settings', 'Reminder time updated to ${result.hour}:${result.minute}');
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Reminder updated to ${result.hour.toString().padLeft(2, '0')}:${result.minute.toString().padLeft(2, '0')} daily',
+              ),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
     }
   }
 
