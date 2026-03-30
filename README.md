@@ -186,5 +186,5 @@ Distributed under the MIT License. See [LICENSE](LICENSE) for details.
 ---
 
 <div align="center">
-Made with ❤️ by <a href="https://github.com/aswin-blix">Aswin Blix</a>
+Made with ❤️ by <a href="https://github.com/aswin-blix">Aswin Blix</a> &amp; <a href="https://claude.ai/code">Claude Code</a> &amp; Antigravity
 </div>
