@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
@@ -38,7 +37,15 @@ class NotificationService {
 
       const androidSettings =
           AndroidInitializationSettings('@mipmap/ic_launcher');
-      const initSettings = InitializationSettings(android: androidSettings);
+      const iosSettings = DarwinInitializationSettings(
+        requestSoundPermission: false,
+        requestBadgePermission: false,
+        requestAlertPermission: false,
+      );
+      const initSettings = InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      );
 
       await _plugin.initialize(
         initSettings,
@@ -58,6 +65,25 @@ class NotificationService {
   Future<bool> requestPermission() async {
     try {
       final status = await Permission.notification.request();
+      
+      // Request iOS specific permissions explicitly
+      final iosImplementation = _plugin.resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>();
+      if (iosImplementation != null) {
+        await iosImplementation.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+      }
+
+      if (status.isGranted) {
+        // Request Alarms & Reminders permission on Android 14+
+        final alarmStatus = await Permission.scheduleExactAlarm.status;
+        if (!alarmStatus.isGranted) {
+          await Permission.scheduleExactAlarm.request();
+        }
+      }
       AppLogger.i('NotificationService', 'Notification permission: $status');
       return status.isGranted;
     } catch (e, stack) {
@@ -77,51 +103,60 @@ class NotificationService {
   }) async {
     if (!_initialized) await init();
 
+    // Cancel existing before rescheduling
+    await _plugin.cancel(kDailyReminderNotifId);
+
+    // Request permission if not granted
+    final granted = await hasPermission();
+    if (!granted) {
+      final result = await requestPermission();
+      if (!result) {
+        AppLogger.w('NotificationService', 'Notification permission denied — reminder not scheduled');
+        return;
+      }
+    }
+
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduled = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      hour,
+      minute,
+    );
+
+    // If the time has already passed today, schedule for tomorrow
+    if (scheduled.isBefore(now)) {
+      scheduled = scheduled.add(const Duration(days: 1));
+    }
+
+    const androidDetails = AndroidNotificationDetails(
+      'trackify_daily_reminder',
+      'Daily Reminder',
+      channelDescription: 'Reminds you to log your daily expenses',
+      importance: Importance.max,
+      priority: Priority.max,
+      icon: '@mipmap/ic_launcher',
+      enableVibration: true,
+      playSound: true,
+      fullScreenIntent: true,
+      category: AndroidNotificationCategory.reminder,
+      visibility: NotificationVisibility.public,
+    );
+
+    const iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
     try {
-      // Cancel existing before rescheduling
-      await _plugin.cancel(kDailyReminderNotifId);
-
-      // Request permission if not granted
-      final granted = await hasPermission();
-      if (!granted) {
-        final result = await requestPermission();
-        if (!result) {
-          AppLogger.w('NotificationService', 'Notification permission denied — reminder not scheduled');
-          return;
-        }
-      }
-
-      final now = tz.TZDateTime.now(tz.local);
-      var scheduled = tz.TZDateTime(
-        tz.local,
-        now.year,
-        now.month,
-        now.day,
-        hour,
-        minute,
-      );
-
-      // If the time has already passed today, schedule for tomorrow
-      if (scheduled.isBefore(now)) {
-        scheduled = scheduled.add(const Duration(days: 1));
-      }
-
-      const androidDetails = AndroidNotificationDetails(
-        'trackify_daily_reminder',
-        'Daily Reminder',
-        channelDescription: 'Reminds you to log your daily expenses',
-        importance: Importance.max,
-        priority: Priority.max,
-        icon: '@mipmap/ic_launcher',
-        enableVibration: true,
-        playSound: true,
-        fullScreenIntent: true,
-        category: AndroidNotificationCategory.reminder,
-        visibility: NotificationVisibility.public,
-      );
-
-      const details = NotificationDetails(android: androidDetails);
-
       await _plugin.zonedSchedule(
         kDailyReminderNotifId,
         '💰 Time to log your expenses!',
@@ -138,8 +173,25 @@ class NotificationService {
         'NotificationService',
         'Daily reminder scheduled at $hour:${minute.toString().padLeft(2, '0')} (next: $scheduled)',
       );
-    } catch (e, stack) {
-      AppLogger.e('NotificationService', 'Failed to schedule daily reminder', e, stack);
+    } catch (e) {
+      AppLogger.w('NotificationService', 'Exact alarm failed (likely blocked by Android 14). Falling back to inexact alarm.');
+      
+      try {
+        await _plugin.zonedSchedule(
+          kDailyReminderNotifId,
+          '💰 Time to log your expenses!',
+          'Keep your finances on track — it only takes a minute.',
+          scheduled,
+          details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          matchDateTimeComponents: DateTimeComponents.time,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+        );
+        AppLogger.i('NotificationService', 'Fallback inexact alarm scheduled successfully.');
+      } catch (fallbackErr) {
+        AppLogger.e('NotificationService', 'Even fallback alarm failed', fallbackErr);
+      }
     }
   }
 
@@ -169,7 +221,15 @@ class NotificationService {
         fullScreenIntent: true,
         visibility: NotificationVisibility.public,
       );
-      const details = NotificationDetails(android: androidDetails);
+      const iosDetails = DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+      const details = NotificationDetails(
+        android: androidDetails,
+        iOS: iosDetails,
+      );
       await _plugin.show(
         kDailyReminderNotifId + 1,
         '🚀 Immediate Test Alert',

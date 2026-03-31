@@ -283,8 +283,10 @@ class _PeriodTabs extends StatelessWidget {
         controller: controller,
         indicator: BoxDecoration(
           color: Theme.of(context).colorScheme.primary,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(50),
         ),
+        indicatorSize: TabBarIndicatorSize.tab,
+        indicatorPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
         labelColor: Colors.white,
         unselectedLabelColor:
             Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
@@ -323,6 +325,14 @@ class _SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GlassCard(
       padding: const EdgeInsets.all(16),
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          color.withValues(alpha: 0.15),
+          color.withValues(alpha: 0.05),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

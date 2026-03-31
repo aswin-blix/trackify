@@ -185,7 +185,7 @@ class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
     final now = DateTime.now();
     return _repo.getTotalIncome(
       from: DateTime(now.year, now.month, 1),
-      to: DateTime(now.year, now.month + 1, 0),
+      to: DateTime(now.year, now.month + 1, 0, 23, 59, 59),
     );
   }
 
@@ -193,7 +193,7 @@ class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
     final now = DateTime.now();
     return _repo.getTotalExpense(
       from: DateTime(now.year, now.month, 1),
-      to: DateTime(now.year, now.month + 1, 0),
+      to: DateTime(now.year, now.month + 1, 0, 23, 59, 59),
     );
   }
 }
