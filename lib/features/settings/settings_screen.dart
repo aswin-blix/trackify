@@ -8,6 +8,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/utils/app_logger.dart';
 import '../../shared/providers/app_providers.dart';
+import '../categories/manage_categories_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -98,6 +99,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: 'Currency',
                     subtitle: '${settings.currencySymbol} ${settings.currency}',
                     onTap: () => _pickCurrency(context),
+                  ),
+                  _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.category_rounded,
+                    iconColor: const Color(0xFFFF8E53),
+                    title: 'Categories',
+                    subtitle: 'Add, edit or remove categories',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ManageCategoriesScreen(),
+                      ),
+                    ),
                   ),
                 ],
               ).animate(delay: 100.ms).fadeIn(duration: 350.ms),

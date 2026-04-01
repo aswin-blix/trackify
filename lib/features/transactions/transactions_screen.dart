@@ -6,6 +6,7 @@ import '../../core/utils/formatters.dart';
 import '../../data/models/transaction_model.dart';
 import '../../shared/providers/app_providers.dart';
 import '../../shared/widgets/transaction_tile.dart';
+import 'add_transaction_screen.dart';
 
 class TransactionsScreen extends ConsumerStatefulWidget {
   final VoidCallback onAddTransaction;
@@ -216,17 +217,12 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
   }
 }
 
-// Proxy to avoid circular import — just navigates
 class AddTransactionSheetProxy extends StatelessWidget {
   final TransactionModel existingTransaction;
   const AddTransactionSheetProxy({super.key, required this.existingTransaction});
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: Text('Edit: ${existingTransaction.id}'),
-    );
+    return AddTransactionScreen(existingTransaction: existingTransaction);
   }
 }
 

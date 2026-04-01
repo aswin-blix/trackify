@@ -11,6 +11,7 @@ import '../../data/models/transaction_model.dart';
 import '../../data/models/category_model.dart';
 import '../../shared/providers/app_providers.dart';
 import '../../shared/widgets/glass_card.dart';
+import '../categories/manage_categories_screen.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
   final TransactionModel? existingTransaction;
@@ -577,13 +578,41 @@ class _CategoryPicker extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            'Category',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Category',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => const ManageCategoriesScreen(),
+                  ));
+                },
+                child: Row(
+                  children: [
+                    Icon(Icons.tune_rounded,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Manage',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
@@ -593,8 +622,61 @@ class _CategoryPicker extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 20),
             physics: const BouncingScrollPhysics(),
-            itemCount: categories.length,
+            // +1 for the "Add Category" button at end
+            itemCount: categories.length + 1,
             itemBuilder: (ctx, i) {
+              // Last item: "Add" button
+              if (i == categories.length) {
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const ManageCategoriesScreen(),
+                    ));
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.12),
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_rounded,
+                            size: 24,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.4)),
+                        const SizedBox(height: 4),
+                        Text(
+                          'New',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
               final cat = categories[i];
               final isSelected = cat.id == selectedId;
               return GestureDetector(
