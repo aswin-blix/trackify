@@ -52,9 +52,21 @@ const List<Map<String, String>> kCurrencies = [
 
 // ─── Known Bank SMS Senders ───────────────────────────────────────────────────
 const List<String> kDefaultBankSenders = [
-  'HDFCBK', 'ICICIB', 'SBIINB', 'AXISBK', 'KOTAKB',
-  'INDUSB', 'YESBNK', 'PNBSMS', 'BOIIND', 'UNIONB',
-  'PAYTM', 'PHONEPE', 'GPAY', 'AMAZONP', 'CRED',
+  'HDFCBK',
+  'ICICIB',
+  'SBIINB',
+  'AXISBK',
+  'KOTAKB',
+  'INDUSB',
+  'YESBNK',
+  'PNBSMS',
+  'BOIIND',
+  'UNIONB',
+  'PAYTM',
+  'PHONEPE',
+  'GPAY',
+  'AMAZONP',
+  'CRED',
 ];
 
 // ─── Notification IDs ─────────────────────────────────────────────────────────

@@ -18,7 +18,8 @@ class AppTheme {
         onSecondary: Colors.white,
         onSurface: DarkColors.textPrimary,
       ),
-      textTheme: _buildTextTheme(DarkColors.textPrimary, DarkColors.textSecondary),
+      textTheme:
+          _buildTextTheme(DarkColors.textPrimary, DarkColors.textSecondary),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -34,7 +35,8 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: DarkColors.accent,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           textStyle: GoogleFonts.plusJakartaSans(
             fontWeight: FontWeight.w700,
@@ -87,7 +89,8 @@ class AppTheme {
         onSecondary: Colors.white,
         onSurface: LightColors.textPrimary,
       ),
-      textTheme: _buildTextTheme(LightColors.textPrimary, LightColors.textSecondary),
+      textTheme:
+          _buildTextTheme(LightColors.textPrimary, LightColors.textSecondary),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -103,7 +106,8 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: LightColors.accent,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           textStyle: GoogleFonts.plusJakartaSans(
             fontWeight: FontWeight.w700,
@@ -118,7 +122,8 @@ class AppTheme {
         LightColors.textSecondary,
         LightColors.accent,
       ),
-      dividerTheme: const DividerThemeData(color: LightColors.divider, space: 1),
+      dividerTheme:
+          const DividerThemeData(color: LightColors.divider, space: 1),
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: Color(0xFFF8FAFF),
         modalBackgroundColor: Color(0xFFF8FAFF),

@@ -75,7 +75,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: isDark ? darkBackgroundGradient() : lightBackgroundGradient(),
+          gradient:
+              isDark ? darkBackgroundGradient() : lightBackgroundGradient(),
         ),
         child: SafeArea(
           child: Column(
@@ -167,8 +168,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _nextPage,
-                        child: Text(
-                            _currentPage < 2 ? 'Continue' : 'Get Started'),
+                        child:
+                            Text(_currentPage < 2 ? 'Continue' : 'Get Started'),
                       ),
                     ),
                   ],
@@ -210,7 +211,10 @@ class _WelcomePage extends StatelessWidget {
               size: 42,
               color: Colors.white,
             ),
-          ).animate().scale(begin: const Offset(0.4, 0.4), duration: 600.ms, curve: Curves.elasticOut),
+          ).animate().scale(
+              begin: const Offset(0.4, 0.4),
+              duration: 600.ms,
+              curve: Curves.elasticOut),
           const SizedBox(height: 32),
           Text(
             'Welcome to Trackify',
@@ -226,7 +230,10 @@ class _WelcomePage extends StatelessWidget {
             'Take control of your finances with beautiful, private expense tracking.',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 15,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.6),
               height: 1.6,
             ),
             textAlign: TextAlign.center,
@@ -306,8 +313,10 @@ class _BudgetPage extends StatelessWidget {
             'Set a monthly spending goal and preferred currency.',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 15,
-              color:
-                  Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.6),
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -346,8 +355,7 @@ class _BudgetPage extends StatelessWidget {
                           ))
                       .toList(),
                   onChanged: (code) {
-                    final cur = kCurrencies.firstWhere(
-                        (c) => c['code'] == code,
+                    final cur = kCurrencies.firstWhere((c) => c['code'] == code,
                         orElse: () => kCurrencies.first);
                     onCurrencyChanged(cur['code']!, cur['symbol']!);
                   },
@@ -431,8 +439,10 @@ class _PermissionsPage extends StatelessWidget {
             'Enable reminders and optionally let Trackify scan your bank SMS — all stays on your device.',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 15,
-              color:
-                  Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.6),
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -455,7 +465,8 @@ class _PermissionsPage extends StatelessWidget {
                   icon: Icons.sms_rounded,
                   iconColor: const Color(0xFF00B894),
                   title: 'Bank SMS Reader',
-                  subtitle: 'Auto-detect transactions from bank messages. Stays 100% local.',
+                  subtitle:
+                      'Auto-detect transactions from bank messages. Stays 100% local.',
                   value: smsEnabled,
                   onChanged: onSmsChanged,
                 ),

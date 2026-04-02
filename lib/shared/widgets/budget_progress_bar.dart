@@ -31,9 +31,8 @@ class _BudgetProgressBarState extends State<BudgetProgressBar>
   late Animation<double> _fillAnimation;
   late Animation<Color?> _colorAnimation;
 
-  double get _ratio => widget.budget > 0
-      ? (widget.spent / widget.budget).clamp(0.0, 1.0)
-      : 0;
+  double get _ratio =>
+      widget.budget > 0 ? (widget.spent / widget.budget).clamp(0.0, 1.0) : 0;
 
   Color get _targetColor {
     if (_ratio >= 0.85) return const Color(0xFFE8365D);
@@ -112,7 +111,8 @@ class _BudgetProgressBarState extends State<BudgetProgressBar>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE8365D).withValues(alpha: 0.15),
+                          color:
+                              const Color(0xFFE8365D).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -133,7 +133,10 @@ class _BudgetProgressBarState extends State<BudgetProgressBar>
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.6),
                   ),
                 ),
               ],
@@ -196,6 +199,7 @@ class _BudgetProgressBarState extends State<BudgetProgressBar>
     )
         .animate(delay: Duration(milliseconds: widget.animationDelay))
         .fadeIn(duration: 400.ms)
-        .slideX(begin: -0.1, end: 0, duration: 400.ms, curve: Curves.easeOutExpo);
+        .slideX(
+            begin: -0.1, end: 0, duration: 400.ms, curve: Curves.easeOutExpo);
   }
 }

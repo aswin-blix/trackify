@@ -33,7 +33,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    final dayOfYear = DateTime.now().difference(DateTime(DateTime.now().year)).inDays;
+    final dayOfYear =
+        DateTime.now().difference(DateTime(DateTime.now().year)).inDays;
     _tipOfDay = allTips[dayOfYear % allTips.length].text;
   }
 
@@ -50,9 +51,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final monthlyIncome = txNotifier.thisMonthIncome;
     final monthlyExpense = txNotifier.thisMonthExpense;
     final balance = monthlyIncome - monthlyExpense;
-    final budgetRatio = settings.monthlyBudget != null && settings.monthlyBudget! > 0
-        ? (monthlyExpense / settings.monthlyBudget!).clamp(0.0, 1.0)
-        : 0.0;
+    final budgetRatio =
+        settings.monthlyBudget != null && settings.monthlyBudget! > 0
+            ? (monthlyExpense / settings.monthlyBudget!).clamp(0.0, 1.0)
+            : 0.0;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = Theme.of(context).colorScheme.primary;
@@ -73,7 +75,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         end: Alignment.bottomRight,
                         colors: [
                           accent.withValues(alpha: 0.13),
-                          Theme.of(context).colorScheme.secondary.withValues(alpha: 0.07),
+                          Theme.of(context)
+                              .colorScheme
+                              .secondary
+                              .withValues(alpha: 0.07),
                         ],
                       ),
                       borderRadius: const BorderRadius.vertical(
@@ -109,7 +114,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w800,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                             ],
@@ -137,10 +143,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             ),
                         ],
                       ),
-                    )
-                        .animate(delay: 0.ms)
-                        .fadeIn(duration: 400.ms)
-                        .slideY(begin: -0.3, end: 0, duration: 400.ms, curve: Curves.easeOutExpo),
+                    ).animate(delay: 0.ms).fadeIn(duration: 400.ms).slideY(
+                        begin: -0.3,
+                        end: 0,
+                        duration: 400.ms,
+                        curve: Curves.easeOutExpo),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                       child: _BalanceCard(
@@ -151,10 +158,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         currencySymbol: symbol,
                         monthlyBudget: settings.monthlyBudget,
                       ),
-                    )
-                        .animate(delay: 60.ms)
-                        .fadeIn(duration: 500.ms)
-                        .scale(
+                    ).animate(delay: 60.ms).fadeIn(duration: 500.ms).scale(
                           begin: const Offset(0.92, 0.92),
                           end: const Offset(1, 1),
                           duration: 500.ms,
@@ -171,9 +175,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
               child: _QuickActions(onAddTransaction: widget.onAddTransaction),
-            )
-                .animate(delay: 240.ms)
-                .fadeIn(duration: 400.ms),
+            ).animate(delay: 240.ms).fadeIn(duration: 400.ms),
           ),
 
           // Mini bar chart
@@ -183,13 +185,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               child: GlassCard(
                 padding: const EdgeInsets.all(16),
                 child: _MiniBarChart(
-                  transactions: ref.read(transactionRepoProvider).getLast7Days(),
+                  transactions:
+                      ref.read(transactionRepoProvider).getLast7Days(),
                   currencySymbol: symbol,
                 ),
               ),
-            )
-                .animate(delay: 400.ms)
-                .fadeIn(duration: 400.ms),
+            ).animate(delay: 400.ms).fadeIn(duration: 400.ms),
           ),
 
           // Recent transactions
@@ -198,9 +199,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               title: 'Recent Transactions',
               actionLabel: 'See All',
               onAction: widget.onViewAllTransactions,
-            )
-                .animate(delay: 300.ms)
-                .fadeIn(duration: 400.ms),
+            ).animate(delay: 300.ms).fadeIn(duration: 400.ms),
           ),
 
           if (recent.isEmpty)
@@ -231,10 +230,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
               child: _TipCard(tip: _tipOfDay),
-            )
-                .animate(delay: 500.ms)
-                .fadeIn(duration: 400.ms)
-                .rotate(begin: 0.03, end: 0, duration: 500.ms, curve: Curves.easeOutExpo),
+            ).animate(delay: 500.ms).fadeIn(duration: 400.ms).rotate(
+                begin: 0.03,
+                end: 0,
+                duration: 500.ms,
+                curve: Curves.easeOutExpo),
           ),
         ],
       ),
@@ -317,7 +317,10 @@ class _BalanceCard extends StatelessWidget {
             'This Month',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.6),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -338,7 +341,8 @@ class _BalanceCard extends StatelessWidget {
                 child: _IncomeExpenseItem(
                   label: 'Income',
                   value: income,
-                  color: isDark ? DarkColors.incomeGreen : LightColors.incomeGreen,
+                  color:
+                      isDark ? DarkColors.incomeGreen : LightColors.incomeGreen,
                   icon: Icons.arrow_downward_rounded,
                   currencySymbol: currencySymbol,
                 ),
@@ -348,7 +352,8 @@ class _BalanceCard extends StatelessWidget {
                 child: _IncomeExpenseItem(
                   label: 'Expense',
                   value: expense,
-                  color: isDark ? DarkColors.expenseRed : LightColors.expenseRed,
+                  color:
+                      isDark ? DarkColors.expenseRed : LightColors.expenseRed,
                   icon: Icons.arrow_upward_rounded,
                   currencySymbol: currencySymbol,
                 ),
@@ -475,10 +480,26 @@ class _QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final actions = [
-      (icon: Icons.remove_circle_outline_rounded, label: 'Expense', color: const Color(0xFFE8365D)),
-      (icon: Icons.add_circle_outline_rounded, label: 'Income', color: const Color(0xFF00B87C)),
-      (icon: Icons.swap_horiz_rounded, label: 'Transfer', color: const Color(0xFFFFB300)),
-      (icon: Icons.sms_rounded, label: 'Scan SMS', color: const Color(0xFF6C63FF)),
+      (
+        icon: Icons.remove_circle_outline_rounded,
+        label: 'Expense',
+        color: const Color(0xFFE8365D)
+      ),
+      (
+        icon: Icons.add_circle_outline_rounded,
+        label: 'Income',
+        color: const Color(0xFF00B87C)
+      ),
+      (
+        icon: Icons.swap_horiz_rounded,
+        label: 'Transfer',
+        color: const Color(0xFFFFB300)
+      ),
+      (
+        icon: Icons.sms_rounded,
+        label: 'Scan SMS',
+        color: const Color(0xFF6C63FF)
+      ),
     ];
 
     return Row(
@@ -513,9 +534,10 @@ class _QuickActions extends StatelessWidget {
                 ],
               ),
             ),
-          )
-              .animate(delay: Duration(milliseconds: 240 + i * 40))
-              .scale(begin: const Offset(0, 0), duration: 400.ms, curve: Curves.elasticOut),
+          ).animate(delay: Duration(milliseconds: 240 + i * 40)).scale(
+              begin: const Offset(0, 0),
+              duration: 400.ms,
+              curve: Curves.elasticOut),
         );
       }),
     );
@@ -588,9 +610,12 @@ class _MiniBarChart extends StatelessWidget {
               ),
               titlesData: FlTitlesData(
                 show: true,
-                leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                leftTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles:
+                    const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
@@ -624,8 +649,8 @@ class _MiniBarChart extends StatelessWidget {
                     BarChartRodData(
                       toY: val,
                       width: 18,
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(6)),
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(6)),
                       gradient: LinearGradient(
                         colors: isToday
                             ? [accent.withValues(alpha: 0.8), accent]
@@ -677,7 +702,8 @@ class _TipCard extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.lightbulb_rounded, color: Colors.white, size: 20),
+            child: const Icon(Icons.lightbulb_rounded,
+                color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -697,7 +723,10 @@ class _TipCard extends StatelessWidget {
                   tip,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.8),
                     height: 1.4,
                   ),
                 ),
@@ -725,7 +754,8 @@ class _EmptyState extends StatelessWidget {
           Icon(
             Icons.receipt_long_outlined,
             size: 64,
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
           ),
           const SizedBox(height: 16),
           Text(
@@ -733,7 +763,10 @@ class _EmptyState extends StatelessWidget {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.4),
             ),
           ),
           const SizedBox(height: 8),
@@ -741,7 +774,10 @@ class _EmptyState extends StatelessWidget {
             'Tap + to add your first transaction',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.3),
             ),
           ),
           const SizedBox(height: 24),
@@ -817,7 +853,10 @@ class _TransactionDetail extends StatelessWidget {
               AppFormatters.formatDateTime(transaction.date),
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 13,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.5),
               ),
             ),
             if (transaction.note.isNotEmpty) ...[

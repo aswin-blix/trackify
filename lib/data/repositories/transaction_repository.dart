@@ -4,7 +4,8 @@ import '../models/transaction_model.dart';
 import '../../core/constants/app_constants.dart';
 
 class TransactionRepository {
-  Box<TransactionModel> get _box => Hive.box<TransactionModel>(kTransactionsBox);
+  Box<TransactionModel> get _box =>
+      Hive.box<TransactionModel>(kTransactionsBox);
 
   List<TransactionModel> getAll() {
     final list = _box.values.toList();
@@ -69,29 +70,27 @@ class TransactionRepository {
   }
 
   double getTotalIncome({DateTime? from, DateTime? to}) {
-    final transactions = from != null && to != null
-        ? getByDateRange(from, to)
-        : getAll();
+    final transactions =
+        from != null && to != null ? getByDateRange(from, to) : getAll();
     return transactions
         .where((t) => t.type == TransactionType.income)
         .fold(0.0, (sum, t) => sum + t.amount);
   }
 
   double getTotalExpense({DateTime? from, DateTime? to}) {
-    final transactions = from != null && to != null
-        ? getByDateRange(from, to)
-        : getAll();
+    final transactions =
+        from != null && to != null ? getByDateRange(from, to) : getAll();
     return transactions
         .where((t) => t.type == TransactionType.expense)
         .fold(0.0, (sum, t) => sum + t.amount);
   }
 
   Map<String, double> getExpenseByCategory({DateTime? from, DateTime? to}) {
-    final transactions = from != null && to != null
-        ? getByDateRange(from, to)
-        : getThisMonth();
+    final transactions =
+        from != null && to != null ? getByDateRange(from, to) : getThisMonth();
     final result = <String, double>{};
-    for (final t in transactions.where((t) => t.type == TransactionType.expense)) {
+    for (final t
+        in transactions.where((t) => t.type == TransactionType.expense)) {
       result[t.categoryId] = (result[t.categoryId] ?? 0) + t.amount;
     }
     return result;

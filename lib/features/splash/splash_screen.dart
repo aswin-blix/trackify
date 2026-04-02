@@ -112,7 +112,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         ),
         child: Container(
           decoration: BoxDecoration(
-            gradient: isDark ? darkBackgroundGradient() : lightBackgroundGradient(),
+            gradient:
+                isDark ? darkBackgroundGradient() : lightBackgroundGradient(),
           ),
           child: Stack(
             children: [
@@ -157,7 +158,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                               fontWeight: FontWeight.w500,
                               color: isDark
                                   ? Colors.white.withValues(alpha: 0.6)
-                                  : const Color(0xFF1A1A2E).withValues(alpha: 0.6),
+                                  : const Color(0xFF1A1A2E)
+                                      .withValues(alpha: 0.6),
                               height: 1.5,
                             ),
                           ),

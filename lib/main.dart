@@ -82,7 +82,8 @@ void main() async {
   final settingsBox = Hive.box<AppSettings>(kSettingsBox);
   final savedSettings = settingsBox.get('app_settings');
   if (savedSettings != null && savedSettings.notificationEnabled) {
-    AppLogger.i('main', 'Rescheduling daily reminder at ${savedSettings.notificationHour}:${savedSettings.notificationMinute}');
+    AppLogger.i('main',
+        'Rescheduling daily reminder at ${savedSettings.notificationHour}:${savedSettings.notificationMinute}');
     await NotificationService.instance.scheduleDailyReminder(
       hour: savedSettings.notificationHour,
       minute: savedSettings.notificationMinute,

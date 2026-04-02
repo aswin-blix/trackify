@@ -23,8 +23,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
   void initState() {
     super.initState();
     // Auto-trigger on first display
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _authenticate());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _authenticate());
   }
 
   Future<void> _authenticate() async {
@@ -40,7 +39,8 @@ class _AppLockScreenState extends State<AppLockScreen> {
 
       if (!canCheck && !isDeviceSupported) {
         setState(() {
-          _errorMessage = 'Biometric authentication not available on this device.';
+          _errorMessage =
+              'Biometric authentication not available on this device.';
           _authenticating = false;
         });
         return;
@@ -94,16 +94,14 @@ class _AppLockScreenState extends State<AppLockScreen> {
                     width: 90,
                     height: 90,
                     decoration: BoxDecoration(
-                      gradient: isDark
-                          ? accentGradientDark()
-                          : accentGradientLight(),
+                      gradient:
+                          isDark ? accentGradientDark() : accentGradientLight(),
                       borderRadius: BorderRadius.circular(26),
                       boxShadow: [
                         BoxShadow(
-                          color: (isDark
-                                  ? DarkColors.accent
-                                  : LightColors.accent)
-                              .withValues(alpha: 0.4),
+                          color:
+                              (isDark ? DarkColors.accent : LightColors.accent)
+                                  .withValues(alpha: 0.4),
                           blurRadius: 30,
                           offset: const Offset(0, 10),
                         ),

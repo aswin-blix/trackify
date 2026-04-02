@@ -102,7 +102,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
               onPressed: () => Navigator.pop(ctx, false),
               child: const Text('Cancel')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE8365D)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFE8365D)),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Restore'),
           ),
@@ -145,7 +146,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF6C63FF).withValues(alpha: 0.15),
+                              color: const Color(0xFF6C63FF)
+                                  .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(Icons.backup_rounded,
@@ -206,7 +208,9 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                                           strokeWidth: 2, color: Colors.white),
                                     )
                                   : const Icon(Icons.save_rounded),
-                              label: Text(_isBackingUp ? 'Backing up...' : 'Backup Now'),
+                              label: Text(_isBackingUp
+                                  ? 'Backing up...'
+                                  : 'Backup Now'),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -241,7 +245,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0984E3).withValues(alpha: 0.15),
+                              color: const Color(0xFF0984E3)
+                                  .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(Icons.restore_rounded,
@@ -281,11 +286,13 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                               ? const SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
                                 )
                               : const Icon(Icons.folder_open_rounded),
-                          label: Text(
-                              _isRestoring ? 'Restoring...' : 'Choose Backup File'),
+                          label: Text(_isRestoring
+                              ? 'Restoring...'
+                              : 'Choose Backup File'),
                         ),
                       ),
                     ],
@@ -336,8 +343,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete_outline_rounded,
-                                  size: 18,
-                                  color: Color(0xFFE8365D)),
+                                  size: 18, color: Color(0xFFE8365D)),
                               onPressed: () async {
                                 await ref
                                     .read(backupRepoProvider)

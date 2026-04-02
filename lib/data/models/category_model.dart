@@ -51,7 +51,8 @@ class CategoryModel extends HiveObject {
     this.sortOrder = 0,
   });
 
-  Color get color => Color(int.parse(colorHex.replaceFirst('#', 'FF'), radix: 16));
+  Color get color =>
+      Color(int.parse(colorHex.replaceFirst('#', 'FF'), radix: 16));
 
   IconData get icon => IconData(iconCodePoint, fontFamily: 'MaterialIcons');
 

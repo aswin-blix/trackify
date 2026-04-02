@@ -129,9 +129,8 @@ class AppSettings extends HiveObject {
       notificationHour: json['notificationHour'] as int? ?? 21,
       notificationMinute: json['notificationMinute'] as int? ?? 0,
       smsReaderEnabled: json['smsReaderEnabled'] as bool? ?? false,
-      knownSenderIds:
-          (json['knownSenderIds'] as List?)?.cast<String>() ??
-              List.from(kDefaultBankSenders),
+      knownSenderIds: (json['knownSenderIds'] as List?)?.cast<String>() ??
+          List.from(kDefaultBankSenders),
       autoBackupEnabled: json['autoBackupEnabled'] as bool? ?? false,
       autoBackupHour: json['autoBackupHour'] as int? ?? 23,
       autoBackupMinute: json['autoBackupMinute'] as int? ?? 0,

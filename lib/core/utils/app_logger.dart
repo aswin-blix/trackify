@@ -18,7 +18,8 @@ class AppLogger {
     }
   }
 
-  static void e(String tag, String message, [Object? error, StackTrace? stack]) {
+  static void e(String tag, String message,
+      [Object? error, StackTrace? stack]) {
     // Always print errors — even in release (visible in logcat/crash logs)
     debugPrint('[ERROR] [$tag] $message');
     if (error != null) debugPrint('[ERROR] [$tag] $error');

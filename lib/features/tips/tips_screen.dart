@@ -52,7 +52,8 @@ class _TipsScreenState extends ConsumerState<TipsScreen>
                     ),
                   ),
                   IconButton(
-                    onPressed: () => setState(() => _showFavorites = !_showFavorites),
+                    onPressed: () =>
+                        setState(() => _showFavorites = !_showFavorites),
                     icon: Icon(
                       _showFavorites ? Icons.bookmark : Icons.bookmark_outline,
                       color: _showFavorites
@@ -272,7 +273,8 @@ class _TipCard extends StatelessWidget {
     )
         .animate(delay: Duration(milliseconds: index * 40))
         .fadeIn(duration: 350.ms)
-        .slideY(begin: 0.1, end: 0, duration: 350.ms, curve: Curves.easeOutExpo);
+        .slideY(
+            begin: 0.1, end: 0, duration: 350.ms, curve: Curves.easeOutExpo);
   }
 }
 

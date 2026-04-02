@@ -53,8 +53,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       onTap: _pickAvatar,
                       child: CircleAvatar(
                         radius: 24,
-                        backgroundColor:
-                            Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.15),
                         child: settings.avatarPath != null
                             ? null
                             : Icon(Icons.person_rounded,
@@ -148,10 +150,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       title: 'Test Live Alert',
                       subtitle: 'Verify if OxygenOS is blocking alerts',
                       onTap: () async {
-                        await NotificationService.instance.showTestNotification();
+                        await NotificationService.instance
+                            .showTestNotification();
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Test sent! If it fails, check App Info permissions.')),
+                            const SnackBar(
+                                content: Text(
+                                    'Test sent! If it fails, check App Info permissions.')),
                           );
                         }
                       },
@@ -216,8 +221,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     iconColor: const Color(0xFF6C63FF),
                     title: 'Backup & Restore',
                     subtitle: 'Manage backups',
-                    onTap: () =>
-                        Navigator.of(context).pushNamed('/backup'),
+                    onTap: () => Navigator.of(context).pushNamed('/backup'),
                   ),
                 ],
               ).animate(delay: 180.ms).fadeIn(duration: 350.ms),
@@ -317,7 +321,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('SMS permission denied. Please grant it in app settings.'),
+              content: Text(
+                  'SMS permission denied. Please grant it in app settings.'),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -350,7 +355,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Biometric authentication not supported on this device.'),
+              content: Text(
+                  'Biometric authentication not supported on this device.'),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -393,8 +399,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _editName(BuildContext context) async {
-    final ctrl = TextEditingController(
-        text: ref.read(settingsProvider).userName);
+    final ctrl =
+        TextEditingController(text: ref.read(settingsProvider).userName);
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -403,13 +409,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         content: TextField(controller: ctrl, autofocus: true),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
-              ref
-                  .read(settingsProvider.notifier)
-                  .setUserName(ctrl.text.trim());
+              ref.read(settingsProvider.notifier).setUserName(ctrl.text.trim());
               Navigator.pop(ctx);
             },
             child: const Text('Save'),
@@ -479,7 +482,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Notification permission denied. Please enable it in app settings.'),
+              content: Text(
+                  'Notification permission denied. Please enable it in app settings.'),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -487,15 +491,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         return;
       }
       await ref.read(settingsProvider.notifier).setNotificationSettings(
-        enabled: true,
-        hour: settings.notificationHour,
-        minute: settings.notificationMinute,
-      );
+            enabled: true,
+            hour: settings.notificationHour,
+            minute: settings.notificationMinute,
+          );
       await NotificationService.instance.scheduleDailyReminder(
         hour: settings.notificationHour,
         minute: settings.notificationMinute,
       );
-      AppLogger.i('Settings', 'Daily reminder enabled at ${settings.notificationHour}:${settings.notificationMinute}');
+      AppLogger.i('Settings',
+          'Daily reminder enabled at ${settings.notificationHour}:${settings.notificationMinute}');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -508,10 +513,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       }
     } else {
       await ref.read(settingsProvider.notifier).setNotificationSettings(
-        enabled: false,
-        hour: settings.notificationHour,
-        minute: settings.notificationMinute,
-      );
+            enabled: false,
+            hour: settings.notificationHour,
+            minute: settings.notificationMinute,
+          );
       await NotificationService.instance.cancelDailyReminder();
       AppLogger.i('Settings', 'Daily reminder disabled');
     }
@@ -525,17 +530,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (result != null) {
       final settings = ref.read(settingsProvider);
       await ref.read(settingsProvider.notifier).setNotificationSettings(
-        enabled: settings.notificationEnabled,
-        hour: result.hour,
-        minute: result.minute,
-      );
+            enabled: settings.notificationEnabled,
+            hour: result.hour,
+            minute: result.minute,
+          );
       // Reschedule with the new time if enabled
       if (settings.notificationEnabled) {
         await NotificationService.instance.scheduleDailyReminder(
           hour: result.hour,
           minute: result.minute,
         );
-        AppLogger.i('Settings', 'Reminder time updated to ${result.hour}:${result.minute}');
+        AppLogger.i('Settings',
+            'Reminder time updated to ${result.hour}:${result.minute}');
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -556,13 +562,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       builder: (ctx) => AlertDialog(
         title: Text('Clear All Data?',
             style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
-        content: const Text('This will permanently delete all transactions, categories, and settings.'),
+        content: const Text(
+            'This will permanently delete all transactions, categories, and settings.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
               child: const Text('Cancel')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE8365D)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFE8365D)),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete All'),
           ),
@@ -584,7 +592,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onPressed: () => Navigator.pop(ctx, false),
               child: const Text('Cancel')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE8365D)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFE8365D)),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Yes, delete everything'),
           ),
@@ -621,7 +630,9 @@ class _SectionCard extends StatelessWidget {
     return Container(
       margin: margin,
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white.withValues(alpha: 0.8),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: Colors.white.withValues(alpha: isDark ? 0.08 : 0.5),
@@ -724,7 +735,10 @@ class _SettingsTile extends StatelessWidget {
       trailing: onTap != null
           ? Icon(
               Icons.chevron_right_rounded,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.3),
             )
           : null,
       onTap: onTap,

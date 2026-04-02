@@ -71,9 +71,11 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen>
     final symbol = settings.currencySymbol;
     final range = _getRange();
 
-    final periodTxs = allTransactions.where((t) =>
-        t.date.isAfter(range.start.subtract(const Duration(seconds: 1))) &&
-        t.date.isBefore(range.end.add(const Duration(seconds: 1)))).toList();
+    final periodTxs = allTransactions
+        .where((t) =>
+            t.date.isAfter(range.start.subtract(const Duration(seconds: 1))) &&
+            t.date.isBefore(range.end.add(const Duration(seconds: 1))))
+        .toList();
 
     final totalIncome = periodTxs
         .where((t) => t.type == TransactionType.income)
@@ -239,7 +241,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _tabController.index == 0 ? 'Weekly Overview' : 'Monthly Overview',
+                        _tabController.index == 0
+                            ? 'Weekly Overview'
+                            : 'Monthly Overview',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -286,7 +290,8 @@ class _PeriodTabs extends StatelessWidget {
           borderRadius: BorderRadius.circular(50),
         ),
         indicatorSize: TabBarIndicatorSize.tab,
-        indicatorPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+        indicatorPadding:
+            const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
         labelColor: Colors.white,
         unselectedLabelColor:
             Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
@@ -566,8 +571,7 @@ class _CategoryBreakdownRowState extends State<_CategoryBreakdownRow>
                   child: LinearProgressIndicator(
                     value: _anim.value,
                     backgroundColor: widget.color.withValues(alpha: 0.1),
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(widget.color),
+                    valueColor: AlwaysStoppedAnimation<Color>(widget.color),
                     minHeight: 6,
                   ),
                 ),
@@ -585,8 +589,7 @@ class _MonthlyBarChart extends StatelessWidget {
   final List<TransactionModel> transactions;
   final String symbol;
 
-  const _MonthlyBarChart(
-      {required this.transactions, required this.symbol});
+  const _MonthlyBarChart({required this.transactions, required this.symbol});
 
   @override
   Widget build(BuildContext context) {
@@ -597,15 +600,13 @@ class _MonthlyBarChart extends StatelessWidget {
     }
     for (final t in transactions) {
       if (t.type == TransactionType.expense) {
-        final diff = (now.year - t.date.year) * 12 +
-            (now.month - t.date.month);
+        final diff = (now.year - t.date.year) * 12 + (now.month - t.date.month);
         if (diff >= 0 && diff < 6) {
           monthlyData[5 - diff] = (monthlyData[5 - diff] ?? 0) + t.amount;
         }
       }
     }
-    final maxVal =
-        monthlyData.values.fold(0.0, (m, v) => v > m ? v : m);
+    final maxVal = monthlyData.values.fold(0.0, (m, v) => v > m ? v : m);
     final accent = Theme.of(context).colorScheme.primary;
 
     return SizedBox(

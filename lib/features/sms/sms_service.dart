@@ -36,8 +36,8 @@ class SmsService {
         if (id.isEmpty || _repo.exists(id)) continue;
 
         final address = sms.address ?? '';
-        final isKnownSender = senderIds.any(
-            (s) => address.toUpperCase().contains(s.toUpperCase()));
+        final isKnownSender = senderIds
+            .any((s) => address.toUpperCase().contains(s.toUpperCase()));
         if (!isKnownSender) continue;
 
         final body = sms.body ?? '';

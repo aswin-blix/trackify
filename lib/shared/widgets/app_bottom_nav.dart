@@ -54,7 +54,9 @@ class _AppBottomNavState extends State<AppBottomNav>
 
   @override
   void dispose() {
-    for (final c in _iconControllers) { c.dispose(); }
+    for (final c in _iconControllers) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -213,7 +215,8 @@ class _FabButtonState extends State<_FabButton>
                   ),
                 ],
               ),
-              child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
+              child:
+                  const Icon(Icons.add_rounded, color: Colors.white, size: 28),
             ),
           );
         },

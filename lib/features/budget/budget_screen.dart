@@ -30,10 +30,12 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
         : 0.0;
 
     // Per-category spending this month
-    final catExpenses = ref.read(transactionRepoProvider).getExpenseByCategory();
+    final catExpenses =
+        ref.read(transactionRepoProvider).getExpenseByCategory();
 
     final expenseCategories = categories
-        .where((c) => c.type == CategoryType.expense || c.type == CategoryType.both)
+        .where((c) =>
+            c.type == CategoryType.expense || c.type == CategoryType.both)
         .toList();
 
     return Scaffold(
@@ -94,11 +96,14 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE8365D).withValues(alpha: 0.15),
+                                color: const Color(0xFFE8365D)
+                                    .withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                budgetRatio >= 1.0 ? '⚠ Overspent' : '⚠ Near Limit',
+                                budgetRatio >= 1.0
+                                    ? '⚠ Overspent'
+                                    : '⚠ Near Limit',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
@@ -191,7 +196,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     final cat = expenseCategories[i];
                     final spent = catExpenses[cat.id] ?? 0;
                     final budget = cat.budgetLimit ?? 0;
-                    if (budget == 0 && spent == 0) return const SizedBox.shrink();
+                    if (budget == 0 && spent == 0)
+                      return const SizedBox.shrink();
 
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
@@ -208,8 +214,8 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                     color: cat.color.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  child:
-                                      Icon(cat.icon, color: cat.color, size: 20),
+                                  child: Icon(cat.icon,
+                                      color: cat.color, size: 20),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
@@ -236,7 +242,11 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     )
                         .animate(delay: Duration(milliseconds: 120 + i * 60))
                         .fadeIn(duration: 400.ms)
-                        .slideY(begin: 0.2, end: 0, duration: 400.ms, curve: Curves.easeOutExpo);
+                        .slideY(
+                            begin: 0.2,
+                            end: 0,
+                            duration: 400.ms,
+                            curve: Curves.easeOutExpo);
                   },
                   childCount: expenseCategories.length,
                 ),
@@ -271,8 +281,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               final val = double.tryParse(controller.text);
@@ -310,8 +319,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel')),
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
               final val = double.tryParse(controller.text);

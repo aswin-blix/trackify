@@ -50,7 +50,8 @@ class NotificationService {
       await _plugin.initialize(
         initSettings,
         onDidReceiveNotificationResponse: (details) {
-          AppLogger.i('NotificationService', 'Notification tapped: ${details.payload}');
+          AppLogger.i(
+              'NotificationService', 'Notification tapped: ${details.payload}');
         },
       );
 
@@ -65,7 +66,7 @@ class NotificationService {
   Future<bool> requestPermission() async {
     try {
       final status = await Permission.notification.request();
-      
+
       // Request iOS specific permissions explicitly
       final iosImplementation = _plugin.resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin>();
@@ -111,7 +112,8 @@ class NotificationService {
     if (!granted) {
       final result = await requestPermission();
       if (!result) {
-        AppLogger.w('NotificationService', 'Notification permission denied — reminder not scheduled');
+        AppLogger.w('NotificationService',
+            'Notification permission denied — reminder not scheduled');
         return;
       }
     }
@@ -174,8 +176,9 @@ class NotificationService {
         'Daily reminder scheduled at $hour:${minute.toString().padLeft(2, '0')} (next: $scheduled)',
       );
     } catch (e) {
-      AppLogger.w('NotificationService', 'Exact alarm failed (likely blocked by Android 14). Falling back to inexact alarm.');
-      
+      AppLogger.w('NotificationService',
+          'Exact alarm failed (likely blocked by Android 14). Falling back to inexact alarm.');
+
       try {
         await _plugin.zonedSchedule(
           kDailyReminderNotifId,
@@ -188,9 +191,11 @@ class NotificationService {
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
         );
-        AppLogger.i('NotificationService', 'Fallback inexact alarm scheduled successfully.');
+        AppLogger.i('NotificationService',
+            'Fallback inexact alarm scheduled successfully.');
       } catch (fallbackErr) {
-        AppLogger.e('NotificationService', 'Even fallback alarm failed', fallbackErr);
+        AppLogger.e(
+            'NotificationService', 'Even fallback alarm failed', fallbackErr);
       }
     }
   }
@@ -248,7 +253,8 @@ class NotificationService {
       await _plugin.cancelAll();
       AppLogger.i('NotificationService', 'All notifications cancelled');
     } catch (e, stack) {
-      AppLogger.e('NotificationService', 'Failed to cancel all notifications', e, stack);
+      AppLogger.e('NotificationService', 'Failed to cancel all notifications',
+          e, stack);
     }
   }
 }

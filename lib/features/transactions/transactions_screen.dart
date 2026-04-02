@@ -164,8 +164,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                 category: catMap[tx.categoryId],
                                 currencySymbol: symbol,
                                 animationIndex: e.key,
-                                onDelete: () =>
-                                    _delete(context, tx.id),
+                                onDelete: () => _delete(context, tx.id),
                                 onEdit: () => _edit(tx),
                               );
                             }),
@@ -190,9 +189,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     return map.entries.map((e) {
       final total = e.value.fold<double>(
         0,
-        (sum, t) => t.type == TransactionType.expense
-            ? sum - t.amount
-            : sum + t.amount,
+        (sum, t) =>
+            t.type == TransactionType.expense ? sum - t.amount : sum + t.amount,
       );
       return _DateGroup(dateLabel: e.key, transactions: e.value, total: total);
     }).toList();
@@ -219,7 +217,8 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
 
 class AddTransactionSheetProxy extends StatelessWidget {
   final TransactionModel existingTransaction;
-  const AddTransactionSheetProxy({super.key, required this.existingTransaction});
+  const AddTransactionSheetProxy(
+      {super.key, required this.existingTransaction});
   @override
   Widget build(BuildContext context) {
     return AddTransactionScreen(existingTransaction: existingTransaction);
@@ -289,7 +288,8 @@ class _EmptyTransactions extends StatelessWidget {
           Icon(
             Icons.receipt_long_outlined,
             size: 72,
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15),
           ),
           const SizedBox(height: 16),
           Text(
@@ -297,7 +297,10 @@ class _EmptyTransactions extends StatelessWidget {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.35),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.35),
             ),
           ),
           const SizedBox(height: 24),

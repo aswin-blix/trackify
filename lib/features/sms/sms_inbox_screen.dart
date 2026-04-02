@@ -21,133 +21,135 @@ class SmsInboxScreen extends ConsumerWidget {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: isDark ? darkBackgroundGradient() : lightBackgroundGradient(),
+          gradient:
+              isDark ? darkBackgroundGradient() : lightBackgroundGradient(),
         ),
         child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.08)
-                            : Colors.black.withValues(alpha: 0.06),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(Icons.arrow_back_rounded, size: 18),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'SMS Bank Reader',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.08)
+                              : Colors.black.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        if (pending.isNotEmpty)
+                        child: const Icon(Icons.arrow_back_rounded, size: 18),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            '${pending.length} pending',
+                            'SMS Bank Reader',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primary,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
+                          if (pending.isNotEmpty)
+                            Text(
+                              '${pending.length} pending',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    // Sync button
+                    _SyncButton(),
+                  ],
+                ),
+              ).animate().fadeIn(duration: 300.ms),
+
+              const SizedBox(height: 12),
+
+              if (allSms.isEmpty)
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.sms_outlined,
+                          size: 64,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.2),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No bank SMS found',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.4),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Tap sync to read SMS from your bank senders',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.3),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  // Sync button
-                  _SyncButton(),
-                ],
-              ),
-            ).animate().fadeIn(duration: 300.ms),
-
-            const SizedBox(height: 12),
-
-            if (allSms.isEmpty)
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.sms_outlined,
-                        size: 64,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.2),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No bank SMS found',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.4),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Tap sync to read SMS from your bank senders',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface
-                              .withValues(alpha: 0.3),
-                        ),
-                      ),
-                    ],
+                )
+              else
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: allSms.length,
+                    itemBuilder: (context, i) {
+                      return _SmsTile(
+                        sms: allSms[i],
+                        onAddTransaction: () =>
+                            _showAddTransactionSheet(context, ref, allSms[i]),
+                        onDismiss: () => ref
+                            .read(smsProvider.notifier)
+                            .updateStatus(allSms[i].id, SmsStatus.dismissed),
+                      )
+                          .animate(delay: (i * 40).ms)
+                          .fadeIn(duration: 300.ms)
+                          .slideY(
+                            begin: 0.1,
+                            end: 0,
+                            duration: 300.ms,
+                          );
+                    },
                   ),
                 ),
-              )
-            else
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 100),
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: allSms.length,
-                  itemBuilder: (context, i) {
-                    return _SmsTile(
-                      sms: allSms[i],
-                      onAddTransaction: () =>
-                          _showAddTransactionSheet(context, ref, allSms[i]),
-                      onDismiss: () => ref
-                          .read(smsProvider.notifier)
-                          .updateStatus(allSms[i].id, SmsStatus.dismissed),
-                    ).animate(delay: (i * 40).ms).fadeIn(duration: 300.ms).slideY(
-                          begin: 0.1,
-                          end: 0,
-                          duration: 300.ms,
-                        );
-                  },
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 
   void _showAddTransactionSheet(
@@ -225,8 +227,7 @@ class _SyncButtonState extends ConsumerState<_SyncButton> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.sync_rounded,
-                      size: 16,
-                      color: Theme.of(context).colorScheme.primary),
+                      size: 16, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(width: 4),
                   Text(
                     'Sync',
@@ -261,7 +262,8 @@ class _SmsTile extends StatelessWidget {
     final isAdded = sms.status == SmsStatus.added;
     final isDismissed = sms.status == SmsStatus.dismissed;
 
-    final amountColor = isDebit ? LightColors.expenseRed : LightColors.incomeGreen;
+    final amountColor =
+        isDebit ? LightColors.expenseRed : LightColors.incomeGreen;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -283,7 +285,8 @@ class _SmsTile extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: const Color(0xFF00CEC9).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
@@ -465,8 +468,7 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
         .where((c) =>
             (_type == TransactionType.expense &&
                 c.type == CategoryType.expense) ||
-            (_type == TransactionType.income &&
-                c.type == CategoryType.income))
+            (_type == TransactionType.income && c.type == CategoryType.income))
         .toList();
     _category = relevant.isNotEmpty ? relevant.first : null;
   }
@@ -485,8 +487,7 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
         .where((c) =>
             (_type == TransactionType.expense &&
                 c.type == CategoryType.expense) ||
-            (_type == TransactionType.income &&
-                c.type == CategoryType.income))
+            (_type == TransactionType.income && c.type == CategoryType.income))
         .toList();
 
     return Container(
@@ -547,8 +548,8 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
               decoration: InputDecoration(
                 labelText: 'Amount',
                 prefixText: '${widget.settings.currencySymbol} ',
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
             const SizedBox(height: 12),
@@ -556,8 +557,8 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
               controller: _noteCtrl,
               decoration: InputDecoration(
                 labelText: 'Note / Merchant',
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
             const SizedBox(height: 12),
@@ -565,8 +566,8 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
               initialValue: relevant.contains(_category) ? _category : null,
               decoration: InputDecoration(
                 labelText: 'Category',
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               items: relevant
                   .map((c) => DropdownMenuItem(
@@ -592,8 +593,8 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child:
-                            CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2),
                       )
                     : Text(
                         'Add Transaction',
@@ -662,7 +663,8 @@ class _TypeButton extends StatelessWidget {
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: selected ? color.withValues(alpha: 0.15) : Colors.transparent,
+            color:
+                selected ? color.withValues(alpha: 0.15) : Colors.transparent,
             border: Border.all(
               color: selected ? color : Colors.grey.withValues(alpha: 0.3),
             ),

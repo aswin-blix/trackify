@@ -19,20 +19,28 @@ class SmsParser {
   static final _merchantPatterns = [
     // VPA matches (UPI)
     RegExp(r'(?:VPA|vpa)\s+([A-Za-z0-9@\.\-_]+)', caseSensitive: false),
-    
+
     // Transfer/Trf to/from
-    RegExp(r'(?:transfer from|trf from|received from)\s+([^\r\n]+?)\s+(?:Ref|ref|Refno|Ref No|Ref No\.|\-)', caseSensitive: false),
-    RegExp(r'(?:transfer to|trf to|sent to)\s+([^\r\n]+?)\s+(?:Ref|ref|Refno|Ref No|Ref No\.|\-)', caseSensitive: false),
-    
+    RegExp(
+        r'(?:transfer from|trf from|received from)\s+([^\r\n]+?)\s+(?:Ref|ref|Refno|Ref No|Ref No\.|\-)',
+        caseSensitive: false),
+    RegExp(
+        r'(?:transfer to|trf to|sent to)\s+([^\r\n]+?)\s+(?:Ref|ref|Refno|Ref No|Ref No\.|\-)',
+        caseSensitive: false),
+
     // Specific location "At ... On/Bal"
-    RegExp(r'\b(?:at|At)\s+([^\r\n]+?)\s+(?:On|on|Bal|bal|Ref|ref|\.)\b', caseSensitive: false),
-    
+    RegExp(r'\b(?:at|At)\s+([^\r\n]+?)\s+(?:On|on|Bal|bal|Ref|ref|\.)\b',
+        caseSensitive: false),
+
     // Specific recipient "To ... On/Ref"
-    RegExp(r'\b(?:to|To|TO)\s+([^\r\n]+?)\s+(?:On|on|Bal|bal|Ref|ref|\.)\b', caseSensitive: false),
+    RegExp(r'\b(?:to|To|TO)\s+([^\r\n]+?)\s+(?:On|on|Bal|bal|Ref|ref|\.)\b',
+        caseSensitive: false),
 
     // Generic fallbacks
-    RegExp(r'(?:at|to|from|for|via)\s+([A-Z][A-Za-z0-9\s&\-\.]{2,30})', caseSensitive: false),
-    RegExp(r'(?:merchant|shop|store)[\s:]+([A-Za-z0-9\s&\-\.]{2,30})', caseSensitive: false),
+    RegExp(r'(?:at|to|from|for|via)\s+([A-Z][A-Za-z0-9\s&\-\.]{2,30})',
+        caseSensitive: false),
+    RegExp(r'(?:merchant|shop|store)[\s:]+([A-Za-z0-9\s&\-\.]{2,30})',
+        caseSensitive: false),
   ];
 
   /// Parse a raw SMS body and return structured data

@@ -145,9 +145,11 @@ class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
       AppLogger.i('TransactionNotifier', 'Adding transaction id=${tx.id}');
       await _repo.add(tx);
       refresh();
-      AppLogger.i('TransactionNotifier', 'Transaction added, total=${state.length}');
+      AppLogger.i(
+          'TransactionNotifier', 'Transaction added, total=${state.length}');
     } catch (e, stack) {
-      AppLogger.e('TransactionNotifier', 'Failed to add transaction id=${tx.id}', e, stack);
+      AppLogger.e('TransactionNotifier',
+          'Failed to add transaction id=${tx.id}', e, stack);
       rethrow;
     }
   }
@@ -158,7 +160,8 @@ class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
       await _repo.update(tx);
       refresh();
     } catch (e, stack) {
-      AppLogger.e('TransactionNotifier', 'Failed to update transaction id=${tx.id}', e, stack);
+      AppLogger.e('TransactionNotifier',
+          'Failed to update transaction id=${tx.id}', e, stack);
       rethrow;
     }
   }
@@ -169,7 +172,8 @@ class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
       await _repo.delete(id);
       refresh();
     } catch (e, stack) {
-      AppLogger.e('TransactionNotifier', 'Failed to delete transaction id=$id', e, stack);
+      AppLogger.e('TransactionNotifier', 'Failed to delete transaction id=$id',
+          e, stack);
       rethrow;
     }
   }

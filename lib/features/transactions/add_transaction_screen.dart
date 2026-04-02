@@ -48,8 +48,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     _amountController =
         TextEditingController(text: ex != null ? ex.amount.toString() : '');
     _noteController = TextEditingController(text: ex?.note ?? '');
-    _tagsController =
-        TextEditingController(text: ex?.tags.join(', ') ?? '');
+    _tagsController = TextEditingController(text: ex?.tags.join(', ') ?? '');
     _selectedCategoryId = ex?.categoryId;
     _selectedDate = ex?.date ?? DateTime.now();
 
@@ -137,7 +136,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         updatedAt: now,
       );
 
-      AppLogger.i('AddTransaction', '${ex != null ? 'Updating' : 'Saving'} transaction id=${transaction.id} amount=${transaction.amount} type=${transaction.type.name} category=${transaction.categoryId}');
+      AppLogger.i('AddTransaction',
+          '${ex != null ? 'Updating' : 'Saving'} transaction id=${transaction.id} amount=${transaction.amount} type=${transaction.type.name} category=${transaction.categoryId}');
 
       if (ex != null) {
         await ref.read(transactionProvider.notifier).update(transaction);
@@ -162,7 +162,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       _saveButtonController.reverse();
       if (!mounted) return;
       setState(() => _isSaving = false);
-      _showError('Failed to save transaction. Please try again.\n${e.toString()}');
+      _showError(
+          'Failed to save transaction. Please try again.\n${e.toString()}');
     }
   }
 
@@ -173,7 +174,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.error_outline_rounded, color: Colors.white, size: 18),
+            const Icon(Icons.error_outline_rounded,
+                color: Colors.white, size: 18),
             const SizedBox(width: 10),
             Expanded(child: Text(msg, style: const TextStyle(fontSize: 13))),
           ],
@@ -201,8 +203,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       );
       setState(() {
         _selectedDate = timePicked != null
-            ? DateTime(picked.year, picked.month, picked.day,
-                timePicked.hour, timePicked.minute)
+            ? DateTime(picked.year, picked.month, picked.day, timePicked.hour,
+                timePicked.minute)
             : picked;
       });
     }
@@ -264,7 +266,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                     ),
                     // Title bar
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 8),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -312,7 +315,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                     _CategoryPicker(
                       categories: relevantCats,
                       selectedId: _selectedCategoryId,
-                      onSelect: (id) => setState(() => _selectedCategoryId = id),
+                      onSelect: (id) =>
+                          setState(() => _selectedCategoryId = id),
                     ).animate(delay: 120.ms).fadeIn(duration: 300.ms),
                     const SizedBox(height: 16),
                     // Note
@@ -391,8 +395,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: _typeColor,
                                     foregroundColor: Colors.white,
-                                    padding:
-                                        const EdgeInsets.symmetric(vertical: 16),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(14),
                                     ),
@@ -441,9 +445,21 @@ class _TypeToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final types = [
-      (type: TransactionType.expense, label: 'Expense', color: const Color(0xFFE8365D)),
-      (type: TransactionType.income, label: 'Income', color: const Color(0xFF00B87C)),
-      (type: TransactionType.transfer, label: 'Transfer', color: const Color(0xFFFFB300)),
+      (
+        type: TransactionType.expense,
+        label: 'Expense',
+        color: const Color(0xFFE8365D)
+      ),
+      (
+        type: TransactionType.income,
+        label: 'Income',
+        color: const Color(0xFF00B87C)
+      ),
+      (
+        type: TransactionType.transfer,
+        label: 'Transfer',
+        color: const Color(0xFFFFB300)
+      ),
     ];
 
     return Container(
@@ -586,7 +602,10 @@ class _CategoryPicker extends StatelessWidget {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
                 ),
               ),
               GestureDetector(
@@ -598,8 +617,7 @@ class _CategoryPicker extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(Icons.tune_rounded,
-                        size: 14,
-                        color: Theme.of(context).colorScheme.primary),
+                        size: 14, color: Theme.of(context).colorScheme.primary),
                     const SizedBox(width: 4),
                     Text(
                       'Manage',
@@ -635,8 +653,8 @@ class _CategoryPicker extends StatelessWidget {
                   },
                   child: Container(
                     margin: const EdgeInsets.only(right: 12),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: Theme.of(context)
                           .colorScheme
@@ -685,7 +703,8 @@ class _CategoryPicker extends StatelessWidget {
                   duration: const Duration(milliseconds: 250),
                   curve: Curves.easeOutExpo,
                   margin: const EdgeInsets.only(right: 12),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   transform: isSelected
                       ? Matrix4.diagonal3Values(1.1, 1.1, 1.0)
                       : Matrix4.identity(),
@@ -717,9 +736,10 @@ class _CategoryPicker extends StatelessWidget {
                     ],
                   ),
                 ),
-              )
-                  .animate(delay: Duration(milliseconds: i * 20))
-                  .scale(begin: const Offset(0, 0), duration: 300.ms, curve: Curves.elasticOut);
+              ).animate(delay: Duration(milliseconds: i * 20)).scale(
+                  begin: const Offset(0, 0),
+                  duration: 300.ms,
+                  curve: Curves.elasticOut);
             },
           ),
         ),
@@ -774,7 +794,9 @@ class _ReceiptButton extends StatelessWidget {
       onTap: onTap,
       padding: const EdgeInsets.all(14),
       child: Icon(
-        imagePath != null ? Icons.image_rounded : Icons.add_photo_alternate_outlined,
+        imagePath != null
+            ? Icons.image_rounded
+            : Icons.add_photo_alternate_outlined,
         color: imagePath != null
             ? Theme.of(context).colorScheme.primary
             : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),

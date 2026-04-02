@@ -133,7 +133,10 @@ class TransactionTile extends StatelessWidget {
                         transaction.note,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.5),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -159,7 +162,10 @@ class TransactionTile extends StatelessWidget {
                     AppFormatters.formatTime(transaction.date),
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.4),
                     ),
                   ),
                 ],
@@ -171,7 +177,8 @@ class TransactionTile extends StatelessWidget {
     )
         .animate(delay: Duration(milliseconds: animationIndex * 40))
         .fadeIn(duration: 350.ms, curve: Curves.easeOutExpo)
-        .slideY(begin: 0.15, end: 0, duration: 350.ms, curve: Curves.easeOutExpo);
+        .slideY(
+            begin: 0.15, end: 0, duration: 350.ms, curve: Curves.easeOutExpo);
   }
 
   Widget _buildSwipeBackground({

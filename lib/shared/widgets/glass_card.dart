@@ -80,8 +80,8 @@ class _GlassCardState extends State<GlassCard>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final defaultOpacity = widget.opacity ?? (isDark ? 0.07 : 0.55);
-    final defaultBorderColor =
-        widget.borderColor ?? Colors.white.withValues(alpha: isDark ? 0.15 : 0.4);
+    final defaultBorderColor = widget.borderColor ??
+        Colors.white.withValues(alpha: isDark ? 0.15 : 0.4);
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -95,7 +95,8 @@ class _GlassCardState extends State<GlassCard>
           return Transform.scale(
             scale: _scaleAnimation.value,
             child: ColorFiltered(
-              colorFilter: ColorFilter.matrix(_brightnessMatrix(_brightnessAnimation.value)),
+              colorFilter: ColorFilter.matrix(
+                  _brightnessMatrix(_brightnessAnimation.value)),
               child: child,
             ),
           );
@@ -151,10 +152,26 @@ class _GlassCardState extends State<GlassCard>
 
   List<double> _brightnessMatrix(double value) {
     return [
-      value, 0, 0, 0, 0,
-      0, value, 0, 0, 0,
-      0, 0, value, 0, 0,
-      0, 0, 0, 1, 0,
+      value,
+      0,
+      0,
+      0,
+      0,
+      0,
+      value,
+      0,
+      0,
+      0,
+      0,
+      0,
+      value,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
     ];
   }
 }

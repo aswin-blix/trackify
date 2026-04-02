@@ -171,13 +171,26 @@ const _iconCatalogue = <String, List<({String label, IconData icon})>>{
 };
 
 const _colorPalette = [
-  Color(0xFFE8365D), Color(0xFFFF6B6B), Color(0xFFFF8E53),
-  Color(0xFFFFB300), Color(0xFFFFE66D), Color(0xFF00B87C),
-  Color(0xFF00CEC9), Color(0xFF4ECDC4), Color(0xFF55EFC4),
-  Color(0xFF0984E3), Color(0xFF6C63FF), Color(0xFF6C5CE7),
-  Color(0xFFA29BFE), Color(0xFFFD79A8), Color(0xFFE17055),
-  Color(0xFF74B9FF), Color(0xFF00B894), Color(0xFF636E72),
-  Color(0xFF2D3436), Color(0xFFDFE6E9),
+  Color(0xFFE8365D),
+  Color(0xFFFF6B6B),
+  Color(0xFFFF8E53),
+  Color(0xFFFFB300),
+  Color(0xFFFFE66D),
+  Color(0xFF00B87C),
+  Color(0xFF00CEC9),
+  Color(0xFF4ECDC4),
+  Color(0xFF55EFC4),
+  Color(0xFF0984E3),
+  Color(0xFF6C63FF),
+  Color(0xFF6C5CE7),
+  Color(0xFFA29BFE),
+  Color(0xFFFD79A8),
+  Color(0xFFE17055),
+  Color(0xFF74B9FF),
+  Color(0xFF00B894),
+  Color(0xFF636E72),
+  Color(0xFF2D3436),
+  Color(0xFFDFE6E9),
 ];
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
@@ -324,8 +337,7 @@ class _CategoryTile extends StatelessWidget {
     };
 
     return ListTile(
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       leading: Container(
         width: 44,
         height: 44,
@@ -344,10 +356,8 @@ class _CategoryTile extends StatelessWidget {
         typeLabel,
         style: GoogleFonts.plusJakartaSans(
             fontSize: 12,
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withValues(alpha: 0.5)),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
       ),
       trailing: category.isCustom
           ? Row(
@@ -503,8 +513,8 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
                   ),
                   // Title
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -538,8 +548,8 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
                             color: _selectedColor.withValues(alpha: 0.5),
                             width: 2),
                       ),
-                      child: Icon(_selectedIcon,
-                          color: _selectedColor, size: 32),
+                      child:
+                          Icon(_selectedIcon, color: _selectedColor, size: 32),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -632,7 +642,8 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
                           spacing: 10,
                           runSpacing: 10,
                           children: _colorPalette.map((color) {
-                            final isSelected = _selectedColor.toARGB32() == color.toARGB32();
+                            final isSelected =
+                                _selectedColor.toARGB32() == color.toARGB32();
                             return GestureDetector(
                               onTap: () =>
                                   setState(() => _selectedColor = color),
@@ -654,8 +665,7 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
                                   boxShadow: isSelected
                                       ? [
                                           BoxShadow(
-                                            color:
-                                                color.withValues(alpha: 0.4),
+                                            color: color.withValues(alpha: 0.4),
                                             blurRadius: 8,
                                             offset: const Offset(0, 2),
                                           )
@@ -770,8 +780,7 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _selectedColor,
                           foregroundColor: Colors.white,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -838,8 +847,7 @@ class _TypeChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: selected ? color : color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
@@ -879,8 +887,7 @@ class _IconPickerDialogState extends State<_IconPickerDialog>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-        length: _iconCatalogue.length, vsync: this);
+    _tabController = TabController(length: _iconCatalogue.length, vsync: this);
   }
 
   @override
@@ -898,13 +905,11 @@ class _IconPickerDialogState extends State<_IconPickerDialog>
     final filtered = _search.isEmpty
         ? <({String label, IconData icon})>[]
         : allIcons
-            .where((e) =>
-                e.label.toLowerCase().contains(_search.toLowerCase()))
+            .where((e) => e.label.toLowerCase().contains(_search.toLowerCase()))
             .toList();
 
     return Dialog(
-      insetPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: SizedBox(
         height: MediaQuery.of(context).size.height * 0.75,
@@ -953,7 +958,8 @@ class _IconPickerDialogState extends State<_IconPickerDialog>
             const SizedBox(height: 8),
 
             if (_search.isNotEmpty)
-              Expanded(child: _IconGrid(
+              Expanded(
+                  child: _IconGrid(
                 icons: filtered,
                 selected: widget.selectedIcon,
                 accentColor: widget.accentColor,
@@ -967,8 +973,7 @@ class _IconPickerDialogState extends State<_IconPickerDialog>
                 tabAlignment: TabAlignment.start,
                 labelStyle: GoogleFonts.plusJakartaSans(
                     fontSize: 12, fontWeight: FontWeight.w600),
-                unselectedLabelStyle:
-                    GoogleFonts.plusJakartaSans(fontSize: 12),
+                unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12),
                 tabs: keys.map((k) => Tab(text: k)).toList(),
               ),
               Expanded(
