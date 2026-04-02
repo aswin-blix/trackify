@@ -366,10 +366,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       // Verify once before enabling
       final authenticated = await auth.authenticate(
         localizedReason: 'Confirm your identity to enable App Lock',
-        options: const AuthenticationOptions(
-          biometricOnly: false,
-          stickyAuth: true,
-        ),
       );
       if (authenticated) {
         await ref

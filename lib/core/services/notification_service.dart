@@ -48,7 +48,7 @@ class NotificationService {
       );
 
       await _plugin.initialize(
-        initSettings,
+        settings: initSettings,
         onDidReceiveNotificationResponse: (details) {
           AppLogger.i(
               'NotificationService', 'Notification tapped: ${details.payload}');
@@ -105,7 +105,7 @@ class NotificationService {
     if (!_initialized) await init();
 
     // Cancel existing before rescheduling
-    await _plugin.cancel(kDailyReminderNotifId);
+    await _plugin.cancel(id: kDailyReminderNotifId);
 
     // Request permission if not granted
     final granted = await hasPermission();
@@ -160,15 +160,13 @@ class NotificationService {
 
     try {
       await _plugin.zonedSchedule(
-        kDailyReminderNotifId,
-        '💰 Time to log your expenses!',
-        'Keep your finances on track — it only takes a minute.',
-        scheduled,
-        details,
+        id: kDailyReminderNotifId,
+        title: '💰 Time to log your expenses!',
+        body: 'Keep your finances on track — it only takes a minute.',
+        scheduledDate: scheduled,
+        notificationDetails: details,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time, // repeats daily
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
       );
 
       AppLogger.i(
@@ -181,15 +179,13 @@ class NotificationService {
 
       try {
         await _plugin.zonedSchedule(
-          kDailyReminderNotifId,
-          '💰 Time to log your expenses!',
-          'Keep your finances on track — it only takes a minute.',
-          scheduled,
-          details,
+          id: kDailyReminderNotifId,
+          title: '💰 Time to log your expenses!',
+          body: 'Keep your finances on track — it only takes a minute.',
+          scheduledDate: scheduled,
+          notificationDetails: details,
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           matchDateTimeComponents: DateTimeComponents.time,
-          uiLocalNotificationDateInterpretation:
-              UILocalNotificationDateInterpretation.absoluteTime,
         );
         AppLogger.i('NotificationService',
             'Fallback inexact alarm scheduled successfully.');
@@ -203,7 +199,7 @@ class NotificationService {
   // ── Cancel daily reminder ───────────────────────────────────────────────────
   Future<void> cancelDailyReminder() async {
     try {
-      await _plugin.cancel(kDailyReminderNotifId);
+      await _plugin.cancel(id: kDailyReminderNotifId);
       AppLogger.i('NotificationService', 'Daily reminder cancelled');
     } catch (e, stack) {
       AppLogger.e('NotificationService', 'Failed to cancel reminder', e, stack);
@@ -236,10 +232,11 @@ class NotificationService {
         iOS: iosDetails,
       );
       await _plugin.show(
-        kDailyReminderNotifId + 1,
-        '🚀 Immediate Test Alert',
-        'If you can see this, your phone is allowing Trackify notifications natively!',
-        details,
+        id: kDailyReminderNotifId + 1,
+        title: '🚀 Immediate Test Alert',
+        body:
+            'If you can see this, your phone is allowing Trackify notifications natively!',
+        notificationDetails: details,
       );
       AppLogger.i('NotificationService', 'Immediate test notification fired');
     } catch (e, stack) {

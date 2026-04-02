@@ -48,10 +48,6 @@ class _AppLockScreenState extends State<AppLockScreen> {
 
       final authenticated = await _auth.authenticate(
         localizedReason: 'Please authenticate to open Trackify',
-        options: const AuthenticationOptions(
-          biometricOnly: false,
-          stickyAuth: true,
-        ),
       );
 
       if (authenticated && mounted) {

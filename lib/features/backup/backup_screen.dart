@@ -54,7 +54,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   Future<void> _exportCsv() async {
     try {
       final path = await ref.read(backupRepoProvider).exportToCsv();
-      await Share.shareXFiles([XFile(path)], text: 'Trackify Export');
+      await SharePlus.instance
+          .share(ShareParams(files: [XFile(path)], text: 'Trackify Export'));
     } catch (e) {
       _showError('CSV export failed: $e');
     }
@@ -338,7 +339,8 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                             IconButton(
                               icon: const Icon(Icons.share_rounded, size: 18),
                               onPressed: () async {
-                                await Share.shareXFiles([XFile(f.path)]);
+                                await SharePlus.instance
+                                    .share(ShareParams(files: [XFile(f.path)]));
                               },
                             ),
                             IconButton(
