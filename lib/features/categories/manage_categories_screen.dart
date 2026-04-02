@@ -219,7 +219,7 @@ class ManageCategoriesScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.only(bottom: 80),
         children: [
-          _SectionHeader('Default Categories'),
+          const _SectionHeader('Default Categories'),
           ...categories.where((c) => !c.isCustom).map(
                 (c) => _CategoryTile(
                   category: c,
@@ -228,7 +228,7 @@ class ManageCategoriesScreen extends ConsumerWidget {
                 ),
               ),
           const SizedBox(height: 8),
-          _SectionHeader('Custom Categories'),
+          const _SectionHeader('Custom Categories'),
           if (categories.where((c) => c.isCustom).isEmpty)
             Padding(
               padding: const EdgeInsets.all(32),

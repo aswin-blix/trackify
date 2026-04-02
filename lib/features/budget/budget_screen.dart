@@ -196,8 +196,9 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     final cat = expenseCategories[i];
                     final spent = catExpenses[cat.id] ?? 0;
                     final budget = cat.budgetLimit ?? 0;
-                    if (budget == 0 && spent == 0)
+                    if (budget == 0 && spent == 0) {
                       return const SizedBox.shrink();
+                    }
 
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
