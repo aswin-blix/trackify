@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +8,9 @@ import 'package:local_auth/local_auth.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/utils/app_logger.dart';
+import '../../core/utils/image_store.dart';
 import '../../shared/providers/app_providers.dart';
+import '../app_lock/app_lock_screen.dart';
 import '../categories/manage_categories_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -57,7 +60,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             .colorScheme
                             .primary
                             .withValues(alpha: 0.15),
-                        child: settings.avatarPath != null
+                        backgroundImage: ImageStore.exists(settings.avatarPath)
+                            ? FileImage(File(settings.avatarPath!))
+                            : null,
+                        child: ImageStore.exists(settings.avatarPath)
                             ? null
                             : Icon(Icons.person_rounded,
                                 color: Theme.of(context).colorScheme.primary),
@@ -91,7 +97,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     icon: Icons.palette_rounded,
                     iconColor: const Color(0xFF6C63FF),
                     title: 'Theme',
-                    subtitle: ['System', 'Light', 'Dark'][settings.themeMode],
+                    subtitle: switch (settings.themeMode) {
+                      1 => 'Light',
+                      2 => 'Dark',
+                      _ => 'System',
+                    },
                     onTap: () => _pickTheme(context, settings.themeMode),
                   ),
                   _SettingsDivider(),
@@ -205,8 +215,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     iconColor: const Color(0xFF6C63FF),
                     title: 'Auto Backup',
                     subtitle: settings.lastBackupAt != null
-                        ? 'Last: ${settings.lastBackupAt!.day}/${settings.lastBackupAt!.month}/${settings.lastBackupAt!.year}'
-                        : 'Never backed up',
+                        ? 'Daily on app open · Last: ${settings.lastBackupAt!.day}/${settings.lastBackupAt!.month}/${settings.lastBackupAt!.year}'
+                        : 'Backs up once a day when you open the app',
                     value: settings.autoBackupEnabled,
                     onChanged: (v) => notifier.setAutoBackup(
                       enabled: v,
@@ -363,9 +373,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         }
         return;
       }
-      // Verify once before enabling
-      final authenticated = await auth.authenticate(
-        localizedReason: 'Confirm your identity to enable App Lock',
+      // Verify once before enabling. Guarded so the system credential
+      // screen doesn't trigger the resume re-lock.
+      final authenticated = await AppLockGuard.run(
+        () => auth.authenticate(
+          localizedReason: 'Confirm your identity to enable App Lock',
+          persistAcrossBackgrounding: true,
+        ),
       );
       if (authenticated) {
         await ref
@@ -388,10 +402,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _pickAvatar() async {
     final picker = ImagePicker();
-    final img = await picker.pickImage(source: ImageSource.gallery);
-    if (img != null) {
-      ref.read(settingsProvider.notifier).setAvatarPath(img.path);
+    final XFile? img;
+    try {
+      img = await picker.pickImage(source: ImageSource.gallery);
+    } catch (e, stack) {
+      AppLogger.e('Settings', 'Avatar pick failed', e, stack);
+      return;
     }
+    if (img == null) return;
+
+    // Copy out of the picker cache so the path stays valid across restarts.
+    final stored = await ImageStore.persist(img.path, subdir: 'avatar');
+    if (stored == null) return;
+    final previous = ref.read(settingsProvider).avatarPath;
+    await ref.read(settingsProvider.notifier).setAvatarPath(stored);
+    await ImageStore.delete(previous);
   }
 
   Future<void> _editName(BuildContext context) async {
@@ -599,16 +624,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     if (confirm2 != true) return;
 
+    final avatarPath = ref.read(settingsProvider).avatarPath;
+
+    await NotificationService.instance.cancelAll();
     await ref.read(transactionRepoProvider).deleteAll();
     await ref.read(categoryRepoProvider).deleteAll();
     await ref.read(categoryRepoProvider).seedDefaults();
+    await ref.read(smsRepoProvider).deleteAll();
     await ref.read(settingsRepoProvider).reset();
+    await ImageStore.delete(avatarPath);
 
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('All data cleared')),
-      );
-    }
+    // Bring every in-memory provider back in line with storage.
+    ref.read(transactionProvider.notifier).refresh();
+    ref.read(categoryProvider.notifier).refresh();
+    ref.read(smsProvider.notifier).refresh();
+    ref.read(settingsProvider.notifier).reload();
+
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('All data cleared')),
+    );
+    // Settings were reset, so onboarding is pending again.
+    Navigator.of(context)
+        .pushNamedAndRemoveUntil('/onboarding', (route) => false);
   }
 }
 

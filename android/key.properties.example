@@ -1,0 +1,12 @@
+# Copy to android/key.properties (git-ignored) and fill in your values.
+#
+# Generate a keystore once and keep it safe; losing it means you can never
+# publish an update to the same app ID again:
+#   keytool -genkey -v -keystore trackify-release.jks -keyalg RSA \
+#     -keysize 2048 -validity 10000 -alias trackify
+#
+# storeFile is resolved relative to android/app/.
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=trackify
+storeFile=../trackify-release.jks

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/services/notification_service.dart';
 import '../../shared/providers/app_providers.dart';
 import '../../shared/widgets/glass_card.dart';
 
@@ -51,17 +52,38 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     }
   }
 
+  bool _finishing = false;
+
   Future<void> _finish() async {
+    if (_finishing) return;
+    _finishing = true;
     final notifier = ref.read(settingsProvider.notifier);
     await notifier.setUserName(_nameController.text.trim());
     await notifier.setCurrency(_currency, _currencySymbol);
     await notifier.setMonthlyBudget(_budgetValue);
+
+    // Only persist a toggle as "on" if the matching permission was granted,
+    // and actually schedule the reminder instead of waiting for a restart.
+    var notificationsOn = false;
+    if (_notificationsEnabled) {
+      notificationsOn = await NotificationService.instance.requestPermission();
+    }
     await notifier.setNotificationSettings(
-      enabled: _notificationsEnabled,
+      enabled: notificationsOn,
       hour: 21,
       minute: 0,
     );
-    await notifier.setSmsReaderEnabled(_smsEnabled);
+    if (notificationsOn) {
+      await NotificationService.instance
+          .scheduleDailyReminder(hour: 21, minute: 0);
+    }
+
+    var smsOn = false;
+    if (_smsEnabled) {
+      smsOn = await ref.read(smsServiceProvider).requestPermission();
+    }
+    await notifier.setSmsReaderEnabled(smsOn);
+
     await notifier.completeOnboarding();
     if (mounted) {
       Navigator.of(context).pushReplacementNamed('/home');

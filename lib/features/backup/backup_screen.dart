@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/utils/formatters.dart';
+import '../../data/repositories/backup_repository.dart';
 import '../../shared/providers/app_providers.dart';
 import '../../shared/widgets/glass_card.dart';
 
@@ -32,7 +33,9 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     try {
       final backups = await ref.read(backupRepoProvider).listBackups();
       if (mounted) setState(() => _backups = backups);
-    } catch (_) {}
+    } catch (_) {
+      // Listing is cosmetic; an unreadable folder just shows an empty history.
+    }
   }
 
   Future<void> _backupNow() async {
@@ -73,16 +76,26 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
     setState(() => _isRestoring = true);
     try {
-      await ref
+      final restored = await ref
           .read(backupRepoProvider)
           .restoreFromFile(result.files.single.path!);
       ref.read(transactionProvider.notifier).refresh();
       ref.read(categoryProvider.notifier).refresh();
+      ref.read(settingsProvider.notifier).reload();
+      await _loadBackups();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ Restore complete!')),
+          SnackBar(
+            content: Text(
+              '✅ Restored ${restored.transactions.length} transactions and '
+              '${restored.categories.length} categories',
+            ),
+          ),
         );
       }
+    } on BackupFormatException catch (e) {
+      // Validation failed before anything was touched; data is intact.
+      _showError('Restore cancelled: $e');
     } catch (e) {
       _showError('Restore failed: $e');
     } finally {
@@ -115,6 +128,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
   }
 
   void _showError(String msg) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
@@ -265,7 +279,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                                 ),
                               ),
                               Text(
-                                'Select a .json backup file',
+                                'A snapshot of current data is saved first',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12,
                                   color: Theme.of(context)
@@ -322,7 +336,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                   delegate: SliverChildBuilderDelegate(
                     (ctx, i) {
                       final f = _backups[i];
-                      final name = f.path.split('/').last.split('\\').last;
+                      final name = BackupRepository.fileName(f.path);
                       return ListTile(
                         leading: const Icon(Icons.description_rounded,
                             color: Color(0xFF6C63FF)),

@@ -4,8 +4,29 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:local_auth/local_auth.dart';
 import '../../core/theme/app_colors.dart';
 
-/// Full-screen lock gate. Call via Navigator.pushReplacementNamed('/lock').
-/// On success, navigates to [nextRoute] (default '/home').
+/// Lets a biometric prompt run without triggering the resume re-lock.
+///
+/// The system credential screen pauses the activity; without this flag the
+/// shell would lock the app again the moment the prompt closes.
+class AppLockGuard {
+  const AppLockGuard._();
+  static bool suppressed = false;
+
+  static Future<T> run<T>(Future<T> Function() action) async {
+    suppressed = true;
+    try {
+      return await action();
+    } finally {
+      // Give the lifecycle observer a beat to see `resumed` before re-arming.
+      Future<void>.delayed(const Duration(milliseconds: 500), () {
+        suppressed = false;
+      });
+    }
+  }
+}
+
+/// Full-screen lock gate. Pushed via '/lock'; on success it replaces itself
+/// with [nextRoute] (default '/home').
 class AppLockScreen extends StatefulWidget {
   final String nextRoute;
   const AppLockScreen({super.key, this.nextRoute = '/home'});
@@ -46,8 +67,11 @@ class _AppLockScreenState extends State<AppLockScreen> {
         return;
       }
 
-      final authenticated = await _auth.authenticate(
-        localizedReason: 'Please authenticate to open Trackify',
+      final authenticated = await AppLockGuard.run(
+        () => _auth.authenticate(
+          localizedReason: 'Please authenticate to open Trackify',
+          persistAcrossBackgrounding: true,
+        ),
       );
 
       if (authenticated && mounted) {

@@ -2,6 +2,7 @@ import 'package:flutter_sms_inbox/flutter_sms_inbox.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../data/models/bank_sms_message.dart';
 import '../../data/repositories/sms_repository.dart';
+import '../../core/utils/app_logger.dart';
 import '../../core/utils/sms_parser.dart';
 
 class SmsService {
@@ -58,8 +59,9 @@ class SmsService {
         await _repo.save(msg);
         newCount++;
       }
-    } catch (_) {
-      // Return whatever we got
+    } catch (e, stack) {
+      // Return whatever we got, but don't hide the failure.
+      AppLogger.e('SmsService', 'SMS sync failed', e, stack);
     }
 
     return newCount;

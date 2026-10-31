@@ -104,7 +104,12 @@ class TransactionRepository {
       final day = now.subtract(Duration(days: i));
       result[DateTime(day.year, day.month, day.day)] = 0;
     }
-    for (final t in getLast7Days()) {
+    final start = now.subtract(Duration(days: days - 1));
+    final range = getByDateRange(
+      DateTime(start.year, start.month, start.day),
+      DateTime(now.year, now.month, now.day, 23, 59, 59),
+    );
+    for (final t in range) {
       if (t.type == TransactionType.expense) {
         final key = DateTime(t.date.year, t.date.month, t.date.day);
         result[key] = (result[key] ?? 0) + t.amount;

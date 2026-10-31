@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/app_logger.dart';
+import '../../core/utils/image_store.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/models/category_model.dart';
 import '../../shared/providers/app_providers.dart';
@@ -16,7 +17,14 @@ import '../categories/manage_categories_screen.dart';
 class AddTransactionScreen extends ConsumerStatefulWidget {
   final TransactionModel? existingTransaction;
 
-  const AddTransactionScreen({super.key, this.existingTransaction});
+  /// Pre-selects a type when opening the sheet for a new transaction.
+  final TransactionType? initialType;
+
+  const AddTransactionScreen({
+    super.key,
+    this.existingTransaction,
+    this.initialType,
+  });
 
   @override
   ConsumerState<AddTransactionScreen> createState() =>
@@ -44,13 +52,14 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   void initState() {
     super.initState();
     final ex = widget.existingTransaction;
-    _selectedType = ex?.type ?? TransactionType.expense;
+    _selectedType = ex?.type ?? widget.initialType ?? TransactionType.expense;
     _amountController =
         TextEditingController(text: ex != null ? ex.amount.toString() : '');
     _noteController = TextEditingController(text: ex?.note ?? '');
     _tagsController = TextEditingController(text: ex?.tags.join(', ') ?? '');
     _selectedCategoryId = ex?.categoryId;
     _selectedDate = ex?.date ?? DateTime.now();
+    _receiptImagePath = ex?.receiptImagePath;
 
     _saveButtonController = AnimationController(
       vsync: this,
@@ -212,9 +221,28 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
   Future<void> _pickReceipt() async {
     final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() => _receiptImagePath = image.path);
+    final XFile? image;
+    try {
+      image = await picker.pickImage(source: ImageSource.gallery);
+    } catch (e, stack) {
+      AppLogger.e('AddTransaction', 'Image pick failed', e, stack);
+      _showError('Could not open the gallery.');
+      return;
+    }
+    if (image == null) return;
+
+    // Copy out of the picker cache so the path stays valid.
+    final stored = await ImageStore.persist(image.path, subdir: 'receipts');
+    if (stored == null) {
+      _showError('Could not save the receipt image.');
+      return;
+    }
+    final previous = _receiptImagePath;
+    if (mounted) setState(() => _receiptImagePath = stored);
+    // Drop the old copy if this replaced a stored receipt.
+    if (previous != null &&
+        previous != widget.existingTransaction?.receiptImagePath) {
+      await ImageStore.delete(previous);
     }
   }
 

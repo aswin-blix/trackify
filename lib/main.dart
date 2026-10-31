@@ -17,7 +17,10 @@ import 'features/dashboard/home_shell.dart';
 import 'features/backup/backup_screen.dart';
 import 'features/app_lock/app_lock_screen.dart';
 import 'features/sms/sms_inbox_screen.dart';
+import 'features/budget/budget_screen.dart';
+import 'features/tips/tips_screen.dart';
 import 'shared/providers/app_providers.dart';
+import 'shared/widgets/gradient_background.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -114,6 +117,8 @@ class TrackifyApp extends ConsumerWidget {
         '/backup': (ctx) => const BackupScreen(),
         '/lock': (ctx) => const AppLockScreen(),
         '/sms': (ctx) => const SmsInboxScreen(),
+        '/budget': (ctx) => const GradientBackground(child: BudgetScreen()),
+        '/tips': (ctx) => const GradientBackground(child: TipsScreen()),
       },
     );
   }

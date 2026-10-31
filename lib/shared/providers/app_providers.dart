@@ -38,6 +38,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   SettingsNotifier(this._repo) : super(_repo.settings);
 
+  /// Re-reads settings from storage, e.g. after a restore or reset that
+  /// bypassed this notifier.
+  void reload() {
+    state = AppSettings.fromJson(_repo.settings.toJson());
+  }
+
   Future<void> update(void Function(AppSettings) updater) async {
     try {
       await _repo.updateField(updater);

@@ -10,8 +10,8 @@ A production-grade, 100% offline personal finance tracker built with Flutter.
 Beautiful glassmorphism UI · Riverpod state · Hive local database · Zero data collection.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Flutter](https://img.shields.io/badge/Flutter-3.0%2B-02569B?logo=flutter)](https://flutter.dev)
-[![Dart](https://img.shields.io/badge/Dart-3.0%2B-0175C2?logo=dart)](https://dart.dev)
+[![Flutter](https://img.shields.io/badge/Flutter-3.38%2B-02569B?logo=flutter)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.10%2B-0175C2?logo=dart)](https://dart.dev)
 [![CI](https://github.com/aswin-blix/trackify/actions/workflows/flutter_ci.yml/badge.svg)](https://github.com/aswin-blix/trackify/actions)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
@@ -50,14 +50,13 @@ Beautiful glassmorphism UI · Riverpod state · Hive local database · Zero data
 |---|---|
 | Framework | Flutter 3.x, Dart 3.x |
 | State Management | `flutter_riverpod` (StateNotifierProvider) |
-| Local Database | `hive` + `hive_flutter` (hand-written adapters, no build_runner) |
-| Charts | `fl_chart` v0.68 |
-| Animations | `flutter_animate`, `animations` |
+| Local Database | `hive` + `hive_flutter` (generated adapters checked in) |
+| Charts | `fl_chart` v1.x |
+| Animations | `flutter_animate` |
 | Typography | Google Fonts — Plus Jakarta Sans |
 | Biometric Auth | `local_auth` |
 | SMS Reading | `flutter_sms_inbox` |
-| Notifications | `flutter_local_notifications`, `flutter_timezone` |
-| Background Tasks | `workmanager` |
+| Notifications | `flutter_local_notifications`, `flutter_timezone`, `timezone` |
 | File Operations | `path_provider`, `share_plus`, `file_picker` |
 
 ---
@@ -66,7 +65,7 @@ Beautiful glassmorphism UI · Riverpod state · Hive local database · Zero data
 
 ### Prerequisites
 
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) ≥ 3.0.0
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) ≥ 3.38 (Dart ≥ 3.10)
 - Android SDK (for Android builds)
 - A physical or virtual Android device
 
@@ -133,11 +132,15 @@ lib/
 
 ## Architecture Notes
 
-- **Hive adapters are hand-written** — the `.g.dart` files are checked in. Do not run `build_runner`.
+- **Hive adapters** — the `.g.dart` files are checked in. After changing a `@HiveType` model, run `dart run build_runner build --delete-conflicting-outputs` and review the diff; never change a field number.
 - **Settings state** — `AppSettings` is cloned via `fromJson`/`toJson` on every update so Riverpod detects the change. Mutation-in-place won't work.
 - **Tab indices** in `HomeShell`: `0`=Dashboard, `1`=Transactions, `2`=FAB (opens sheet), `3`=Analytics, `4`=Settings.
-- **fl_chart v0.68** — does not accept `duration`/`curve` at the chart widget level.
-- **Notifications** — `flutter_timezone` is used to resolve the device's local timezone at runtime via `FlutterTimezone.getLocalTimezone()`. This must be called during `NotificationService.init()` before any `zonedSchedule` call, otherwise notifications fire at UTC time on many devices.
+- **Notifications** — `NotificationService.init()` resolves the device IANA timezone with `flutter_timezone` before any `zonedSchedule` call; a fixed UTC-offset zone is only a fallback.
+- **App Lock** — `HomeShell` re-locks on resume using a went-to-background flag (not the previous lifecycle state). Wrap any biometric prompt in `AppLockGuard.run` so the system credential screen does not trigger a re-lock.
+- **Auto Backup** — runs in the foreground: once per day on app open/resume when enabled (`BackupRepository.runAutoBackupIfDue`). There is no background scheduler.
+- **Restore** — `BackupRepository.parseBackupFile` validates the whole file before any data is cleared, and a `pre_restore_*.json` snapshot is written first.
+- **Release signing** — `android/key.properties` (git-ignored, see `android/key.properties.example`). Without it, release builds fall back to the debug key and print a warning.
+- **Privacy** — `android:allowBackup` is off and `data_extraction_rules.xml` excludes everything, so the Hive database never reaches Google's cloud backup.
 - **Week analytics** — uses a rolling last-7-days window (`today − 6` to `today`), not a Mon–Sun calendar week, so data is always visible regardless of the day of the week.
 
 ---
@@ -146,12 +149,13 @@ lib/
 
 | Permission | Why |
 |---|---|
-| `READ_SMS` | SMS Bank Reader — reads bank transaction messages locally |
+| `READ_SMS` | SMS Bank Reader — reads bank transaction messages locally. Google Play restricts this permission, so the app is distributed as a direct APK |
+| `READ_EXTERNAL_STORAGE` (≤ Android 12) | Picking a backup file to restore |
 | `USE_BIOMETRIC` / `USE_FINGERPRINT` | App Lock |
 | `POST_NOTIFICATIONS` | Daily reminder notifications |
-| `CAMERA` / `READ_MEDIA_IMAGES` | Profile avatar picker |
 | `RECEIVE_BOOT_COMPLETED` | Reschedule notifications after reboot |
-| `USE_FULL_SCREEN_INTENT` | Show heads-up notification display |
+
+Avatar and receipt images use the system photo picker, which needs no permission.
 
 All permissions are optional. Core tracking works without any of them.
 
@@ -171,7 +175,8 @@ Contributions are very welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) f
 ## Roadmap
 
 - [ ] Recurring / scheduled transactions
-- [ ] CSV export
+- [ ] Encrypt the Hive database at rest (`HiveAesCipher` + platform keystore)
+- [ ] Background auto-backup scheduler (currently runs on app open)
 - [ ] Widgets (home screen balance widget)
 - [ ] iOS support
 - [ ] UPI deep link detection

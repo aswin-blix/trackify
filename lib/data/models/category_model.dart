@@ -54,6 +54,9 @@ class CategoryModel extends HiveObject {
   Color get color =>
       Color(int.parse(colorHex.replaceFirst('#', 'FF'), radix: 16));
 
+  // Codepoints are stored in Hive, so the app is built with
+  // --no-tree-shake-icons (see README). The lint below guards tree shaking.
+  // ignore: non_const_argument_for_const_parameter
   IconData get icon => IconData(iconCodePoint, fontFamily: 'MaterialIcons');
 
   CategoryModel copyWith({

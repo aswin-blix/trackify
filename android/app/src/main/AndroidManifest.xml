@@ -1,28 +1,34 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Permissions -->
+    <!-- Reschedule the daily reminder after a reboot -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- SMS Bank Reader: inbox is read on demand; no broadcast receiver, so RECEIVE_SMS is not needed -->
     <uses-permission android:name="android.permission.READ_SMS" />
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Legacy file access for file_picker on Android 12 and below.
+         Avatar/receipt picking uses the system photo picker and needs no permission. -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="29" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
+    <!--
+      allowBackup is OFF on purpose: Android Auto Backup would otherwise upload
+      the Hive database (transactions and raw bank SMS) to the user's Google
+      Drive, contradicting the app's 100% offline promise. Backups are explicit
+      user-initiated files only.
+    -->
     <application
         android:label="Trackify"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:requestLegacyExternalStorage="true"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:usesCleartextTraffic="false">
 
         <activity
@@ -59,11 +65,6 @@
         <!-- flutter_local_notifications: deliver scheduled notifications -->
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
-            android:exported="false" />
-
-        <!-- WorkManager background task service -->
-        <service
-            android:name="androidx.work.impl.background.systemalarm.RescheduleReceiver"
             android:exported="false" />
 
         <meta-data

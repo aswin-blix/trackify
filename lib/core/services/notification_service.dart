@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
@@ -19,21 +20,7 @@ class NotificationService {
     if (_initialized) return;
     try {
       tz_data.initializeTimeZones();
-      // Resolve the device's local timezone using the UTC offset.
-      // Etc/GMT names use inverted sign convention (Etc/GMT-5 = UTC+5).
-      try {
-        final offset = DateTime.now().timeZoneOffset;
-        if (offset.inMinutes == 330) {
-          // India is UTC+5:30, which cannot be represented by whole-hour Etc/GMT offsets
-          tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
-        } else {
-          final sign = offset.isNegative ? '+' : '-';
-          final hours = offset.inHours.abs();
-          tz.setLocalLocation(tz.getLocation('Etc/GMT$sign$hours'));
-        }
-      } catch (_) {
-        // Falls back to UTC
-      }
+      await _configureLocalTimezone();
 
       const androidSettings =
           AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -59,6 +46,36 @@ class NotificationService {
       AppLogger.i('NotificationService', 'Initialized');
     } catch (e, stack) {
       AppLogger.e('NotificationService', 'Failed to initialize', e, stack);
+    }
+  }
+
+  /// Resolves the device's IANA timezone (e.g. "Asia/Kolkata") so scheduled
+  /// times survive DST changes and half-hour offsets. Falls back to a fixed
+  /// UTC-offset zone, then to UTC.
+  Future<void> _configureLocalTimezone() async {
+    try {
+      final info = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(info.identifier));
+      AppLogger.i('NotificationService', 'Timezone: ${info.identifier}');
+      return;
+    } catch (e) {
+      AppLogger.w('NotificationService',
+          'flutter_timezone failed ($e); falling back to UTC offset');
+    }
+
+    try {
+      final offset = DateTime.now().timeZoneOffset;
+      if (offset.inMinutes == 330) {
+        tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
+      } else if (offset.inMinutes % 60 == 0) {
+        // Etc/GMT names use an inverted sign convention (Etc/GMT-5 = UTC+5).
+        final sign = offset.isNegative ? '+' : '-';
+        final hours = offset.inHours.abs();
+        tz.setLocalLocation(tz.getLocation('Etc/GMT$sign$hours'));
+      }
+      // Any other offset: tz.local stays UTC.
+    } catch (_) {
+      // tz.local stays UTC.
     }
   }
 
@@ -97,6 +114,29 @@ class NotificationService {
     return Permission.notification.isGranted;
   }
 
+  static const _reminderTitle = '💰 Time to log your expenses!';
+  static const _reminderBody =
+      'Keep your finances on track — it only takes a minute.';
+
+  static const _reminderDetails = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'trackify_daily_reminder',
+      'Daily Reminder',
+      channelDescription: 'Reminds you to log your daily expenses',
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+      enableVibration: true,
+      playSound: true,
+      category: AndroidNotificationCategory.reminder,
+    ),
+    iOS: DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    ),
+  );
+
   // ── Schedule daily reminder ─────────────────────────────────────────────────
   Future<void> scheduleDailyReminder({
     required int hour,
@@ -133,38 +173,13 @@ class NotificationService {
       scheduled = scheduled.add(const Duration(days: 1));
     }
 
-    const androidDetails = AndroidNotificationDetails(
-      'trackify_daily_reminder',
-      'Daily Reminder',
-      channelDescription: 'Reminds you to log your daily expenses',
-      importance: Importance.max,
-      priority: Priority.max,
-      icon: '@mipmap/ic_launcher',
-      enableVibration: true,
-      playSound: true,
-      fullScreenIntent: true,
-      category: AndroidNotificationCategory.reminder,
-      visibility: NotificationVisibility.public,
-    );
-
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    const details = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
     try {
       await _plugin.zonedSchedule(
         id: kDailyReminderNotifId,
-        title: '💰 Time to log your expenses!',
-        body: 'Keep your finances on track — it only takes a minute.',
+        title: _reminderTitle,
+        body: _reminderBody,
         scheduledDate: scheduled,
-        notificationDetails: details,
+        notificationDetails: _reminderDetails,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time, // repeats daily
       );
@@ -180,10 +195,10 @@ class NotificationService {
       try {
         await _plugin.zonedSchedule(
           id: kDailyReminderNotifId,
-          title: '💰 Time to log your expenses!',
-          body: 'Keep your finances on track — it only takes a minute.',
+          title: _reminderTitle,
+          body: _reminderBody,
           scheduledDate: scheduled,
-          notificationDetails: details,
+          notificationDetails: _reminderDetails,
           androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           matchDateTimeComponents: DateTimeComponents.time,
         );
@@ -210,29 +225,25 @@ class NotificationService {
   Future<void> showTestNotification() async {
     if (!_initialized) await init();
     try {
-      const androidDetails = AndroidNotificationDetails(
-        'trackify_test',
-        'Test Alerts',
-        channelDescription: 'Testing channel for immediate verification',
-        importance: Importance.max,
-        priority: Priority.max,
-        icon: '@mipmap/ic_launcher',
-        enableVibration: true,
-        playSound: true,
-        fullScreenIntent: true,
-        visibility: NotificationVisibility.public,
-      );
-      const iosDetails = DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-      );
       const details = NotificationDetails(
-        android: androidDetails,
-        iOS: iosDetails,
+        android: AndroidNotificationDetails(
+          'trackify_test',
+          'Test Alerts',
+          channelDescription: 'Testing channel for immediate verification',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+          enableVibration: true,
+          playSound: true,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
       );
       await _plugin.show(
-        id: kDailyReminderNotifId + 1,
+        id: kTestNotifId,
         title: '🚀 Immediate Test Alert',
         body:
             'If you can see this, your phone is allowing Trackify notifications natively!',

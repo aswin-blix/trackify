@@ -12,7 +12,7 @@ Thank you for taking the time to contribute! Here's how to get started.
    cd trackify
    ```
 
-2. Install Flutter (≥ 3.0.0): https://docs.flutter.dev/get-started/install
+2. Install Flutter (≥ 3.38): https://docs.flutter.dev/get-started/install
 
 3. Install dependencies:
    ```bash
@@ -55,9 +55,10 @@ lib/
 ```
 
 ### Key Architecture Notes
-- **Hive adapters are hand-written** — do NOT run `build_runner`. The `.g.dart` files are checked in.
+- **Hive adapters** — the `.g.dart` files are checked in. Only run `dart run build_runner build --delete-conflicting-outputs` after changing a `@HiveType` model, and never reuse a field number.
 - **State** uses `StateNotifierProvider`. Settings changes must produce a new `AppSettings` instance (clone via `fromJson`) for Riverpod to detect them.
-- **fl_chart v0.68** — `BarChart` / `PieChart` do not accept `duration` / `curve` at the chart widget level.
+- **Formatting** — CI runs `dart format --set-exit-if-changed`; run `dart format .` before pushing.
+- **App Lock** — wrap any biometric prompt in `AppLockGuard.run` so the system credential screen does not trigger the resume re-lock.
 - **Tab indices** in `HomeShell`: 0=Dashboard, 1=Transactions, 2=FAB (opens Add Transaction sheet), 3=Analytics, 4=Settings.
 
 ---

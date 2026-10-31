@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -5,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/formatters.dart';
+import '../../core/utils/image_store.dart';
+import '../../data/models/category_model.dart';
 import '../../data/models/transaction_model.dart';
 import '../../shared/providers/app_providers.dart';
 import '../../shared/widgets/glass_card.dart';
@@ -12,9 +15,10 @@ import '../../shared/widgets/animated_counter.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../shared/widgets/transaction_tile.dart';
 import '../tips/tips_data.dart';
+import '../transactions/add_transaction_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
-  final VoidCallback onAddTransaction;
+  final void Function([TransactionType? initialType]) onAddTransaction;
   final VoidCallback onViewAllTransactions;
 
   const DashboardScreen({
@@ -120,10 +124,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               ),
                             ],
                           ),
-                          if (settings.avatarPath != null)
+                          if (ImageStore.exists(settings.avatarPath))
                             CircleAvatar(
                               radius: 22,
-                              backgroundImage: AssetImage(settings.avatarPath!),
+                              backgroundImage:
+                                  FileImage(File(settings.avatarPath!)),
                             )
                           else
                             Container(
@@ -174,7 +179,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-              child: _QuickActions(onAddTransaction: widget.onAddTransaction),
+              child: _QuickActions(
+                onAddTransaction: widget.onAddTransaction,
+                onOpenBudget: () => Navigator.of(context).pushNamed('/budget'),
+                onScanSms: () => Navigator.of(context).pushNamed('/sms'),
+              ),
             ).animate(delay: 240.ms).fadeIn(duration: 400.ms),
           ),
 
@@ -229,7 +238,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
-              child: _TipCard(tip: _tipOfDay),
+              child: _TipCard(
+                tip: _tipOfDay,
+                onTap: () => Navigator.of(context).pushNamed('/tips'),
+              ),
             ).animate(delay: 500.ms).fadeIn(duration: 400.ms).rotate(
                 begin: 0.03,
                 end: 0,
@@ -242,11 +254,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   void _showDetail(BuildContext context, TransactionModel tx) {
-    final categories = ref.read(categoryProvider);
-    final cat = categories.firstWhere(
-      (c) => c.id == tx.categoryId,
-      orElse: () => categories.last,
-    );
+    final cat = ref.read(categoryProvider.notifier).getById(tx.categoryId);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -256,19 +264,34 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Future<void> _deleteTransaction(String id) async {
-    await ref.read(transactionProvider.notifier).delete(id);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Transaction deleted'),
-          action: SnackBarAction(label: 'Undo', onPressed: () {}),
-        ),
-      );
-    }
+    final notifier = ref.read(transactionProvider.notifier);
+    final deleted = ref.read(transactionRepoProvider).getById(id);
+    await notifier.delete(id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Transaction deleted'),
+        duration: const Duration(seconds: 5),
+        action: deleted == null
+            ? null
+            : SnackBarAction(
+                label: 'Undo',
+                // Re-add a fresh copy; the original is detached from Hive.
+                onPressed: () => notifier
+                    .add(deleted.copyWith(updatedAt: deleted.updatedAt)),
+              ),
+      ),
+    );
   }
 
   void _editTransaction(TransactionModel tx) {
-    Navigator.of(context).pushNamed('/add-transaction', arguments: tx);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (_) => AddTransactionScreen(existingTransaction: tx),
+    );
   }
 }
 
@@ -473,9 +496,15 @@ class _BudgetRing extends StatelessWidget {
 
 // ─── Quick Actions ────────────────────────────────────────────────────────────
 class _QuickActions extends StatelessWidget {
-  final VoidCallback onAddTransaction;
+  final void Function([TransactionType? initialType]) onAddTransaction;
+  final VoidCallback onOpenBudget;
+  final VoidCallback onScanSms;
 
-  const _QuickActions({required this.onAddTransaction});
+  const _QuickActions({
+    required this.onAddTransaction,
+    required this.onOpenBudget,
+    required this.onScanSms,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -483,22 +512,26 @@ class _QuickActions extends StatelessWidget {
       (
         icon: Icons.remove_circle_outline_rounded,
         label: 'Expense',
-        color: const Color(0xFFE8365D)
+        color: const Color(0xFFE8365D),
+        onTap: () => onAddTransaction(TransactionType.expense),
       ),
       (
         icon: Icons.add_circle_outline_rounded,
         label: 'Income',
-        color: const Color(0xFF00B87C)
+        color: const Color(0xFF00B87C),
+        onTap: () => onAddTransaction(TransactionType.income),
       ),
       (
-        icon: Icons.swap_horiz_rounded,
-        label: 'Transfer',
-        color: const Color(0xFFFFB300)
+        icon: Icons.savings_rounded,
+        label: 'Budget',
+        color: const Color(0xFFFFB300),
+        onTap: onOpenBudget,
       ),
       (
         icon: Icons.sms_rounded,
         label: 'Scan SMS',
-        color: const Color(0xFF6C63FF)
+        color: const Color(0xFF6C63FF),
+        onTap: onScanSms,
       ),
     ];
 
@@ -507,7 +540,7 @@ class _QuickActions extends StatelessWidget {
         final a = actions[i];
         return Expanded(
           child: GestureDetector(
-            onTap: onAddTransaction,
+            onTap: a.onTap,
             child: Container(
               margin: EdgeInsets.only(right: i < actions.length - 1 ? 8 : 0),
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -676,12 +709,14 @@ class _MiniBarChart extends StatelessWidget {
 // ─── Tip Card ─────────────────────────────────────────────────────────────────
 class _TipCard extends StatelessWidget {
   final String tip;
+  final VoidCallback? onTap;
 
-  const _TipCard({required this.tip});
+  const _TipCard({required this.tip, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GlassCard(
+      onTap: onTap,
       padding: const EdgeInsets.all(16),
       gradient: LinearGradient(
         colors: [
@@ -795,7 +830,7 @@ class _EmptyState extends StatelessWidget {
 // ─── Transaction Detail Sheet ─────────────────────────────────────────────────
 class _TransactionDetail extends StatelessWidget {
   final TransactionModel transaction;
-  final dynamic category;
+  final CategoryModel? category;
 
   const _TransactionDetail({required this.transaction, required this.category});
 
@@ -834,10 +869,10 @@ class _TransactionDetail extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: category.color.withValues(alpha: 0.15),
+                  color: category!.color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(category.icon, color: category.color, size: 30),
+                child: Icon(category!.icon, color: category!.color, size: 30),
               ),
             const SizedBox(height: 12),
             Text(
@@ -868,6 +903,18 @@ class _TransactionDetail extends StatelessWidget {
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
                 textAlign: TextAlign.center,
+              ),
+            ],
+            if (ImageStore.exists(transaction.receiptImagePath)) ...[
+              const SizedBox(height: 16),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.file(
+                  File(transaction.receiptImagePath!),
+                  height: 180,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
               ),
             ],
             const SizedBox(height: 24),

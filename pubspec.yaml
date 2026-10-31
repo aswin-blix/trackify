@@ -1,10 +1,15 @@
 name: trackify
 description: A production-grade expense tracking app with glassmorphism UI.
 publish_to: 'none'
-version: 1.1.0+2
+# Keep kAppVersion in lib/core/constants/app_constants.dart in sync.
+version: 1.2.0+3
 
 environment:
+  # NOTE: raising the Dart lower bound to >=3.7 switches `dart format` to the
+  # tall style and reformats the whole repo. Do that in its own commit.
   sdk: '>=3.0.0 <4.0.0'
+  # pubspec.lock already requires this; older Flutter SDKs never built.
+  flutter: '>=3.38.0'
 
 dependencies:
   flutter:
@@ -23,14 +28,11 @@ dependencies:
 
   # Animations
   flutter_animate: ^4.5.0
-  animations: ^2.0.11
-  lottie: ^3.1.2
 
   # Notifications
   flutter_local_notifications: ^21.0.0
-
-  # Background Tasks
-  workmanager: ^0.9.0
+  flutter_timezone: ^5.0.2
+  timezone: ^0.11.0
 
   # Permissions
   permission_handler: ^12.0.1
@@ -55,26 +57,16 @@ dependencies:
   # Utilities
   uuid: ^4.4.0
   intl: ^0.20.2
-  crypto: ^3.0.3
-
-  # SVG
-  flutter_svg: ^2.0.10+1
-
-  # Sensors for parallax
-  sensors_plus: ^7.0.0
-  flutter_timezone: ^5.0.2
-  timezone: ^0.11.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  # Hive adapters (.g.dart) are checked in. Run
+  #   dart run build_runner build --delete-conflicting-outputs
+  # only after changing a @HiveType model, then review the diff.
   hive_generator: ^2.0.1
   build_runner: ^2.4.9
 
 flutter:
   uses-material-design: true
-  # assets:
-  #   - assets/images/
-  #   - assets/lottie/
-  #   - assets/icons/

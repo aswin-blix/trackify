@@ -20,6 +20,7 @@ Closes #
 <!-- Add before/after screenshots -->
 
 ## Checklist
-- [ ] Code follows the project style (Plus Jakarta Sans, Riverpod providers, Hive adapters hand-written)
+- [ ] Code follows the project style (Plus Jakarta Sans, Riverpod providers, `dart format` clean)
+- [ ] Hive field numbers were not reused or renumbered
 - [ ] No sensitive data (keys, keystore, `.env`) committed
 - [ ] PR title follows `type: short description` format

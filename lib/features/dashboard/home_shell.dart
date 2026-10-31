@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/app_logger.dart';
+import '../../data/models/transaction_model.dart';
 import '../../shared/providers/app_providers.dart';
 import '../../shared/widgets/app_bottom_nav.dart';
+import '../app_lock/app_lock_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../transactions/transactions_screen.dart';
 import '../transactions/add_transaction_screen.dart';
@@ -19,12 +22,16 @@ class HomeShell extends ConsumerStatefulWidget {
 class _HomeShellState extends ConsumerState<HomeShell>
     with WidgetsBindingObserver {
   int _currentTab = 0;
-  AppLifecycleState? _lastLifecycle;
+
+  /// Set when the app leaves the foreground; checked on resume.
+  bool _wentToBackground = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Run after first frame so the shell is on screen before any I/O.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _runAutoBackup());
   }
 
   @override
@@ -35,15 +42,35 @@ class _HomeShellState extends ConsumerState<HomeShell>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Re-lock when app resumes from background if app lock is enabled
-    if (state == AppLifecycleState.resumed &&
-        _lastLifecycle == AppLifecycleState.paused) {
-      final settings = ref.read(settingsProvider);
-      if (settings.appLockEnabled && mounted) {
-        Navigator.of(context).pushReplacementNamed('/lock');
-      }
+    // Flutter >= 3.13 passes through `hidden` and `inactive` on the way back
+    // to `resumed`, so compare against a flag rather than the previous state.
+    switch (state) {
+      case AppLifecycleState.paused:
+        _wentToBackground = true;
+      case AppLifecycleState.resumed:
+        if (!_wentToBackground) return;
+        _wentToBackground = false;
+        final settings = ref.read(settingsProvider);
+        if (settings.appLockEnabled && !AppLockGuard.suppressed && mounted) {
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/lock', (route) => false);
+          return;
+        }
+        _runAutoBackup();
+      default:
+        break;
     }
-    _lastLifecycle = state;
+  }
+
+  Future<void> _runAutoBackup() async {
+    try {
+      final path = await ref.read(backupRepoProvider).runAutoBackupIfDue();
+      if (path != null && mounted) {
+        ref.read(settingsProvider.notifier).reload();
+      }
+    } catch (e, stack) {
+      AppLogger.e('HomeShell', 'Auto backup check failed', e, stack);
+    }
   }
 
   // Map: tab index accounting for FAB in center (index 2)
@@ -52,11 +79,6 @@ class _HomeShellState extends ConsumerState<HomeShell>
 
   Widget _buildScreen() {
     switch (_currentTab) {
-      case 0:
-        return DashboardScreen(
-          onAddTransaction: _openAddTransaction,
-          onViewAllTransactions: () => setState(() => _currentTab = 1),
-        );
       case 1:
         return TransactionsScreen(onAddTransaction: _openAddTransaction);
       case 3:
@@ -79,13 +101,13 @@ class _HomeShellState extends ConsumerState<HomeShell>
     setState(() => _currentTab = index);
   }
 
-  void _openAddTransaction() {
+  void _openAddTransaction([TransactionType? initialType]) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
-      builder: (ctx) => const AddTransactionScreen(),
+      builder: (ctx) => AddTransactionScreen(initialType: initialType),
     );
   }
 
