@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Permissions -->
+    <!-- Shared tracking (optional Firebase sync). No other network use. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- Reschedule the daily reminder after a reboot -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- SMS Bank Reader: inbox is read on demand; no broadcast receiver, so RECEIVE_SMS is not needed -->
@@ -19,8 +21,8 @@
     <!--
       allowBackup is OFF on purpose: Android Auto Backup would otherwise upload
       the Hive database (transactions and raw bank SMS) to the user's Google
-      Drive, contradicting the app's 100% offline promise. Backups are explicit
-      user-initiated files only.
+      Drive. The only network use is the opt-in shared household sync; backups
+      are explicit user-initiated files only.
     -->
     <application
         android:label="Trackify"

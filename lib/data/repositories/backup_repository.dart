@@ -212,6 +212,9 @@ class BackupRepository {
     if (restoredSettings != null) {
       // Never let a restored file turn the onboarding gate back on.
       restoredSettings.onboardingComplete = true;
+      // Household membership belongs to this device and account, not to the
+      // backup file.
+      restoredSettings.householdId = _settingsRepo.settings.householdId;
       await _settingsRepo.save(restoredSettings);
     }
 

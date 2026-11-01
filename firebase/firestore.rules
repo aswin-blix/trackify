@@ -1,0 +1,70 @@
+rules_version = '2';
+
+// Trackify shared tracking.
+//
+// A household is a small group (max 5 accounts) that shares one ledger.
+// Every member can read and write everything inside their household.
+// Joining is done with an invite code: a signed-in user who knows the code
+// may add themselves, and only themselves, to the member list.
+//
+// Deploy with: firebase deploy --only firestore:rules
+// (or paste into Firebase console → Firestore → Rules).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function householdMembers(hid) {
+      return get(/databases/$(database)/documents/households/$(hid)).data.memberIds;
+    }
+
+    function isMember(hid) {
+      return signedIn() && request.auth.uid in householdMembers(hid);
+    }
+
+    // Join: the only change is appending the caller's own uid to memberIds
+    // and adding their member entry, while the household is not full.
+    function isJoiningSelf() {
+      let before = resource.data;
+      let after = request.resource.data;
+      return signedIn()
+        && after.diff(before).affectedKeys().hasOnly(['memberIds', 'members', 'updatedAt'])
+        && after.memberIds == before.memberIds.concat([request.auth.uid])
+        && before.memberIds.size() < 5
+        && after.members.diff(before.members).affectedKeys().hasOnly([request.auth.uid]);
+    }
+
+    match /invites/{code} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['householdId', 'createdAt'])
+        && request.resource.data.householdId is string;
+      allow update: if false;
+      allow delete: if signedIn() && isMember(resource.data.householdId);
+    }
+
+    match /households/{hid} {
+      allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.memberIds == [request.auth.uid];
+      allow update: if (signedIn() && request.auth.uid in resource.data.memberIds)
+        || isJoiningSelf();
+      allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+
+      match /transactions/{txId} {
+        allow read, write: if isMember(hid);
+      }
+
+      match /categories/{catId} {
+        allow read, write: if isMember(hid);
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

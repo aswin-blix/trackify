@@ -6,8 +6,8 @@
 
 **Track every rupee, own your future.**
 
-A production-grade, 100% offline personal finance tracker built with Flutter.
-Beautiful glassmorphism UI · Riverpod state · Hive local database · Zero data collection.
+A production-grade, offline-first personal finance tracker built with Flutter.
+Beautiful glassmorphism UI · Riverpod state · Hive local database · Zero data collection · Optional partner sharing.
 
 [![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Flutter](https://img.shields.io/badge/Flutter-3.38%2B-02569B?logo=flutter)](https://flutter.dev)
@@ -31,10 +31,11 @@ Beautiful glassmorphism UI · Riverpod state · Hive local database · Zero data
 | 📱 | **SMS Bank Reader** | Auto-reads bank transaction SMS — 100% local, never uploaded |
 | 🔐 | **App Lock** | Biometric / device PIN gate on open and on background resume |
 | ☁️ | **Backup & Restore** | Export full data as JSON and restore from file |
+| 👫 | **Shared Tracking** | Optional: one household, one budget, two phones. Google sign-in + Firestore, free tier. See [docs/SHARED_TRACKING_SETUP.md](docs/SHARED_TRACKING_SETUP.md) |
 | 🌙 | **Dark / Light Mode** | Instant theme switching, follows system preference |
 | 💱 | **Multi-Currency** | INR, USD, EUR, GBP, JPY, AUD, CAD, SGD, AED |
 | ✨ | **Glassmorphism UI** | Frosted glass cards with spring animations throughout |
-| 🚫 | **100% Offline** | Zero network calls, zero telemetry, zero cloud |
+| 🚫 | **Offline First** | Zero network calls and zero telemetry unless you opt in to shared tracking |
 
 ---
 
@@ -58,6 +59,7 @@ Beautiful glassmorphism UI · Riverpod state · Hive local database · Zero data
 | SMS Reading | `flutter_sms_inbox` |
 | Notifications | `flutter_local_notifications`, `flutter_timezone`, `timezone` |
 | File Operations | `path_provider`, `share_plus`, `file_picker` |
+| Shared Tracking (optional) | `firebase_core`, `firebase_auth`, `cloud_firestore`, `google_sign_in` |
 
 ---
 

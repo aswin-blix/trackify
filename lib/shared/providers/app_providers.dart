@@ -10,6 +10,7 @@ import '../../data/models/transaction_model.dart';
 import '../../data/models/category_model.dart';
 import '../../data/models/bank_sms_message.dart';
 import '../../features/sms/sms_service.dart';
+import '../../features/household/household_sync.dart';
 
 // ─── Repository Providers ─────────────────────────────────────────────────────
 final transactionRepoProvider = Provider<TransactionRepository>((ref) {
@@ -35,8 +36,9 @@ final backupRepoProvider = Provider<BackupRepository>((ref) {
 // ─── Settings Provider ────────────────────────────────────────────────────────
 class SettingsNotifier extends StateNotifier<AppSettings> {
   final SettingsRepository _repo;
+  final HouseholdSync _sync;
 
-  SettingsNotifier(this._repo) : super(_repo.settings);
+  SettingsNotifier(this._repo, this._sync) : super(_repo.settings);
 
   /// Re-reads settings from storage, e.g. after a restore or reset that
   /// bypassed this notifier.
@@ -64,14 +66,17 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       s.currency = code;
       s.currencySymbol = symbol;
     });
+    _sync.pushCurrency(code, symbol);
   }
 
   Future<void> setUserName(String name) async {
     await update((s) => s.userName = name);
+    _sync.pushMemberName(name);
   }
 
   Future<void> setMonthlyBudget(double? budget) async {
     await update((s) => s.monthlyBudget = budget);
+    _sync.pushBudget(budget);
   }
 
   Future<void> completeOnboarding() async {
@@ -133,14 +138,18 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
 final settingsProvider =
     StateNotifierProvider<SettingsNotifier, AppSettings>((ref) {
-  return SettingsNotifier(ref.watch(settingsRepoProvider));
+  return SettingsNotifier(
+    ref.watch(settingsRepoProvider),
+    ref.watch(householdSyncProvider),
+  );
 });
 
 // ─── Transaction Providers ────────────────────────────────────────────────────
 class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
   final TransactionRepository _repo;
+  final HouseholdSync _sync;
 
-  TransactionNotifier(this._repo) : super(_repo.getAll());
+  TransactionNotifier(this._repo, this._sync) : super(_repo.getAll());
 
   void refresh() {
     state = _repo.getAll();
@@ -149,8 +158,10 @@ class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
   Future<void> add(TransactionModel tx) async {
     try {
       AppLogger.i('TransactionNotifier', 'Adding transaction id=${tx.id}');
+      _sync.stamp(tx);
       await _repo.add(tx);
       refresh();
+      _sync.pushTransaction(tx);
       AppLogger.i(
           'TransactionNotifier', 'Transaction added, total=${state.length}');
     } catch (e, stack) {
@@ -163,8 +174,10 @@ class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
   Future<void> update(TransactionModel tx) async {
     try {
       AppLogger.i('TransactionNotifier', 'Updating transaction id=${tx.id}');
+      _sync.stamp(tx);
       await _repo.update(tx);
       refresh();
+      _sync.pushTransaction(tx);
     } catch (e, stack) {
       AppLogger.e('TransactionNotifier',
           'Failed to update transaction id=${tx.id}', e, stack);
@@ -177,6 +190,7 @@ class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
       AppLogger.i('TransactionNotifier', 'Deleting transaction id=$id');
       await _repo.delete(id);
       refresh();
+      _sync.deleteTransaction(id);
     } catch (e, stack) {
       AppLogger.e('TransactionNotifier', 'Failed to delete transaction id=$id',
           e, stack);
@@ -210,14 +224,18 @@ class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
 
 final transactionProvider =
     StateNotifierProvider<TransactionNotifier, List<TransactionModel>>((ref) {
-  return TransactionNotifier(ref.watch(transactionRepoProvider));
+  return TransactionNotifier(
+    ref.watch(transactionRepoProvider),
+    ref.watch(householdSyncProvider),
+  );
 });
 
 // ─── Category Providers ───────────────────────────────────────────────────────
 class CategoryNotifier extends StateNotifier<List<CategoryModel>> {
   final CategoryRepository _repo;
+  final HouseholdSync _sync;
 
-  CategoryNotifier(this._repo) : super(_repo.getAll());
+  CategoryNotifier(this._repo, this._sync) : super(_repo.getAll());
 
   void refresh() {
     state = _repo.getAll();
@@ -226,21 +244,25 @@ class CategoryNotifier extends StateNotifier<List<CategoryModel>> {
   Future<void> add(CategoryModel cat) async {
     await _repo.add(cat);
     refresh();
+    _sync.pushCategory(cat);
   }
 
   Future<void> update(CategoryModel cat) async {
     await _repo.update(cat);
     refresh();
+    _sync.pushCategory(cat);
   }
 
   Future<void> delete(String id) async {
     await _repo.delete(id);
     refresh();
+    _sync.deleteCategory(id);
   }
 
   Future<void> reorder(List<String> orderedIds) async {
     await _repo.reorder(orderedIds);
     refresh();
+    _sync.pushCategories(state);
   }
 
   CategoryModel? getById(String id) => _repo.getById(id);
@@ -250,7 +272,10 @@ class CategoryNotifier extends StateNotifier<List<CategoryModel>> {
 
 final categoryProvider =
     StateNotifierProvider<CategoryNotifier, List<CategoryModel>>((ref) {
-  return CategoryNotifier(ref.watch(categoryRepoProvider));
+  return CategoryNotifier(
+    ref.watch(categoryRepoProvider),
+    ref.watch(householdSyncProvider),
+  );
 });
 
 // ─── Selected Period Provider (for analytics) ──────────────────────────────

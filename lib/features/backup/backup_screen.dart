@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/utils/formatters.dart';
 import '../../data/repositories/backup_repository.dart';
 import '../../shared/providers/app_providers.dart';
+import '../household/household_sync.dart';
 import '../../shared/widgets/glass_card.dart';
 
 class BackupScreen extends ConsumerStatefulWidget {
@@ -81,6 +82,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           .restoreFromFile(result.files.single.path!);
       ref.read(transactionProvider.notifier).refresh();
       ref.read(categoryProvider.notifier).refresh();
+      await ref.read(householdSyncProvider).mergeLocalIntoHousehold();
       ref.read(settingsProvider.notifier).reload();
       await _loadBackups();
       if (mounted) {

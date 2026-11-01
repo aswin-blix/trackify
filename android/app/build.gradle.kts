@@ -4,6 +4,20 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services") apply false
+}
+
+// Shared tracking (Firebase) is optional. The google-services plugin is only
+// applied when android/app/google-services.json exists, so the app still
+// builds without a Firebase project; the feature then reports itself as
+// unavailable at runtime. See docs/SHARED_TRACKING_SETUP.md.
+if (project.file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+} else {
+    logger.warn(
+        "WARNING: android/app/google-services.json not found. " +
+            "Shared tracking will be unavailable in this build."
+    )
 }
 
 // Release signing is read from android/key.properties (git-ignored).
@@ -28,8 +42,10 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
     }
 
     defaultConfig {

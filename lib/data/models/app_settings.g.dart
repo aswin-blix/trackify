@@ -36,13 +36,14 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       onboardingComplete: fields[16] as bool,
       monthlyBudget: fields[17] as double?,
       lastBackupAt: fields[18] as DateTime?,
+      householdId: fields[19] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, AppSettings obj) {
     writer
-      ..writeByte(19)
+      ..writeByte(20)
       ..writeByte(0)
       ..write(obj.userName)
       ..writeByte(1)
@@ -80,7 +81,9 @@ class AppSettingsAdapter extends TypeAdapter<AppSettings> {
       ..writeByte(17)
       ..write(obj.monthlyBudget)
       ..writeByte(18)
-      ..write(obj.lastBackupAt);
+      ..write(obj.lastBackupAt)
+      ..writeByte(19)
+      ..write(obj.householdId);
   }
 
   @override

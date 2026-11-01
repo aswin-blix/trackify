@@ -35,7 +35,7 @@ const Curve kCurveBounce = Curves.elasticOut;
 // ─── App Info ─────────────────────────────────────────────────────────────────
 const String kAppName = 'Trackify';
 // Keep in sync with the version in pubspec.yaml.
-const String kAppVersion = '1.2.0';
+const String kAppVersion = '1.3.0';
 const int kBackupSchemaVersion = 1;
 const String kBackupFolder = 'TrackifyBackups';
 

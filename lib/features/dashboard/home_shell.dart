@@ -6,6 +6,7 @@ import '../../data/models/transaction_model.dart';
 import '../../shared/providers/app_providers.dart';
 import '../../shared/widgets/app_bottom_nav.dart';
 import '../app_lock/app_lock_screen.dart';
+import '../household/household_sync.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../transactions/transactions_screen.dart';
 import '../transactions/add_transaction_screen.dart';
@@ -31,7 +32,10 @@ class _HomeShellState extends ConsumerState<HomeShell>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     // Run after first frame so the shell is on screen before any I/O.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _runAutoBackup());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(householdSyncProvider).ensureStarted();
+      _runAutoBackup();
+    });
   }
 
   @override
@@ -56,6 +60,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
               .pushNamedAndRemoveUntil('/lock', (route) => false);
           return;
         }
+        ref.read(householdSyncProvider).ensureStarted();
         _runAutoBackup();
       default:
         break;

@@ -51,6 +51,11 @@ class TransactionModel extends HiveObject {
   @HiveField(11)
   DateTime updatedAt;
 
+  /// Firebase uid of the household member who added this entry. Null for
+  /// entries made before shared tracking was enabled on this device.
+  @HiveField(12)
+  String? addedBy;
+
   TransactionModel({
     required this.id,
     required this.amount,
@@ -64,6 +69,7 @@ class TransactionModel extends HiveObject {
     this.smsSource,
     required this.createdAt,
     required this.updatedAt,
+    this.addedBy,
   }) : tags = tags ?? [];
 
   TransactionModel copyWith({
@@ -79,6 +85,7 @@ class TransactionModel extends HiveObject {
     String? smsSource,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? addedBy,
   }) {
     return TransactionModel(
       id: id ?? this.id,
@@ -93,6 +100,7 @@ class TransactionModel extends HiveObject {
       smsSource: smsSource ?? this.smsSource,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
+      addedBy: addedBy ?? this.addedBy,
     );
   }
 
@@ -109,6 +117,7 @@ class TransactionModel extends HiveObject {
         'smsSource': smsSource,
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
+        'addedBy': addedBy,
       };
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
@@ -128,6 +137,7 @@ class TransactionModel extends HiveObject {
       smsSource: json['smsSource'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      addedBy: json['addedBy'] as String?,
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/utils/formatters.dart';
 import '../../data/models/transaction_model.dart';
 import '../../shared/providers/app_providers.dart';
+import '../household/household_service.dart';
 import '../../shared/widgets/glass_card.dart';
 import '../../shared/widgets/animated_counter.dart';
 
@@ -92,6 +93,20 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen>
     final sortedCats = catBreakdown.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
+    // Per-member split, only when sharing with someone else.
+    final members = ref.watch(householdMembersProvider);
+    final myUid = ref.watch(currentUidProvider);
+    final memberSpend = <String, double>{};
+    if (members.isNotEmpty) {
+      for (final t
+          in periodTxs.where((t) => t.type == TransactionType.expense)) {
+        final key = t.addedBy ?? '';
+        memberSpend[key] = (memberSpend[key] ?? 0) + t.amount;
+      }
+    }
+    final memberRows = memberSpend.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
@@ -147,6 +162,57 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen>
                 ),
               ).animate(delay: 120.ms).fadeIn(duration: 300.ms),
             ),
+            // Who spent (shared household)
+            if (memberRows.isNotEmpty)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  child: GlassCard(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Who Spent',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ...memberRows.asMap().entries.map((e) {
+                          final uid = e.value.key;
+                          final name = uid.isEmpty
+                              ? 'Unassigned'
+                              : uid == myUid
+                                  ? 'You'
+                                  : members[uid] ?? 'Former member';
+                          final pct = totalExpense > 0
+                              ? e.value.value / totalExpense
+                              : 0.0;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _CategoryBreakdownRow(
+                              name: name,
+                              amount: e.value.value,
+                              percentage: pct,
+                              color: uid == myUid
+                                  ? Theme.of(context).colorScheme.primary
+                                  : const Color(0xFFE84393),
+                              icon: uid == myUid
+                                  ? Icons.person_rounded
+                                  : Icons.favorite_rounded,
+                              symbol: symbol,
+                              delay: e.key * 50,
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ).animate(delay: 150.ms).fadeIn(duration: 400.ms),
+              ),
             // Donut chart
             if (catBreakdown.isNotEmpty)
               SliverToBoxAdapter(

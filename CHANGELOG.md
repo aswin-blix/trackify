@@ -6,6 +6,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.0] — 2026-11-01
+
+### Added
+- **Shared Tracking** — track one household from two phones. Sign in with Google, create a household, share a 6-character invite code; transactions, categories, currency and the monthly budget sync through Firestore (free tier). Receipt photos, bank SMS, app lock and reminders stay on the phone
+- Transaction tiles show who added each entry ("You" / partner) and Analytics gains a **Who Spent** split when the household has more than one member
+- `TransactionModel.addedBy` (Hive field 12) and `AppSettings.householdId` (field 19); both are included in backups, and a restore keeps the device's own household link
+- Firestore security rules in `firebase/firestore.rules`; setup guide in `docs/SHARED_TRACKING_SETUP.md`
+
+### Changed
+- The feature is strictly opt-in. Without `android/app/google-services.json` the Google Services Gradle plugin is skipped, the build succeeds, and Settings reports the feature as not configured. `INTERNET` permission is now declared for release builds
+- Hive remains the source of truth; Firestore is a mirror with last-write-wins on `updatedAt`
+- Android: Kotlin Gradle plugin 2.2.20 → 2.3.21 (Firebase Auth 25 ships Kotlin 2.4 metadata), `jvmTarget` moved to the `compilerOptions` DSL, and `kotlin.incremental=false` to work around a Windows incremental-cache failure in plugin modules
+
+---
+
 ## [1.2.0] — 2026-10-31
 
 ### Fixed

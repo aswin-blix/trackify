@@ -12,6 +12,9 @@ import '../../core/utils/image_store.dart';
 import '../../shared/providers/app_providers.dart';
 import '../app_lock/app_lock_screen.dart';
 import '../categories/manage_categories_screen.dart';
+import '../household/firebase_bootstrap.dart';
+import '../household/household_service.dart';
+import '../household/household_sync.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -204,6 +207,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ).animate(delay: 160.ms).fadeIn(duration: 350.ms),
             ),
 
+            // Shared tracking
+            SliverToBoxAdapter(
+              child: _SettingsGroup(
+                title: 'Shared Tracking',
+                margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                children: [
+                  _SettingsTile(
+                    icon: Icons.people_alt_rounded,
+                    iconColor: const Color(0xFFE84393),
+                    title: 'Partner & Household',
+                    subtitle: _householdSubtitle(),
+                    onTap: () => Navigator.of(context).pushNamed('/household'),
+                  ),
+                ],
+              ).animate(delay: 170.ms).fadeIn(duration: 350.ms),
+            ),
+
             // Backup
             SliverToBoxAdapter(
               child: _SettingsGroup(
@@ -303,7 +323,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '100% offline • No data collected',
+                        FirebaseBootstrap.available
+                            ? 'Offline-first • Sharing is optional'
+                            : '100% offline • No data collected',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           color: Theme.of(context)
@@ -321,6 +343,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  String _householdSubtitle() {
+    if (!FirebaseBootstrap.available) return 'Not configured in this build';
+    final user = ref.watch(authUserProvider).value;
+    if (user == null) return 'Sign in to track with a partner';
+    final hh = ref.watch(householdProvider).value;
+    if (hh == null) return 'Create or join a household';
+    final n = hh.members.length;
+    return '${hh.name} · $n member${n == 1 ? '' : 's'}';
   }
 
   Future<void> _toggleSmsReader(BuildContext context, bool enable) async {
@@ -627,6 +659,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final avatarPath = ref.read(settingsProvider).avatarPath;
 
     await NotificationService.instance.cancelAll();
+    // Stop mirroring before wiping, so the deletes stay local.
+    ref.read(householdSyncProvider).stop();
     await ref.read(transactionRepoProvider).deleteAll();
     await ref.read(categoryRepoProvider).deleteAll();
     await ref.read(categoryRepoProvider).seedDefaults();

@@ -63,6 +63,11 @@ class AppSettings extends HiveObject {
   @HiveField(18)
   DateTime? lastBackupAt;
 
+  /// Firestore id of the shared household this device is linked to, or null
+  /// when the app is used alone (the default, fully offline mode).
+  @HiveField(19)
+  String? householdId;
+
   AppSettings({
     this.userName = '',
     this.avatarPath,
@@ -83,6 +88,7 @@ class AppSettings extends HiveObject {
     this.onboardingComplete = false,
     this.monthlyBudget,
     this.lastBackupAt,
+    this.householdId,
   }) : knownSenderIds = knownSenderIds ?? List.from(kDefaultBankSenders);
 
   ThemeMode get resolvedThemeMode {
@@ -116,6 +122,7 @@ class AppSettings extends HiveObject {
         'onboardingComplete': onboardingComplete,
         'monthlyBudget': monthlyBudget,
         'lastBackupAt': lastBackupAt?.toIso8601String(),
+        'householdId': householdId,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
@@ -142,6 +149,7 @@ class AppSettings extends HiveObject {
       lastBackupAt: json['lastBackupAt'] != null
           ? DateTime.parse(json['lastBackupAt'] as String)
           : null,
+      householdId: json['householdId'] as String?,
     );
   }
 }

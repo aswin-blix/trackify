@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/models/category_model.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/theme/app_colors.dart';
+import '../../features/household/household_service.dart';
 
-class TransactionTile extends StatelessWidget {
+class TransactionTile extends ConsumerWidget {
   final TransactionModel transaction;
   final CategoryModel? category;
   final String currencySymbol;
@@ -50,10 +52,23 @@ class TransactionTile extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final catColor = category?.color ?? const Color(0xFF636E72);
     final catIcon = category?.icon ?? Icons.receipt;
+
+    // Only labelled when the household has more than one member.
+    final members = ref.watch(householdMembersProvider);
+    final myUid = ref.watch(currentUidProvider);
+    String? addedByLabel;
+    if (members.isNotEmpty) {
+      final by = transaction.addedBy;
+      addedByLabel = by == null
+          ? null
+          : by == myUid
+              ? 'You'
+              : members[by]?.split(' ').first;
+    }
 
     return Dismissible(
       key: ValueKey(transaction.id),
@@ -119,13 +134,43 @@ class TransactionTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      category?.name ?? 'Unknown',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            category?.name ?? 'Unknown',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (addedByLabel != null) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              addedByLabel,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     if (transaction.note.isNotEmpty) ...[
                       const SizedBox(height: 2),

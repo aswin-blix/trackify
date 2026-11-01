@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Primary SEO -->
-  <title>Trackify — Personal Finance Tracker | 100% Offline, Open Source</title>
-  <meta name="description" content="Trackify is a free, open-source personal finance app for Android. Track income and expenses, read bank SMS automatically, set budgets, and visualize spending — all 100% offline with zero data collection." />
-  <meta name="keywords" content="personal finance app, expense tracker, budget tracker, open source finance app, flutter finance app, offline expense tracker, bank SMS reader, free budget app android" />
+  <title>Trackify — Personal Finance Tracker | Offline-First, Open Source</title>
+  <meta name="description" content="Trackify is a free, open-source personal finance app for Android. Track income and expenses, read bank SMS automatically, set budgets, visualize spending, and optionally share one ledger with your partner — offline-first with zero data collection." />
+  <meta name="keywords" content="personal finance app, expense tracker, budget tracker, open source finance app, flutter finance app, offline expense tracker, bank SMS reader, free budget app android, couple expense tracker, shared budget app" />
   <meta name="author" content="Aswin Blix" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://aswinblix.github.io/trackify/" />
@@ -16,7 +16,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://aswinblix.github.io/trackify/" />
   <meta property="og:title" content="Trackify — Personal Finance Tracker" />
-  <meta property="og:description" content="Free, open-source Android app to track every rupee. Bank SMS auto-reader, budgets, analytics, biometric lock — 100% offline." />
+  <meta property="og:description" content="Free, open-source Android app to track every rupee. Bank SMS auto-reader, budgets, analytics, biometric lock, optional partner sharing — offline-first." />
   <meta property="og:image" content="https://aswinblix.github.io/trackify/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -28,7 +28,7 @@
   <meta name="twitter:site" content="@aswin-blix" />
   <meta name="twitter:creator" content="@aswin-blix" />
   <meta name="twitter:title" content="Trackify — Personal Finance Tracker" />
-  <meta name="twitter:description" content="Free, open-source Android app to track every rupee. Bank SMS auto-reader, budgets, analytics, biometric lock — 100% offline." />
+  <meta name="twitter:description" content="Free, open-source Android app to track every rupee. Bank SMS auto-reader, budgets, analytics, biometric lock, optional partner sharing — offline-first." />
   <meta name="twitter:image" content="https://aswinblix.github.io/trackify/assets/og-image.png" />
 
   <!-- Theme color for browser chrome -->
@@ -40,7 +40,7 @@
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "Trackify",
-    "description": "Free, open-source personal finance tracker for Android. Track income and expenses, auto-read bank SMS, set budgets, visualize spending — 100% offline.",
+    "description": "Free, open-source personal finance tracker for Android. Track income and expenses, auto-read bank SMS, set budgets, visualize spending, optionally share a ledger with your partner — offline-first.",
     "url": "https://aswinblix.github.io/trackify/",
     "downloadUrl": "https://github.com/aswin-blix/trackify/releases/latest",
     "operatingSystem": "Android",
@@ -56,7 +56,7 @@
       "url": "https://github.com/aswin-blix"
     },
     "license": "https://opensource.org/licenses/MIT",
-    "softwareVersion": "1.1.0",
+    "softwareVersion": "1.3.0",
     "featureList": [
       "Expense and income tracking",
       "Bank SMS auto-reader",
@@ -66,7 +66,8 @@
       "Backup and restore",
       "Dark and light mode",
       "Multi-currency support",
-      "100% offline"
+      "Optional shared household tracking",
+      "Offline-first"
     ]
   }
   </script>
@@ -413,13 +414,14 @@
     <div class="hero-content">
       <div class="hero-badge">
         <div class="hero-badge-dot"></div>
-        Open Source · 100% Offline · Free Forever
+        Open Source · Offline-First · Free Forever
       </div>
       <h1>Track every rupee,<br /><span>own your future.</span></h1>
       <p class="hero-sub">
         A beautiful, production-grade personal finance tracker for Android.
         Log expenses, auto-read bank SMS, set budgets, visualize your spending —
-        all stored locally on your device. Zero accounts, zero cloud, zero nonsense.
+        all stored locally on your device. No account needed. Optionally share one
+        ledger and budget with your partner.
       </p>
       <div class="hero-cta">
         <a class="btn-primary" href="https://github.com/aswin-blix/trackify/releases/latest" target="_blank" rel="noopener">
@@ -432,6 +434,7 @@
       <div class="hero-note">
         <span>✓ Android 6.0+</span>
         <span>✓ No sign-up required</span>
+        <span>✓ Optional partner sharing</span>
         <span>✓ MIT Licensed</span>
       </div>
     </div>
@@ -441,7 +444,7 @@
   <div class="stats" aria-label="App highlights">
     <div class="stat-card fade-up">
       <div class="num" style="color:#6C63FF">100%</div>
-      <div class="lbl">Offline</div>
+      <div class="lbl">Offline Capable</div>
     </div>
     <div class="stat-card fade-up">
       <div class="num" style="color:#00D4FF">0</div>
@@ -496,6 +499,11 @@
         <p>Export your full data as a JSON file and restore it anytime. Auto-backup support with configurable retention.</p>
       </article>
       <article class="feature-card fade-up">
+        <div class="feature-icon" style="background:rgba(232,67,147,.15)">👫</div>
+        <h3>Shared Tracking</h3>
+        <p>Optional. One household, one income, one budget — two phones. Invite your partner with a 6-character code; every entry shows who added it. Receipts and bank SMS never leave your phone.</p>
+      </article>
+      <article class="feature-card fade-up">
         <div class="feature-icon" style="background:rgba(255,179,0,.15)">🌙</div>
         <h3>Dark / Light Mode</h3>
         <p>Three theme options — Dark, Light, or follow System. Changes take effect instantly without restarting.</p>
@@ -519,7 +527,7 @@
       <div class="fade-up">
         <p class="section-label">How it works</p>
         <h2 class="section-title" id="how-title">Up and running in minutes</h2>
-        <p class="section-sub">No account, no setup, no cloud. Just install and start tracking.</p>
+        <p class="section-sub">No account, no setup, no cloud required. Just install and start tracking. Sharing with a partner is one optional step later.</p>
       </div>
       <div class="how-grid">
         <div class="how-step fade-up">

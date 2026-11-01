@@ -31,6 +31,8 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+# Gradle problem reports written next to the Android project
+/android/build/
 /coverage/
 
 # Symbolication related
@@ -43,6 +45,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase project config (per-developer; see docs/SHARED_TRACKING_SETUP.md)
+android/app/google-services.json
 
 # Android signing keys — NEVER commit these
 *.jks
