@@ -12,6 +12,7 @@ import '../../core/utils/image_store.dart';
 import '../../shared/providers/app_providers.dart';
 import '../app_lock/app_lock_screen.dart';
 import '../categories/manage_categories_screen.dart';
+import '../accounts/manage_accounts_screen.dart';
 import '../household/firebase_bootstrap.dart';
 import '../household/household_service.dart';
 import '../household/household_sync.dart';
@@ -124,6 +125,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => const ManageCategoriesScreen(),
+                      ),
+                    ),
+                  ),
+                  _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.account_balance_rounded,
+                    iconColor: const Color(0xFF0984E3),
+                    title: 'Accounts',
+                    subtitle: 'Cash, bank, wallets and opening balances',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ManageAccountsScreen(),
                       ),
                     ),
                   ),
@@ -664,6 +677,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await ref.read(transactionRepoProvider).deleteAll();
     await ref.read(categoryRepoProvider).deleteAll();
     await ref.read(categoryRepoProvider).seedDefaults();
+    await ref.read(accountRepoProvider).deleteAll();
+    await ref.read(accountRepoProvider).seedDefaults();
     await ref.read(smsRepoProvider).deleteAll();
     await ref.read(settingsRepoProvider).reset();
     await ImageStore.delete(avatarPath);
@@ -671,6 +686,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     // Bring every in-memory provider back in line with storage.
     ref.read(transactionProvider.notifier).refresh();
     ref.read(categoryProvider.notifier).refresh();
+    ref.read(accountProvider.notifier).refresh();
     ref.read(smsProvider.notifier).refresh();
     ref.read(settingsProvider.notifier).reload();
 

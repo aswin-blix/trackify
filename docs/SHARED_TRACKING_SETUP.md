@@ -81,6 +81,7 @@ households/{id}
   monthlyBudget, currency, currencySymbol, createdAt, updatedAt
 households/{id}/transactions/{txId}   TransactionModel JSON (no receipt path)
 households/{id}/categories/{catId}    CategoryModel JSON
+households/{id}/accounts/{accId}      AccountModel JSON (opening balances are shared)
 invites/{code}                        { householdId, createdAt }
 ```
 

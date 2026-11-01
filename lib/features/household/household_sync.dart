@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/utils/app_logger.dart';
+import '../../data/models/account_model.dart';
 import '../../data/models/category_model.dart';
 import '../../data/models/transaction_model.dart';
 import '../../shared/providers/app_providers.dart';
@@ -49,6 +50,7 @@ class HouseholdSync {
   String? _hid;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _txSub;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _catSub;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _accSub;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _hhSub;
 
   final _statusController = StreamController<SyncStatus>.broadcast();
@@ -71,6 +73,8 @@ class HouseholdSync {
       _hhDoc(hid).collection('transactions');
   CollectionReference<Map<String, dynamic>> _catCol(String hid) =>
       _hhDoc(hid).collection('categories');
+  CollectionReference<Map<String, dynamic>> _accCol(String hid) =>
+      _hhDoc(hid).collection('accounts');
 
   void _setStatus(SyncStatus s) {
     if (_status == s) return;
@@ -106,14 +110,17 @@ class HouseholdSync {
     _hhSub = _hhDoc(hid).snapshots().listen(_onHousehold, onError: _onError);
     _txSub = _txCol(hid).snapshots().listen(_onTransactions, onError: _onError);
     _catSub = _catCol(hid).snapshots().listen(_onCategories, onError: _onError);
+    _accSub = _accCol(hid).snapshots().listen(_onAccounts, onError: _onError);
   }
 
   void stop() {
     _txSub?.cancel();
     _catSub?.cancel();
+    _accSub?.cancel();
     _hhSub?.cancel();
     _txSub = null;
     _catSub = null;
+    _accSub = null;
     _hhSub = null;
     if (_hid != null) AppLogger.i(_tag, 'Sync stopped');
     _hid = null;
@@ -227,6 +234,32 @@ class HouseholdSync {
     if (changed) _ref.read(categoryProvider.notifier).refresh();
   }
 
+  Future<void> _onAccounts(QuerySnapshot<Map<String, dynamic>> snap) async {
+    final repo = _ref.read(accountRepoProvider);
+    var changed = false;
+    for (final change in snap.docChanges) {
+      try {
+        switch (change.type) {
+          case DocumentChangeType.added:
+          case DocumentChangeType.modified:
+            final data = change.doc.data();
+            if (data == null) break;
+            // Accounts carry no timestamp; the shared copy always wins.
+            await repo.update(AccountModel.fromJson(data));
+            changed = true;
+          case DocumentChangeType.removed:
+            if (repo.getById(change.doc.id) != null) {
+              await repo.delete(change.doc.id);
+              changed = true;
+            }
+        }
+      } catch (e, s) {
+        AppLogger.e(_tag, 'Bad account doc ${change.doc.id}', e, s);
+      }
+    }
+    if (changed) _ref.read(accountProvider.notifier).refresh();
+  }
+
   // ─── Local → cloud ─────────────────────────────────────────────────────────
 
   void _fire(Future<void> f, String what) {
@@ -280,6 +313,28 @@ class HouseholdSync {
     _fire(_catCol(hid).doc(id).delete(), 'delete category $id');
   }
 
+  void pushAccount(AccountModel acc) {
+    final hid = _hid;
+    if (hid == null) return;
+    _fire(_accCol(hid).doc(acc.id).set(acc.toJson()), 'push account ${acc.id}');
+  }
+
+  void pushAccounts(List<AccountModel> accs) {
+    final hid = _hid;
+    if (hid == null || accs.isEmpty) return;
+    final batch = _db.batch();
+    for (final a in accs) {
+      batch.set(_accCol(hid).doc(a.id), a.toJson());
+    }
+    _fire(batch.commit(), 'push ${accs.length} accounts');
+  }
+
+  void deleteAccount(String id) {
+    final hid = _hid;
+    if (hid == null) return;
+    _fire(_accCol(hid).doc(id).delete(), 'delete account $id');
+  }
+
   void pushBudget(double? budget) {
     final hid = _hid;
     if (hid == null) return;
@@ -322,12 +377,15 @@ class HouseholdSync {
     if (hid == null || me == null) return;
     final txRepo = _ref.read(transactionRepoProvider);
     final catRepo = _ref.read(categoryRepoProvider);
+    final accRepo = _ref.read(accountRepoProvider);
 
     final Set<String> cloudTxIds;
     final Set<String> cloudCatIds;
+    final Set<String> cloudAccIds;
     try {
       cloudTxIds = (await _txCol(hid).get()).docs.map((d) => d.id).toSet();
       cloudCatIds = (await _catCol(hid).get()).docs.map((d) => d.id).toSet();
+      cloudAccIds = (await _accCol(hid).get()).docs.map((d) => d.id).toSet();
     } catch (e, s) {
       AppLogger.e(_tag, 'Could not read household before merge', e, s);
       return;
@@ -347,6 +405,12 @@ class HouseholdSync {
     for (final c in catRepo.getAll()) {
       if (cloudCatIds.contains(c.id)) continue;
       batch.set(_catCol(hid).doc(c.id), c.toJson());
+      if (++pending >= 400) flush();
+    }
+
+    for (final a in accRepo.getAll()) {
+      if (cloudAccIds.contains(a.id)) continue;
+      batch.set(_accCol(hid).doc(a.id), a.toJson());
       if (++pending >= 400) flush();
     }
 

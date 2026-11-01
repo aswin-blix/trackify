@@ -7,6 +7,8 @@ import '../../core/theme/app_colors.dart';
 import '../../data/models/bank_sms_message.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/models/category_model.dart';
+import '../../data/models/account_model.dart';
+import '../../shared/widgets/account_picker.dart';
 import '../../shared/providers/app_providers.dart';
 
 class SmsInboxScreen extends ConsumerWidget {
@@ -156,6 +158,8 @@ class SmsInboxScreen extends ConsumerWidget {
       BuildContext context, WidgetRef ref, BankSmsMessage sms) {
     final settings = ref.read(settingsProvider);
     final categories = ref.read(categoryProvider);
+    final accounts = ref.read(accountProvider);
+    final defaultAccountId = ref.read(accountRepoProvider).defaultAccount?.id;
 
     showModalBottomSheet(
       context: context,
@@ -165,6 +169,8 @@ class SmsInboxScreen extends ConsumerWidget {
         sms: sms,
         settings: settings,
         categories: categories,
+        accounts: accounts,
+        defaultAccountId: defaultAccountId,
         onConfirm: (tx) async {
           await ref.read(transactionProvider.notifier).add(tx);
           await ref
@@ -432,12 +438,16 @@ class _AddFromSmsSheet extends StatefulWidget {
   final BankSmsMessage sms;
   final dynamic settings;
   final List<CategoryModel> categories;
+  final List<AccountModel> accounts;
+  final String? defaultAccountId;
   final Future<void> Function(TransactionModel) onConfirm;
 
   const _AddFromSmsSheet({
     required this.sms,
     required this.settings,
     required this.categories,
+    required this.accounts,
+    required this.defaultAccountId,
     required this.onConfirm,
   });
 
@@ -450,11 +460,13 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
   late TextEditingController _amountCtrl;
   late TextEditingController _noteCtrl;
   CategoryModel? _category;
+  String? _accountId;
   bool _saving = false;
 
   @override
   void initState() {
     super.initState();
+    _accountId = widget.defaultAccountId;
     _type = widget.sms.parsedType == 'credit'
         ? TransactionType.income
         : TransactionType.expense;
@@ -577,6 +589,16 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
                   .toList(),
               onChanged: (c) => setState(() => _category = c),
             ),
+            if (widget.accounts.length > 1) ...[
+              const SizedBox(height: 12),
+              AccountPicker(
+                label: 'Account',
+                accounts: widget.accounts,
+                selectedId: _accountId,
+                horizontalPadding: 0,
+                onSelect: (id) => setState(() => _accountId = id),
+              ),
+            ],
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -636,6 +658,7 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
       smsSource: widget.sms.sender,
       createdAt: now,
       updatedAt: now,
+      accountId: _accountId,
     );
     await widget.onConfirm(tx);
   }

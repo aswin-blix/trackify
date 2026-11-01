@@ -4,9 +4,11 @@ import 'package:path_provider/path_provider.dart';
 import '../models/transaction_model.dart';
 import '../models/category_model.dart';
 import '../models/app_settings.dart';
+import '../models/account_model.dart';
 import 'transaction_repository.dart';
 import 'category_repository.dart';
 import 'settings_repository.dart';
+import 'account_repository.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/utils/app_logger.dart';
 import '../../core/utils/formatters.dart';
@@ -24,12 +26,14 @@ class BackupFormatException implements Exception {
 class BackupContents {
   final List<CategoryModel> categories;
   final List<TransactionModel> transactions;
+  final List<AccountModel> accounts;
   final AppSettings? settings;
   final String? appVersion;
 
   const BackupContents({
     required this.categories,
     required this.transactions,
+    this.accounts = const [],
     this.settings,
     this.appVersion,
   });
@@ -39,8 +43,10 @@ class BackupRepository {
   final TransactionRepository _txRepo;
   final CategoryRepository _catRepo;
   final SettingsRepository _settingsRepo;
+  final AccountRepository _accRepo;
 
-  BackupRepository(this._txRepo, this._catRepo, this._settingsRepo);
+  BackupRepository(
+      this._txRepo, this._catRepo, this._settingsRepo, this._accRepo);
 
   static const String _backupPrefix = 'backup_';
   static const String _preRestorePrefix = 'pre_restore_';
@@ -56,6 +62,7 @@ class BackupRepository {
   Map<String, dynamic> _snapshot() {
     final transactions = _txRepo.getAll();
     final categories = _catRepo.getAll();
+    final accounts = _accRepo.getAll();
     final settings = _settingsRepo.settings;
 
     return {
@@ -65,9 +72,11 @@ class BackupRepository {
         'createdAt': DateTime.now().toIso8601String(),
         'transactionCount': transactions.length,
         'categoryCount': categories.length,
+        'accountCount': accounts.length,
       },
       'transactions': transactions.map((t) => t.toJson()).toList(),
       'categories': categories.map((c) => c.toJson()).toList(),
+      'accounts': accounts.map((a) => a.toJson()).toList(),
       'settings': settings.toJson(),
     };
   }
@@ -159,6 +168,23 @@ class BackupRepository {
       }
     }
 
+    // Accounts arrived in schema 2; older files simply have none.
+    final accounts = <AccountModel>[];
+    final rawAccounts = data['accounts'];
+    if (rawAccounts is List) {
+      for (var i = 0; i < rawAccounts.length; i++) {
+        final a = rawAccounts[i];
+        if (a is! Map<String, dynamic>) {
+          throw BackupFormatException('Account #${i + 1} is malformed.');
+        }
+        try {
+          accounts.add(AccountModel.fromJson(a));
+        } catch (e) {
+          throw BackupFormatException('Account #${i + 1} is malformed: $e');
+        }
+      }
+    }
+
     AppSettings? settings;
     final rawSettings = data['settings'];
     if (rawSettings is Map<String, dynamic>) {
@@ -175,6 +201,7 @@ class BackupRepository {
     return BackupContents(
       categories: categories,
       transactions: transactions,
+      accounts: accounts,
       settings: settings,
       appVersion: version,
     );
@@ -200,9 +227,17 @@ class BackupRepository {
 
     await _txRepo.deleteAll();
     await _catRepo.deleteAll();
+    await _accRepo.deleteAll();
 
     for (final c in contents.categories) {
       await _catRepo.add(c);
+    }
+    if (contents.accounts.isEmpty) {
+      await _accRepo.seedDefaults();
+    } else {
+      for (final a in contents.accounts) {
+        await _accRepo.add(a);
+      }
     }
     for (final t in contents.transactions) {
       await _txRepo.add(t);
@@ -241,15 +276,25 @@ class BackupRepository {
     final transactions = _txRepo.getAll();
     final categories = _catRepo.getAll();
     final catMap = {for (final c in categories) c.id: c.name};
+    final accMap = {for (final a in _accRepo.getAll()) a.id: a.name};
+    final defaultAcc = _accRepo.defaultAccount?.name ?? '';
 
     final buffer = StringBuffer();
-    buffer.writeln('Date,Type,Category,Amount,Note,Tags');
+    buffer.writeln('Date,Type,Category,Account,To Account,Amount,Note,Tags');
     for (final t in transactions) {
       final catName = catMap[t.categoryId] ?? t.categoryId;
+      final accName = t.accountId == null
+          ? defaultAcc
+          : (accMap[t.accountId!] ?? t.accountId!);
+      final toName = t.toAccountId == null
+          ? ''
+          : (accMap[t.toAccountId!] ?? t.toAccountId!);
       buffer.writeln([
         t.date.toIso8601String(),
         t.type.name,
         csvEscape(catName),
+        csvEscape(accName),
+        csvEscape(toName),
         t.amount.toStringAsFixed(2),
         csvEscape(t.note),
         csvEscape(t.tags.join(';')),

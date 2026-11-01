@@ -56,6 +56,15 @@ class TransactionModel extends HiveObject {
   @HiveField(12)
   String? addedBy;
 
+  /// Account the money left (expense, transfer) or entered (income). Null
+  /// means the default account, which keeps pre-accounts data valid.
+  @HiveField(13)
+  String? accountId;
+
+  /// Destination account; only set for transfers.
+  @HiveField(14)
+  String? toAccountId;
+
   TransactionModel({
     required this.id,
     required this.amount,
@@ -70,6 +79,8 @@ class TransactionModel extends HiveObject {
     required this.createdAt,
     required this.updatedAt,
     this.addedBy,
+    this.accountId,
+    this.toAccountId,
   }) : tags = tags ?? [];
 
   TransactionModel copyWith({
@@ -86,6 +97,8 @@ class TransactionModel extends HiveObject {
     DateTime? createdAt,
     DateTime? updatedAt,
     String? addedBy,
+    String? accountId,
+    String? toAccountId,
   }) {
     return TransactionModel(
       id: id ?? this.id,
@@ -101,6 +114,8 @@ class TransactionModel extends HiveObject {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
       addedBy: addedBy ?? this.addedBy,
+      accountId: accountId ?? this.accountId,
+      toAccountId: toAccountId ?? this.toAccountId,
     );
   }
 
@@ -118,6 +133,8 @@ class TransactionModel extends HiveObject {
         'createdAt': createdAt.toIso8601String(),
         'updatedAt': updatedAt.toIso8601String(),
         'addedBy': addedBy,
+        'accountId': accountId,
+        'toAccountId': toAccountId,
       };
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
@@ -138,6 +155,8 @@ class TransactionModel extends HiveObject {
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       addedBy: json['addedBy'] as String?,
+      accountId: json['accountId'] as String?,
+      toAccountId: json['toAccountId'] as String?,
     );
   }
 }

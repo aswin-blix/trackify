@@ -6,6 +6,7 @@ const String kCategoriesBox = 'categories';
 const String kSmsMessagesBox = 'sms_messages';
 const String kSettingsBox = 'settings';
 const String kTipsFavoritesBox = 'tips_favorites';
+const String kAccountsBox = 'accounts';
 
 // ─── Hive Type IDs ────────────────────────────────────────────────────────────
 const int kTransactionTypeId = 0;
@@ -15,6 +16,8 @@ const int kAppSettingsTypeId = 3;
 const int kTransactionTypeEnumId = 4;
 const int kSmsStatusEnumId = 5;
 const int kCategoryTypeEnumId = 6;
+const int kAccountTypeId = 7;
+const int kAccountTypeEnumId = 8;
 
 // ─── Animation Constants ──────────────────────────────────────────────────────
 const SpringDescription kSpringFast =
@@ -35,9 +38,16 @@ const Curve kCurveBounce = Curves.elasticOut;
 // ─── App Info ─────────────────────────────────────────────────────────────────
 const String kAppName = 'Trackify';
 // Keep in sync with the version in pubspec.yaml.
-const String kAppVersion = '1.3.0';
-const int kBackupSchemaVersion = 1;
+const String kAppVersion = '1.4.0';
+// 2: backups carry an `accounts` list and transactions carry accountId.
+const int kBackupSchemaVersion = 2;
 const String kBackupFolder = 'TrackifyBackups';
+
+// ─── Accounts ─────────────────────────────────────────────────────────────────
+// Fixed ids for the two starter accounts. Transactions with a null accountId
+// belong to the default account (normally kDefaultAccountId).
+const String kDefaultAccountId = 'acc_bank';
+const String kCashAccountId = 'acc_cash';
 
 // ─── Supported Currencies ─────────────────────────────────────────────────────
 const List<Map<String, String>> kCurrencies = [

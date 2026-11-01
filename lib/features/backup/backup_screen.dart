@@ -82,6 +82,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
           .restoreFromFile(result.files.single.path!);
       ref.read(transactionProvider.notifier).refresh();
       ref.read(categoryProvider.notifier).refresh();
+      ref.read(accountProvider.notifier).refresh();
       await ref.read(householdSyncProvider).mergeLocalIntoHousehold();
       ref.read(settingsProvider.notifier).reload();
       await _loadBackups();

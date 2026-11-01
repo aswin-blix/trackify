@@ -5,6 +5,9 @@ import '../../data/repositories/category_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/backup_repository.dart';
 import '../../data/repositories/sms_repository.dart';
+import '../../data/repositories/account_repository.dart';
+import '../../data/models/account_model.dart';
+import '../../core/utils/balance_calculator.dart';
 import '../../data/models/app_settings.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/models/category_model.dart';
@@ -25,11 +28,16 @@ final settingsRepoProvider = Provider<SettingsRepository>((ref) {
   return SettingsRepository();
 });
 
+final accountRepoProvider = Provider<AccountRepository>((ref) {
+  return AccountRepository();
+});
+
 final backupRepoProvider = Provider<BackupRepository>((ref) {
   return BackupRepository(
     ref.watch(transactionRepoProvider),
     ref.watch(categoryRepoProvider),
     ref.watch(settingsRepoProvider),
+    ref.watch(accountRepoProvider),
   );
 });
 
@@ -277,6 +285,95 @@ final categoryProvider =
     ref.watch(householdSyncProvider),
   );
 });
+
+// ─── Account Providers ────────────────────────────────────────────────────────
+class AccountNotifier extends StateNotifier<List<AccountModel>> {
+  final Ref _ref;
+  final AccountRepository _repo;
+  final HouseholdSync _sync;
+
+  AccountNotifier(this._ref, this._repo, this._sync) : super(_repo.getAll());
+
+  void refresh() {
+    state = _repo.getAll();
+  }
+
+  AccountModel? getById(String? id) => id == null ? null : _repo.getById(id);
+
+  AccountModel? get defaultAccount => _repo.defaultAccount;
+
+  Future<void> add(AccountModel account) async {
+    await _repo.add(account);
+    refresh();
+    _sync.pushAccount(account);
+  }
+
+  Future<void> update(AccountModel account) async {
+    await _repo.update(account);
+    refresh();
+    _sync.pushAccount(account);
+  }
+
+  Future<void> setDefault(String id) async {
+    await _repo.setDefault(id);
+    refresh();
+    _sync.pushAccounts(state);
+  }
+
+  /// Sets opening balances by account id (used by onboarding).
+  Future<void> setOpeningBalances(Map<String, double> byId) async {
+    for (final entry in byId.entries) {
+      final a = _repo.getById(entry.key);
+      if (a == null) continue;
+      a.openingBalance = entry.value;
+      await _repo.update(a);
+      _sync.pushAccount(a);
+    }
+    refresh();
+  }
+
+  /// Deletes an account and moves its transactions to the default account.
+  Future<void> deleteAndReassign(String id) async {
+    final fallback = _repo.getAll().firstWhere(
+          (a) => a.isDefault && a.id != id,
+          orElse: () => _repo.getAll().firstWhere((a) => a.id != id),
+        );
+    final txNotifier = _ref.read(transactionProvider.notifier);
+    for (final t in _ref.read(transactionProvider)) {
+      if (t.accountId != id && t.toAccountId != id) continue;
+      await txNotifier.update(t.copyWith(
+        accountId: t.accountId == id ? fallback.id : t.accountId,
+        toAccountId: t.toAccountId == id ? fallback.id : t.toAccountId,
+      ));
+    }
+    await _repo.delete(id);
+    refresh();
+    _sync.deleteAccount(id);
+  }
+}
+
+final accountProvider =
+    StateNotifierProvider<AccountNotifier, List<AccountModel>>((ref) {
+  return AccountNotifier(
+    ref,
+    ref.watch(accountRepoProvider),
+    ref.watch(householdSyncProvider),
+  );
+});
+
+/// Live balance per account id, derived from opening balances and every
+/// transaction. Recomputed whenever accounts or transactions change.
+final accountBalancesProvider = Provider<Map<String, double>>((ref) {
+  final accounts = ref.watch(accountProvider);
+  final txs = ref.watch(transactionProvider);
+  final def = accounts.where((a) => a.isDefault).firstOrNull?.id ??
+      accounts.firstOrNull?.id;
+  return computeAccountBalances(accounts, txs, defaultAccountId: def);
+});
+
+final totalBalanceProvider = Provider<double>(
+  (ref) => totalBalance(ref.watch(accountBalancesProvider)),
+);
 
 // ─── Selected Period Provider (for analytics) ──────────────────────────────
 enum AnalyticsPeriod { week, month, year }

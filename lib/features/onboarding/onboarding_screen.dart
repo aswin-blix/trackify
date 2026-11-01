@@ -24,16 +24,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   String _currencySymbol = '₹';
   bool _notificationsEnabled = true;
   bool _smsEnabled = false;
+  final _cashController = TextEditingController();
+  final _bankController = TextEditingController();
 
   @override
   void dispose() {
+    _cashController.dispose();
+    _bankController.dispose();
     _pageController.dispose();
     _nameController.dispose();
     super.dispose();
   }
 
   void _nextPage() {
-    if (_currentPage < 2) {
+    if (_currentPage < 3) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeOutExpo,
@@ -61,6 +65,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     await notifier.setUserName(_nameController.text.trim());
     await notifier.setCurrency(_currency, _currencySymbol);
     await notifier.setMonthlyBudget(_budgetValue);
+
+    // Opening balances for the two starter accounts (blank = 0).
+    double? parseAmount(String s) {
+      final t = s.trim().replaceAll(',', '');
+      return t.isEmpty ? null : double.tryParse(t);
+    }
+
+    final cash = parseAmount(_cashController.text);
+    final bank = parseAmount(_bankController.text);
+    if (cash != null || bank != null) {
+      await ref.read(accountProvider.notifier).setOpeningBalances({
+        if (cash != null) kCashAccountId: cash,
+        if (bank != null) kDefaultAccountId: bank,
+      });
+    }
 
     // Only persist a toggle as "on" if the matching permission was granted,
     // and actually schedule the reminder instead of waiting for a restart.
@@ -150,6 +169,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         });
                       },
                     ),
+                    _BalancesPage(
+                      cashController: _cashController,
+                      bankController: _bankController,
+                      currencySymbol: _currencySymbol,
+                    ),
                     _PermissionsPage(
                       notificationsEnabled: _notificationsEnabled,
                       smsEnabled: _smsEnabled,
@@ -167,7 +191,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(3, (i) {
+                      children: List.generate(4, (i) {
                         return AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
                           margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -191,7 +215,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       child: ElevatedButton(
                         onPressed: _nextPage,
                         child:
-                            Text(_currentPage < 2 ? 'Continue' : 'Get Started'),
+                            Text(_currentPage < 3 ? 'Continue' : 'Get Started'),
                       ),
                     ),
                   ],
@@ -424,7 +448,84 @@ class _BudgetPage extends StatelessWidget {
   }
 }
 
-// ─── Page 3: Permissions ──────────────────────────────────────────────────────
+// ─── Page 3: Starting balances ────────────────────────────────────────────────
+class _BalancesPage extends StatelessWidget {
+  final TextEditingController cashController;
+  final TextEditingController bankController;
+  final String currencySymbol;
+
+  const _BalancesPage({
+    required this.cashController,
+    required this.bankController,
+    required this.currencySymbol,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final muted =
+        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Column(
+        children: [
+          const Icon(Icons.account_balance_rounded,
+              size: 64, color: Color(0xFF0984E3)),
+          const SizedBox(height: 24),
+          Text(
+            'What do you have today?',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+            textAlign: TextAlign.center,
+          ).animate().fadeIn(duration: 400.ms),
+          const SizedBox(height: 8),
+          Text(
+            'Enter your current cash and bank balance so Trackify can show your real total. You can add more accounts later, or leave these blank.',
+            style: GoogleFonts.plusJakartaSans(
+                fontSize: 15, color: muted, height: 1.5),
+            textAlign: TextAlign.center,
+          ).animate(delay: 100.ms).fadeIn(duration: 400.ms),
+          const SizedBox(height: 32),
+          GlassCard(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: cashController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Cash in hand',
+                    hintText: '0',
+                    prefixText: '$currencySymbol ',
+                    prefixIcon: const Icon(Icons.payments_rounded),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: bankController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Bank balance',
+                    hintText: '0',
+                    prefixText: '$currencySymbol ',
+                    prefixIcon: const Icon(Icons.account_balance_rounded),
+                  ),
+                ),
+              ],
+            ),
+          ).animate(delay: 200.ms).fadeIn(duration: 400.ms).slideY(begin: 0.3),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Page 4: Permissions ──────────────────────────────────────────────────────
 class _PermissionsPage extends StatelessWidget {
   final bool notificationsEnabled;
   final bool smsEnabled;

@@ -10,6 +10,7 @@ import 'data/models/transaction_model.dart';
 import 'data/models/category_model.dart';
 import 'data/models/bank_sms_message.dart';
 import 'data/models/app_settings.dart';
+import 'data/models/account_model.dart';
 import 'core/constants/app_constants.dart';
 import 'features/splash/splash_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
@@ -65,6 +66,12 @@ void main() async {
   if (!Hive.isAdapterRegistered(kAppSettingsTypeId)) {
     Hive.registerAdapter(AppSettingsAdapter());
   }
+  if (!Hive.isAdapterRegistered(kAccountTypeEnumId)) {
+    Hive.registerAdapter(AccountTypeAdapter());
+  }
+  if (!Hive.isAdapterRegistered(kAccountTypeId)) {
+    Hive.registerAdapter(AccountModelAdapter());
+  }
 
   // Open boxes
   await Future.wait([
@@ -73,6 +80,7 @@ void main() async {
     Hive.openBox<BankSmsMessage>(kSmsMessagesBox),
     Hive.openBox<AppSettings>(kSettingsBox),
     Hive.openBox<bool>(kTipsFavoritesBox),
+    Hive.openBox<AccountModel>(kAccountsBox),
   ]);
 
   // Seed default categories if box is empty
@@ -80,6 +88,15 @@ void main() async {
   if (catBox.isEmpty) {
     for (final cat in defaultCategories) {
       await catBox.put(cat.id, cat);
+    }
+  }
+
+  // Seed the two starter accounts (Bank is the default; legacy transactions
+  // without an account count toward it).
+  final accBox = Hive.box<AccountModel>(kAccountsBox);
+  if (accBox.isEmpty) {
+    for (final a in defaultAccounts) {
+      await accBox.put(a.id, a);
     }
   }
 

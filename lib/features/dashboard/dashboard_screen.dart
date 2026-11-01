@@ -16,6 +16,8 @@ import '../../shared/widgets/section_header.dart';
 import '../../shared/widgets/transaction_tile.dart';
 import '../tips/tips_data.dart';
 import '../transactions/add_transaction_screen.dart';
+import '../accounts/manage_accounts_screen.dart';
+import '../../data/models/account_model.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   final void Function([TransactionType? initialType]) onAddTransaction;
@@ -54,7 +56,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final recent = transactions.take(5).toList();
     final monthlyIncome = txNotifier.thisMonthIncome;
     final monthlyExpense = txNotifier.thisMonthExpense;
-    final balance = monthlyIncome - monthlyExpense;
+    final accounts = ref.watch(accountProvider);
+    final balances = ref.watch(accountBalancesProvider);
+    final balance = ref.watch(totalBalanceProvider);
     final budgetRatio =
         settings.monthlyBudget != null && settings.monthlyBudget! > 0
             ? (monthlyExpense / settings.monthlyBudget!).clamp(0.0, 1.0)
@@ -169,6 +173,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           duration: 500.ms,
                           curve: Curves.easeOutExpo,
                         ),
+                    _AccountsRow(
+                      accounts: accounts,
+                      balances: balances,
+                      currencySymbol: symbol,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ManageAccountsScreen(),
+                        ),
+                      ),
+                    ).animate(delay: 120.ms).fadeIn(duration: 400.ms),
                   ],
                 ),
               ),
@@ -255,11 +269,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   void _showDetail(BuildContext context, TransactionModel tx) {
     final cat = ref.read(categoryProvider.notifier).getById(tx.categoryId);
+    final accRepo = ref.read(accountRepoProvider);
+    final from =
+        (tx.accountId == null ? null : accRepo.getById(tx.accountId!)) ??
+            accRepo.defaultAccount;
+    final to = tx.toAccountId == null ? null : accRepo.getById(tx.toAccountId!);
+    final accountLabel = from == null
+        ? null
+        : to != null
+            ? '${from.name} → ${to.name}'
+            : from.name;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _TransactionDetail(transaction: tx, category: cat),
+      builder: (_) => _TransactionDetail(
+        transaction: tx,
+        category: cat,
+        accountLabel: accountLabel,
+      ),
     );
   }
 
@@ -337,7 +365,7 @@ class _BalanceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'This Month',
+            'Total Balance',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               color: Theme.of(context)
@@ -357,7 +385,20 @@ class _BalanceCard extends StatelessWidget {
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+          Text(
+            'This month',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.4,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.45),
+            ),
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
@@ -388,6 +429,92 @@ class _BalanceCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Accounts Row ─────────────────────────────────────────────────────────────
+class _AccountsRow extends StatelessWidget {
+  final List<AccountModel> accounts;
+  final Map<String, double> balances;
+  final String currencySymbol;
+  final VoidCallback onTap;
+
+  const _AccountsRow({
+    required this.accounts,
+    required this.balances,
+    required this.currencySymbol,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (accounts.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    return SizedBox(
+      height: 64,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+        physics: const BouncingScrollPhysics(),
+        itemCount: accounts.length,
+        itemBuilder: (ctx, i) {
+          final a = accounts[i];
+          final bal = balances[a.id] ?? a.openingBalance;
+          return GestureDetector(
+            onTap: onTap,
+            child: Container(
+              margin: const EdgeInsets.only(right: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.white.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: isDark ? 0.08 : 0.5),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: a.color.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(a.icon, color: a.color, size: 16),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        a.name,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          color: onSurface.withValues(alpha: 0.55),
+                        ),
+                      ),
+                      Text(
+                        AppFormatters.formatAmountCompact(bal, currencySymbol),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: bal < 0 ? const Color(0xFFE8365D) : onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -831,8 +958,13 @@ class _EmptyState extends StatelessWidget {
 class _TransactionDetail extends StatelessWidget {
   final TransactionModel transaction;
   final CategoryModel? category;
+  final String? accountLabel;
 
-  const _TransactionDetail({required this.transaction, required this.category});
+  const _TransactionDetail({
+    required this.transaction,
+    required this.category,
+    this.accountLabel,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -894,6 +1026,32 @@ class _TransactionDetail extends StatelessWidget {
                     .withValues(alpha: 0.5),
               ),
             ),
+            if (accountLabel != null) ...[
+              const SizedBox(height: 6),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.account_balance_wallet_rounded,
+                      size: 14,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.5)),
+                  const SizedBox(width: 6),
+                  Text(
+                    accountLabel!,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ],
             if (transaction.note.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(

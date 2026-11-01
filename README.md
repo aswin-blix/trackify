@@ -26,6 +26,7 @@ Beautiful glassmorphism UI · Riverpod state · Hive local database · Zero data
 | | Feature | Description |
 |---|---|---|
 | 💰 | **Transaction Tracking** | Log income, expenses, and transfers with categories, notes, and tags |
+| 🏦 | **Accounts** | Cash, bank, wallets and cards with opening balances; real total balance and transfers between accounts |
 | 📊 | **Analytics** | Bar charts, pie charts, weekly/monthly/yearly breakdowns |
 | 🎯 | **Budget Tracking** | Set monthly budgets per category with live progress bars |
 | 📱 | **SMS Bank Reader** | Auto-reads bank transaction SMS — 100% local, never uploaded |

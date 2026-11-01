@@ -13,6 +13,8 @@ import '../../data/models/category_model.dart';
 import '../../shared/providers/app_providers.dart';
 import '../../shared/widgets/glass_card.dart';
 import '../categories/manage_categories_screen.dart';
+import '../accounts/manage_accounts_screen.dart';
+import '../../shared/widgets/account_picker.dart';
 
 class AddTransactionScreen extends ConsumerStatefulWidget {
   final TransactionModel? existingTransaction;
@@ -38,6 +40,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   late TextEditingController _noteController;
   late TextEditingController _tagsController;
   String? _selectedCategoryId;
+  String? _accountId;
+  String? _toAccountId;
   DateTime _selectedDate = DateTime.now();
   String? _receiptImagePath;
   bool _isSaving = false;
@@ -58,6 +62,8 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     _noteController = TextEditingController(text: ex?.note ?? '');
     _tagsController = TextEditingController(text: ex?.tags.join(', ') ?? '');
     _selectedCategoryId = ex?.categoryId;
+    _accountId = ex?.accountId;
+    _toAccountId = ex?.toAccountId;
     _selectedDate = ex?.date ?? DateTime.now();
     _receiptImagePath = ex?.receiptImagePath;
 
@@ -115,6 +121,13 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       _showError('Please select a category');
       return;
     }
+    final accountId =
+        _accountId ?? ref.read(accountRepoProvider).defaultAccount?.id;
+    final isTransfer = _selectedType == TransactionType.transfer;
+    if (isTransfer && (_toAccountId == null || _toAccountId == accountId)) {
+      _showError('Pick a different account to transfer to');
+      return;
+    }
 
     setState(() => _isSaving = true);
     _saveButtonController.forward();
@@ -143,6 +156,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         smsSource: ex?.smsSource,
         createdAt: ex?.createdAt ?? now,
         updatedAt: now,
+        addedBy: ex?.addedBy,
+        accountId: accountId,
+        toAccountId: isTransfer ? _toAccountId : null,
       );
 
       AppLogger.i('AddTransaction',
@@ -250,6 +266,11 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final categories = ref.watch(categoryProvider);
+    final accounts = ref.watch(accountProvider);
+    final defaultAccountId =
+        accounts.where((a) => a.isDefault).firstOrNull?.id ??
+            accounts.firstOrNull?.id;
+    final selectedAccountId = _accountId ?? defaultAccountId;
 
     final relevantCats = categories.where((c) {
       if (_selectedType == TransactionType.expense) {
@@ -346,6 +367,31 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                       onSelect: (id) =>
                           setState(() => _selectedCategoryId = id),
                     ).animate(delay: 120.ms).fadeIn(duration: 300.ms),
+                    const SizedBox(height: 16),
+                    // Account (and destination for transfers)
+                    AccountPicker(
+                      label: _selectedType == TransactionType.transfer
+                          ? 'From account'
+                          : 'Account',
+                      accounts: accounts,
+                      selectedId: selectedAccountId,
+                      onSelect: (id) => setState(() => _accountId = id),
+                      onManage: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ManageAccountsScreen(),
+                        ),
+                      ),
+                    ).animate(delay: 140.ms).fadeIn(duration: 300.ms),
+                    if (_selectedType == TransactionType.transfer) ...[
+                      const SizedBox(height: 12),
+                      AccountPicker(
+                        label: 'To account',
+                        accounts: accounts,
+                        selectedId: _toAccountId,
+                        disabledId: selectedAccountId,
+                        onSelect: (id) => setState(() => _toAccountId = id),
+                      ).animate(delay: 150.ms).fadeIn(duration: 300.ms),
+                    ],
                     const SizedBox(height: 16),
                     // Note
                     Padding(

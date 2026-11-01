@@ -6,6 +6,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.0] — 2026-11-01
+
+### Added
+- **Accounts** — Cash, Bank, UPI/Wallet, Credit Card or Other, each with an opening balance. The dashboard now shows the real **Total Balance** (opening balances plus everything logged) with a per-account strip underneath; monthly income and expense stay on the same card
+- Every transaction records its account; transfers pick a source and a destination and move money between them. Legacy entries without an account count toward the default account
+- Onboarding asks for cash in hand and bank balance; Settings → Accounts manages accounts, sets the default, and deletes one by moving its entries to the default
+- Accounts sync in a shared household (`households/{id}/accounts`), are included in backups (schema 2), and appear as Account / To Account columns in the CSV export
+
+### Fixed
+- Editing a partner's transaction no longer re-attributes it to the editor
+
+---
+
 ## [1.3.0] — 2026-11-01
 
 ### Added
