@@ -65,8 +65,12 @@ class _AppBottomNavState extends State<AppBottomNav>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accent = Theme.of(context).colorScheme.primary;
 
+    // Sit above the system navigation bar: ~48dp with 3-button navigation,
+    // ~16dp with gestures. Edge-to-edge is enforced on Android 15+.
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(

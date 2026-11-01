@@ -13,9 +13,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Every transaction records its account; transfers pick a source and a destination and move money between them. Legacy entries without an account count toward the default account
 - Onboarding asks for cash in hand and bank balance; Settings → Accounts manages accounts, sets the default, and deletes one by moving its entries to the default
 - Accounts sync in a shared household (`households/{id}/accounts`), are included in backups (schema 2), and appear as Account / To Account columns in the CSV export
+- **Background auto-backup** — when Auto Backup is on, Android WorkManager writes the daily backup at the chosen time even if the app is closed (Settings → Backup Time). The on-open check stays as a fallback for days the OS skips the job. The background isolate only reads Hive and writes the file; the app picks the backup time up from the newest file
 
 ### Fixed
 - Editing a partner's transaction no longer re-attributes it to the editor
+- Bottom navigation bar now sits above the system navigation bar (it was hidden behind 3-button navigation on edge-to-edge Android 15+)
 
 ---
 

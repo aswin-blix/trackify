@@ -5,11 +5,11 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/hive_setup.dart';
+import 'core/services/backup_scheduler.dart';
 import 'core/utils/app_logger.dart';
-import 'data/models/transaction_model.dart';
-import 'data/models/category_model.dart';
-import 'data/models/bank_sms_message.dart';
 import 'data/models/app_settings.dart';
+import 'data/models/category_model.dart';
 import 'data/models/account_model.dart';
 import 'core/constants/app_constants.dart';
 import 'features/splash/splash_screen.dart';
@@ -44,44 +44,8 @@ void main() async {
   // Initialize Hive
   await Hive.initFlutter();
 
-  // Register adapters
-  if (!Hive.isAdapterRegistered(kTransactionTypeEnumId)) {
-    Hive.registerAdapter(TransactionTypeAdapter());
-  }
-  if (!Hive.isAdapterRegistered(kTransactionTypeId)) {
-    Hive.registerAdapter(TransactionModelAdapter());
-  }
-  if (!Hive.isAdapterRegistered(kCategoryTypeEnumId)) {
-    Hive.registerAdapter(CategoryTypeAdapter());
-  }
-  if (!Hive.isAdapterRegistered(kCategoryTypeId)) {
-    Hive.registerAdapter(CategoryModelAdapter());
-  }
-  if (!Hive.isAdapterRegistered(kSmsStatusEnumId)) {
-    Hive.registerAdapter(SmsStatusAdapter());
-  }
-  if (!Hive.isAdapterRegistered(kBankSmsMessageTypeId)) {
-    Hive.registerAdapter(BankSmsMessageAdapter());
-  }
-  if (!Hive.isAdapterRegistered(kAppSettingsTypeId)) {
-    Hive.registerAdapter(AppSettingsAdapter());
-  }
-  if (!Hive.isAdapterRegistered(kAccountTypeEnumId)) {
-    Hive.registerAdapter(AccountTypeAdapter());
-  }
-  if (!Hive.isAdapterRegistered(kAccountTypeId)) {
-    Hive.registerAdapter(AccountModelAdapter());
-  }
-
-  // Open boxes
-  await Future.wait([
-    Hive.openBox<TransactionModel>(kTransactionsBox),
-    Hive.openBox<CategoryModel>(kCategoriesBox),
-    Hive.openBox<BankSmsMessage>(kSmsMessagesBox),
-    Hive.openBox<AppSettings>(kSettingsBox),
-    Hive.openBox<bool>(kTipsFavoritesBox),
-    Hive.openBox<AccountModel>(kAccountsBox),
-  ]);
+  HiveSetup.registerAdapters();
+  await HiveSetup.openBoxes();
 
   // Seed default categories if box is empty
   final catBox = Hive.box<CategoryModel>(kCategoriesBox);
@@ -103,9 +67,19 @@ void main() async {
   // Initialize notification service
   await NotificationService.instance.init();
 
-  // Reschedule daily reminder if it was previously enabled
+  // Background auto-backup (WorkManager). Keeps an existing job if present.
+  await BackupScheduler.init();
   final settingsBox = Hive.box<AppSettings>(kSettingsBox);
   final savedSettings = settingsBox.get('app_settings');
+  if (savedSettings != null) {
+    await BackupScheduler.ensureScheduled(
+      enabled: savedSettings.autoBackupEnabled,
+      hour: savedSettings.autoBackupHour,
+      minute: savedSettings.autoBackupMinute,
+    );
+  }
+
+  // Reschedule daily reminder if it was previously enabled
   if (savedSettings != null && savedSettings.notificationEnabled) {
     AppLogger.i('main',
         'Rescheduling daily reminder at ${savedSettings.notificationHour}:${savedSettings.notificationMinute}');

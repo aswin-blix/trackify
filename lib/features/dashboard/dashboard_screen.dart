@@ -251,7 +251,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           // Tip card
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+              // Clear the floating nav bar (Scaffold reports its height as
+              // bottom padding because extendBody is on).
+              padding: EdgeInsets.fromLTRB(
+                  20, 8, 20, MediaQuery.paddingOf(context).bottom + 24),
               child: _TipCard(
                 tip: _tipOfDay,
                 onTap: () => Navigator.of(context).pushNamed('/tips'),

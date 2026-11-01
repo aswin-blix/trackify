@@ -31,7 +31,7 @@ Beautiful glassmorphism UI · Riverpod state · Hive local database · Zero data
 | 🎯 | **Budget Tracking** | Set monthly budgets per category with live progress bars |
 | 📱 | **SMS Bank Reader** | Auto-reads bank transaction SMS — 100% local, never uploaded |
 | 🔐 | **App Lock** | Biometric / device PIN gate on open and on background resume |
-| ☁️ | **Backup & Restore** | Export full data as JSON and restore from file |
+| ☁️ | **Backup & Restore** | Export full data as JSON and restore from file; daily auto-backup runs in the background via WorkManager |
 | 👫 | **Shared Tracking** | Optional: one household, one budget, two phones. Google sign-in + Firestore, free tier. See [docs/SHARED_TRACKING_SETUP.md](docs/SHARED_TRACKING_SETUP.md) |
 | 🌙 | **Dark / Light Mode** | Instant theme switching, follows system preference |
 | 💱 | **Multi-Currency** | INR, USD, EUR, GBP, JPY, AUD, CAD, SGD, AED |
@@ -59,6 +59,7 @@ Beautiful glassmorphism UI · Riverpod state · Hive local database · Zero data
 | Biometric Auth | `local_auth` |
 | SMS Reading | `flutter_sms_inbox` |
 | Notifications | `flutter_local_notifications`, `flutter_timezone`, `timezone` |
+| Background work | `workmanager` (daily auto-backup) |
 | File Operations | `path_provider`, `share_plus`, `file_picker` |
 | Shared Tracking (optional) | `firebase_core`, `firebase_auth`, `cloud_firestore`, `google_sign_in` |
 

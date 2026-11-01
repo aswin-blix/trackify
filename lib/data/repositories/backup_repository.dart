@@ -81,15 +81,19 @@ class BackupRepository {
     };
   }
 
-  Future<String> createBackup() async {
+  /// Writes a backup file. [recordInSettings] is false when called from the
+  /// background isolate, which must not write to Hive while the app may
+  /// have the same box open; the app picks the time up from the file later.
+  Future<String> createBackup({bool recordInSettings = true}) async {
     final dir = await _backupDir;
     final fileName = AppFormatters.backupFileName();
     final file = File('${dir.path}/$fileName');
 
     await file.writeAsString(jsonEncode(_snapshot()));
 
-    // Update last backup time
-    await _settingsRepo.updateField((s) => s.lastBackupAt = DateTime.now());
+    if (recordInSettings) {
+      await _settingsRepo.updateField((s) => s.lastBackupAt = DateTime.now());
+    }
 
     // Clean up old backups
     await _pruneOldBackups(_settingsRepo.settings.backupRetentionDays);
@@ -97,12 +101,36 @@ class BackupRepository {
     return file.path;
   }
 
-  /// Creates a backup if auto-backup is enabled and the last one is older
-  /// than 24 hours. Returns the new file path, or null if nothing was done.
+  /// Modification time of the newest regular backup file, or null.
+  Future<DateTime?> newestBackupTime() async {
+    try {
+      final backups = await listBackups();
+      for (final f in backups.whereType<File>()) {
+        if (fileName(f.path).startsWith(_backupPrefix)) {
+          return await f.lastModified();
+        }
+      }
+    } catch (e, stack) {
+      AppLogger.e('BackupRepository', 'Could not read backup folder', e, stack);
+    }
+    return null;
+  }
+
+  /// Safety net behind the WorkManager job: creates a backup if auto-backup
+  /// is enabled and none exists from the last 24 hours. Also pulls the time
+  /// of a backup written in the background into settings so the UI shows it.
+  /// Returns the new file path, or null if nothing was written.
   Future<String?> runAutoBackupIfDue() async {
     final settings = _settingsRepo.settings;
     if (!settings.autoBackupEnabled) return null;
-    final last = settings.lastBackupAt;
+
+    var last = settings.lastBackupAt;
+    final fromFile = await newestBackupTime();
+    if (fromFile != null && (last == null || fromFile.isAfter(last))) {
+      last = fromFile;
+      await _settingsRepo.updateField((s) => s.lastBackupAt = fromFile);
+    }
+
     if (last != null &&
         DateTime.now().difference(last) < const Duration(hours: 24)) {
       return null;

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/app_logger.dart';
+import '../../core/services/backup_scheduler.dart';
 import '../../data/repositories/transaction_repository.dart';
 import '../../data/repositories/category_repository.dart';
 import '../../data/repositories/settings_repository.dart';
@@ -130,6 +131,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       s.autoBackupMinute = minute;
       s.backupRetentionDays = retentionDays;
     });
+    if (enabled) {
+      await BackupScheduler.schedule(hour: hour, minute: minute);
+    } else {
+      await BackupScheduler.cancel();
+    }
   }
 
   Future<void> setAppLock({required bool enabled, required String type}) async {

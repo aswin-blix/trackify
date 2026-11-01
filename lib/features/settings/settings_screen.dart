@@ -16,6 +16,7 @@ import '../accounts/manage_accounts_screen.dart';
 import '../household/firebase_bootstrap.dart';
 import '../household/household_service.dart';
 import '../household/household_sync.dart';
+import '../../core/services/backup_scheduler.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -248,8 +249,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     iconColor: const Color(0xFF6C63FF),
                     title: 'Auto Backup',
                     subtitle: settings.lastBackupAt != null
-                        ? 'Daily on app open · Last: ${settings.lastBackupAt!.day}/${settings.lastBackupAt!.month}/${settings.lastBackupAt!.year}'
-                        : 'Backs up once a day when you open the app',
+                        ? 'Daily in the background · Last: ${settings.lastBackupAt!.day}/${settings.lastBackupAt!.month}/${settings.lastBackupAt!.year}'
+                        : 'Backs up daily, even when the app is closed',
                     value: settings.autoBackupEnabled,
                     onChanged: (v) => notifier.setAutoBackup(
                       enabled: v,
@@ -258,6 +259,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       retentionDays: settings.backupRetentionDays,
                     ),
                   ),
+                  if (settings.autoBackupEnabled) ...[
+                    _SettingsDivider(),
+                    _SettingsTile(
+                      icon: Icons.schedule_rounded,
+                      iconColor: const Color(0xFF6C63FF),
+                      title: 'Backup Time',
+                      subtitle:
+                          '${settings.autoBackupHour.toString().padLeft(2, '0')}:${settings.autoBackupMinute.toString().padLeft(2, '0')} · runs within about an hour of this',
+                      onTap: () => _pickBackupTime(context),
+                    ),
+                  ],
                   _SettingsDivider(),
                   _SettingsTile(
                     icon: Icons.download_rounded,
@@ -622,6 +634,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _pickBackupTime(BuildContext context) async {
+    final settings = ref.read(settingsProvider);
+    final result = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+          hour: settings.autoBackupHour, minute: settings.autoBackupMinute),
+    );
+    if (result == null) return;
+    await ref.read(settingsProvider.notifier).setAutoBackup(
+          enabled: true,
+          hour: result.hour,
+          minute: result.minute,
+          retentionDays: settings.backupRetentionDays,
+        );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Daily backup set for ${result.hour.toString().padLeft(2, '0')}:${result.minute.toString().padLeft(2, '0')}'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   Future<void> _confirmClearData(BuildContext context) async {
     final confirm1 = await showDialog<bool>(
       context: context,
@@ -672,6 +709,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final avatarPath = ref.read(settingsProvider).avatarPath;
 
     await NotificationService.instance.cancelAll();
+    await BackupScheduler.cancel();
     // Stop mirroring before wiping, so the deletes stay local.
     ref.read(householdSyncProvider).stop();
     await ref.read(transactionRepoProvider).deleteAll();
