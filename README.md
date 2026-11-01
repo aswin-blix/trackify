@@ -116,11 +116,13 @@ lib/
 │   ├── models/         # Hive models + hand-written .g.dart adapters
 │   └── repositories/   # Thin Hive box wrappers
 ├── features/           # One folder per screen/feature
+│   ├── accounts/       # Manage accounts (cash, bank, wallets) and opening balances
 │   ├── analytics/
 │   ├── app_lock/
 │   ├── backup/
 │   ├── budget/
 │   ├── dashboard/
+│   ├── household/      # Shared tracking: Firebase bootstrap, sync, invite flow
 │   ├── onboarding/
 │   ├── settings/
 │   ├── sms/
@@ -128,8 +130,8 @@ lib/
 │   ├── tips/
 │   └── transactions/
 └── shared/
-    ├── providers/      # All Riverpod providers (settings, transactions, categories, SMS)
-    └── widgets/        # Reusable widgets (GlassCard, TransactionTile, etc.)
+    ├── providers/      # All Riverpod providers (settings, transactions, categories, accounts, SMS)
+    └── widgets/        # Reusable widgets (GlassCard, TransactionTile, AccountPicker, etc.)
 ```
 
 ---
@@ -141,7 +143,9 @@ lib/
 - **Tab indices** in `HomeShell`: `0`=Dashboard, `1`=Transactions, `2`=FAB (opens sheet), `3`=Analytics, `4`=Settings.
 - **Notifications** — `NotificationService.init()` resolves the device IANA timezone with `flutter_timezone` before any `zonedSchedule` call; a fixed UTC-offset zone is only a fallback.
 - **App Lock** — `HomeShell` re-locks on resume using a went-to-background flag (not the previous lifecycle state). Wrap any biometric prompt in `AppLockGuard.run` so the system credential screen does not trigger a re-lock.
-- **Auto Backup** — runs in the foreground: once per day on app open/resume when enabled (`BackupRepository.runAutoBackupIfDue`). There is no background scheduler.
+- **Auto Backup** — a WorkManager periodic job (`core/services/backup_scheduler.dart`) writes the daily backup at the chosen time even when the app is closed. The background isolate only reads Hive and writes the file; it never writes a box the app may have open, and the app derives the last-backup time from the newest file. `BackupRepository.runAutoBackupIfDue` still runs on app open/resume as a safety net.
+- **Accounts** — balances are never stored. `computeAccountBalances` derives them from each account's opening balance plus every transaction; entries with a null `accountId` belong to the default account, so data from before accounts existed needs no migration.
+- **Shared tracking** — optional and opt-in. Hive stays the source of truth on each phone; `features/household/household_sync.dart` mirrors transactions, categories, accounts and the budget to Firestore and applies partner changes back (last write wins on `updatedAt`). Receipts, bank SMS, app lock and reminders never leave the phone. Setup in [docs/SHARED_TRACKING_SETUP.md](docs/SHARED_TRACKING_SETUP.md).
 - **Restore** — `BackupRepository.parseBackupFile` validates the whole file before any data is cleared, and a `pre_restore_*.json` snapshot is written first.
 - **Release signing** — `android/key.properties` (git-ignored, see `android/key.properties.example`). Without it, release builds fall back to the debug key and print a warning.
 - **Privacy** — `android:allowBackup` is off and `data_extraction_rules.xml` excludes everything, so the Hive database never reaches Google's cloud backup.
@@ -158,6 +162,7 @@ lib/
 | `USE_BIOMETRIC` / `USE_FINGERPRINT` | App Lock |
 | `POST_NOTIFICATIONS` | Daily reminder notifications |
 | `RECEIVE_BOOT_COMPLETED` | Reschedule notifications after reboot |
+| `INTERNET` | Only used by the optional shared-tracking sync (Firebase). No other network calls |
 
 Avatar and receipt images use the system photo picker, which needs no permission.
 
@@ -178,13 +183,14 @@ Contributions are very welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) f
 
 ## Roadmap
 
+- [x] Background auto-backup scheduler (WorkManager, v1.4.0)
+- [x] Multi-account support with opening balances and transfers (v1.4.0)
+- [x] Shared household tracking for partners (v1.3.0)
 - [ ] Recurring / scheduled transactions
 - [ ] Encrypt the Hive database at rest (`HiveAesCipher` + platform keystore)
-- [ ] Background auto-backup scheduler (currently runs on app open)
 - [ ] Widgets (home screen balance widget)
 - [ ] iOS support
 - [ ] UPI deep link detection
-- [ ] Multi-account support
 
 ---
 
