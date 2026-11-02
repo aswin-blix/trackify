@@ -348,7 +348,10 @@ class BackupRepository {
     final buffer = StringBuffer();
     buffer.writeln('Date,Type,Category,Account,To Account,Amount,Note,Tags');
     for (final t in transactions) {
-      final catName = catMap[t.categoryId] ?? t.categoryId;
+      // Loans have no category; the person is more useful in a sheet.
+      final catName = t.type.isDebt
+          ? (t.counterparty ?? '')
+          : (catMap[t.categoryId] ?? t.categoryId);
       final accName = t.accountId == null
           ? defaultAcc
           : (accMap[t.accountId!] ?? t.accountId!);

@@ -2,7 +2,7 @@ name: trackify
 description: A production-grade expense tracking app with glassmorphism UI.
 publish_to: 'none'
 # Keep kAppVersion in lib/core/constants/app_constants.dart in sync.
-version: 1.5.0+6
+version: 1.6.0+7
 
 environment:
   # NOTE: raising the Dart lower bound to >=3.7 switches `dart format` to the

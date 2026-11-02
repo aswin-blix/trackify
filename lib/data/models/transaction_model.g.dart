@@ -32,13 +32,15 @@ class TransactionModelAdapter extends TypeAdapter<TransactionModel> {
       addedBy: fields[12] as String?,
       accountId: fields[13] as String?,
       toAccountId: fields[14] as String?,
+      counterparty: fields[15] as String?,
+      dueDate: fields[16] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, TransactionModel obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -68,7 +70,11 @@ class TransactionModelAdapter extends TypeAdapter<TransactionModel> {
       ..writeByte(13)
       ..write(obj.accountId)
       ..writeByte(14)
-      ..write(obj.toAccountId);
+      ..write(obj.toAccountId)
+      ..writeByte(15)
+      ..write(obj.counterparty)
+      ..writeByte(16)
+      ..write(obj.dueDate);
   }
 
   @override
@@ -95,6 +101,14 @@ class TransactionTypeAdapter extends TypeAdapter<TransactionType> {
         return TransactionType.income;
       case 2:
         return TransactionType.transfer;
+      case 3:
+        return TransactionType.lend;
+      case 4:
+        return TransactionType.borrow;
+      case 5:
+        return TransactionType.collect;
+      case 6:
+        return TransactionType.repay;
       default:
         return TransactionType.expense;
     }
@@ -111,6 +125,18 @@ class TransactionTypeAdapter extends TypeAdapter<TransactionType> {
         break;
       case TransactionType.transfer:
         writer.writeByte(2);
+        break;
+      case TransactionType.lend:
+        writer.writeByte(3);
+        break;
+      case TransactionType.borrow:
+        writer.writeByte(4);
+        break;
+      case TransactionType.collect:
+        writer.writeByte(5);
+        break;
+      case TransactionType.repay:
+        writer.writeByte(6);
         break;
     }
   }

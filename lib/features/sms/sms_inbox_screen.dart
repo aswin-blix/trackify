@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/bank_sms_message.dart';
 import '../../data/models/transaction_model.dart';
@@ -490,6 +491,9 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
   String? _accountId;
   bool _saving = false;
 
+  bool get _isLoan => _type.isDebt;
+  bool get _isCredit => widget.sms.parsedType == 'credit';
+
   @override
   void initState() {
     super.initState();
@@ -577,8 +581,40 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
                   color: LightColors.incomeGreen,
                   onTap: () => setState(() => _type = TransactionType.income),
                 ),
+                const SizedBox(width: 10),
+                // A UPI payment to a friend may be a loan, not a spend.
+                _TypeButton(
+                  label: 'Loan',
+                  selected: _isLoan,
+                  color: LightColors.debtColor,
+                  onTap: () => setState(() => _type = _isCredit
+                      ? TransactionType.borrow
+                      : TransactionType.lend),
+                ),
               ],
             ),
+            if (_isLoan) ...[
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                children: [
+                  for (final (t, label) in _isCredit
+                      ? const [
+                          (TransactionType.borrow, 'I borrowed'),
+                          (TransactionType.collect, 'Paid back to me'),
+                        ]
+                      : const [
+                          (TransactionType.lend, 'I lent'),
+                          (TransactionType.repay, 'I paid back'),
+                        ])
+                    ChoiceChip(
+                      label: Text(label),
+                      selected: _type == t,
+                      onSelected: (_) => setState(() => _type = t),
+                    ),
+                ],
+              ),
+            ],
             const SizedBox(height: 14),
             TextField(
               controller: _amountCtrl,
@@ -594,28 +630,31 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
             const SizedBox(height: 12),
             TextField(
               controller: _noteCtrl,
+              textCapitalization:
+                  _isLoan ? TextCapitalization.words : TextCapitalization.none,
               decoration: InputDecoration(
-                labelText: 'Note / Merchant',
+                labelText: _isLoan ? 'Person' : 'Note / Merchant',
                 border:
                     OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<CategoryModel>(
-              initialValue: relevant.contains(_category) ? _category : null,
-              decoration: InputDecoration(
-                labelText: 'Category',
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            if (!_isLoan) const SizedBox(height: 12),
+            if (!_isLoan)
+              DropdownButtonFormField<CategoryModel>(
+                initialValue: relevant.contains(_category) ? _category : null,
+                decoration: InputDecoration(
+                  labelText: 'Category',
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                items: relevant
+                    .map((c) => DropdownMenuItem(
+                          value: c,
+                          child: Text(c.name),
+                        ))
+                    .toList(),
+                onChanged: (c) => setState(() => _category = c),
               ),
-              items: relevant
-                  .map((c) => DropdownMenuItem(
-                        value: c,
-                        child: Text(c.name),
-                      ))
-                  .toList(),
-              onChanged: (c) => setState(() => _category = c),
-            ),
             if (widget.accounts.length > 1) ...[
               const SizedBox(height: 12),
               AccountPicker(
@@ -666,7 +705,14 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
       );
       return;
     }
-    if (_category == null) {
+    final text = _noteCtrl.text.trim();
+    if (_isLoan && text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter who the loan was with')),
+      );
+      return;
+    }
+    if (!_isLoan && _category == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Select a category')),
       );
@@ -678,8 +724,9 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
       id: 'sms_${widget.sms.id}',
       amount: amount,
       type: _type,
-      categoryId: _category!.id,
-      note: _noteCtrl.text.trim(),
+      categoryId: _isLoan ? kDebtCategoryId : _category!.id,
+      note: _isLoan ? '' : text,
+      counterparty: _isLoan ? text : null,
       date: widget.sms.parsedDate ?? now,
       isFromSms: true,
       smsSource: widget.sms.sender,

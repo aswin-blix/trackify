@@ -182,11 +182,13 @@ class _RuleTile extends ConsumerWidget {
         isDark ? DarkColors.incomeGreen : LightColors.incomeGreen,
       TransactionType.transfer =>
         isDark ? DarkColors.transferColor : LightColors.transferColor,
+      // Rules are only made from the add sheet, which has no loan types.
+      _ => isDark ? DarkColors.debtColor : LightColors.debtColor,
     };
     final sign = switch (rule.type) {
       TransactionType.expense => '-',
       TransactionType.income => '+',
-      TransactionType.transfer => '',
+      _ => '',
     };
     final status = !rule.active
         ? 'Paused'

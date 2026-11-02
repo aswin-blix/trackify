@@ -17,6 +17,8 @@ import '../household/firebase_bootstrap.dart';
 import '../household/household_service.dart';
 import '../household/household_sync.dart';
 import '../recurring/recurring_screen.dart';
+import '../debts/debt_providers.dart';
+import '../../core/utils/debt_ledger.dart';
 import '../../core/services/backup_scheduler.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -141,6 +143,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         builder: (_) => const ManageAccountsScreen(),
                       ),
                     ),
+                  ),
+                  _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.handshake_rounded,
+                    iconColor: const Color(0xFF0A6FD6),
+                    title: 'Lent & Borrowed',
+                    subtitle: _debtSubtitle(),
+                    onTap: () => Navigator.of(context).pushNamed('/debts'),
                   ),
                   _SettingsDivider(),
                   _SettingsTile(
@@ -391,6 +401,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (hh == null) return 'Create or join a household';
     final n = hh.members.length;
     return '${hh.name} · $n member${n == 1 ? '' : 's'}';
+  }
+
+  String _debtSubtitle() {
+    final t = DebtLedger.totals(ref.watch(myDebtBalancesProvider));
+    if (t.owedToYou == 0 && t.youOwe == 0) {
+      return 'Track money you lend or borrow';
+    }
+    final s = ref.watch(settingsProvider).currencySymbol;
+    return [
+      if (t.owedToYou > 0) 'Owed to you $s${t.owedToYou.toStringAsFixed(0)}',
+      if (t.youOwe > 0) 'You owe $s${t.youOwe.toStringAsFixed(0)}',
+    ].join(' · ');
   }
 
   String _recurringSubtitle() {

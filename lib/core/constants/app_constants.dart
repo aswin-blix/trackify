@@ -40,7 +40,7 @@ const Curve kCurveBounce = Curves.elasticOut;
 // ─── App Info ─────────────────────────────────────────────────────────────────
 const String kAppName = 'Trackify';
 // Keep in sync with the version in pubspec.yaml.
-const String kAppVersion = '1.5.0';
+const String kAppVersion = '1.6.0';
 // 2: backups carry an `accounts` list and transactions carry accountId.
 // 3: backups carry a `recurring` list of scheduled-transaction rules.
 const int kBackupSchemaVersion = 3;
@@ -87,3 +87,9 @@ const int kDailyReminderNotifId = 1;
 const int kWeeklySummaryNotifId = 2;
 const int kBudgetAlertNotifId = 3;
 const int kTestNotifId = 99;
+// Loan due reminders use ids kDebtNotifIdBase .. kDebtNotifIdBase + 99999.
+const int kDebtNotifIdBase = 500000;
+
+/// Category id stored on lend/borrow/collect/repay entries. No real category
+/// has it; screens show the person instead.
+const String kDebtCategoryId = 'debt';

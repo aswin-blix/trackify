@@ -211,6 +211,57 @@ class NotificationService {
     }
   }
 
+  // ── Loan due-date reminders ─────────────────────────────────────────────────
+  static const _debtDetails = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'trackify_debt_due',
+      'Loan reminders',
+      channelDescription: 'Reminds you when lent or borrowed money is due',
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+      category: AndroidNotificationCategory.reminder,
+    ),
+    iOS: DarwinNotificationDetails(presentAlert: true, presentSound: true),
+  );
+
+  /// Replaces every scheduled loan reminder with [reminders]. Called with
+  /// the current open loans, so settled ones are cancelled. Never asks for
+  /// permission; if notifications are off it quietly does nothing.
+  Future<void> syncDebtReminders(
+    List<({int id, String title, String body, DateTime at})> reminders,
+  ) async {
+    try {
+      if (!_initialized) await init();
+      final pending = await _plugin.pendingNotificationRequests();
+      for (final p in pending) {
+        if (p.id >= kDebtNotifIdBase && p.id < kDebtNotifIdBase + 100000) {
+          await _plugin.cancel(id: p.id);
+        }
+      }
+      if (!await hasPermission()) return;
+      final now = DateTime.now();
+      for (final r in reminders) {
+        if (!r.at.isAfter(now)) continue;
+        final when = tz.TZDateTime.from(r.at, tz.local);
+        try {
+          await _plugin.zonedSchedule(
+            id: r.id,
+            title: r.title,
+            body: r.body,
+            scheduledDate: when,
+            notificationDetails: _debtDetails,
+            androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          );
+        } catch (e, stack) {
+          AppLogger.e('NotificationService', 'Loan reminder failed', e, stack);
+        }
+      }
+    } catch (e, stack) {
+      AppLogger.e('NotificationService', 'Loan reminder sync failed', e, stack);
+    }
+  }
+
   // ── Cancel daily reminder ───────────────────────────────────────────────────
   Future<void> cancelDailyReminder() async {
     try {

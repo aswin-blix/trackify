@@ -15,6 +15,7 @@ class DarkColors {
   static const Color cardSurface = Color(0xFF1A1F3A);
   static const Color divider = Color(0x1AFFFFFF);
   static const Color transferColor = Color(0xFFFFB300);
+  static const Color debtColor = Color(0xFF4DA3FF);
 }
 
 // ─── Light Mode Colors ────────────────────────────────────────────────────────
@@ -32,6 +33,7 @@ class LightColors {
   static const Color cardSurface = Color(0xFFFFFFFF);
   static const Color divider = Color(0x1A1A1A2E);
   static const Color transferColor = Color(0xFFFF8C00);
+  static const Color debtColor = Color(0xFF0A6FD6);
 }
 
 // ─── Category Colors ──────────────────────────────────────────────────────────

@@ -18,6 +18,7 @@ import 'features/dashboard/home_shell.dart';
 import 'features/backup/backup_screen.dart';
 import 'features/app_lock/app_lock_screen.dart';
 import 'features/sms/sms_inbox_screen.dart';
+import 'features/debts/debts_screen.dart';
 import 'features/budget/budget_screen.dart';
 import 'features/tips/tips_screen.dart';
 import 'features/household/firebase_bootstrap.dart';
@@ -113,6 +114,7 @@ class TrackifyApp extends ConsumerWidget {
         '/backup': (ctx) => const BackupScreen(),
         '/lock': (ctx) => const AppLockScreen(),
         '/sms': (ctx) => const SmsInboxScreen(),
+        '/debts': (ctx) => const DebtsScreen(),
         '/budget': (ctx) => const GradientBackground(child: BudgetScreen()),
         '/tips': (ctx) => const GradientBackground(child: TipsScreen()),
         '/household': (ctx) =>

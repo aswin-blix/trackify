@@ -15,7 +15,9 @@ import '../../shared/widgets/animated_counter.dart';
 import '../../shared/widgets/section_header.dart';
 import '../../shared/widgets/transaction_tile.dart';
 import '../tips/tips_data.dart';
-import '../transactions/add_transaction_screen.dart';
+import '../debts/debt_entry_sheet.dart';
+import '../debts/debt_providers.dart';
+import '../../core/utils/debt_ledger.dart';
 import '../accounts/manage_accounts_screen.dart';
 import '../../data/models/account_model.dart';
 
@@ -201,6 +203,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ).animate(delay: 240.ms).fadeIn(duration: 400.ms),
           ),
 
+          // Lent & borrowed, only when something is outstanding
+          const SliverToBoxAdapter(child: _DebtSummaryCard()),
+
           // Mini bar chart
           SliverToBoxAdapter(
             child: Padding(
@@ -321,7 +326,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
-      builder: (_) => AddTransactionScreen(existingTransaction: tx),
+      builder: (_) => transactionEditorFor(tx),
     );
   }
 }
@@ -959,6 +964,71 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
+// ─── Lent & Borrowed Card ─────────────────────────────────────────────────────
+class _DebtSummaryCard extends ConsumerWidget {
+  const _DebtSummaryCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mine = ref.watch(myDebtBalancesProvider);
+    final t = DebtLedger.totals(mine);
+    if (t.owedToYou == 0 && t.youOwe == 0) return const SizedBox.shrink();
+    final overdue = mine.where((p) => p.isOverdue(DateTime.now())).length;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final symbol = ref.watch(settingsProvider).currencySymbol;
+    final green = isDark ? DarkColors.incomeGreen : LightColors.incomeGreen;
+    final red = isDark ? DarkColors.expenseRed : LightColors.expenseRed;
+
+    Widget figure(String label, double v, Color c) => Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11, color: onSurface.withValues(alpha: 0.6))),
+              Text(AppFormatters.formatAmount(v, symbol),
+                  style: GoogleFonts.plusJakartaSans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: v > 0 ? c : onSurface.withValues(alpha: 0.4))),
+            ],
+          ),
+        );
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: GlassCard(
+        onTap: () => Navigator.of(context).pushNamed('/debts'),
+        padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+        child: Row(
+          children: [
+            Icon(Icons.handshake_rounded,
+                color: isDark ? DarkColors.debtColor : LightColors.debtColor),
+            const SizedBox(width: 12),
+            figure('Owed to you', t.owedToYou, green),
+            figure('You owe', t.youOwe, red),
+            if (overdue > 0)
+              Container(
+                margin: const EdgeInsets.only(right: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: red.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text('$overdue overdue',
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11, fontWeight: FontWeight.w700, color: red)),
+              ),
+            Icon(Icons.chevron_right_rounded,
+                color: onSurface.withValues(alpha: 0.4)),
+          ],
+        ),
+      ),
+    ).animate(delay: 260.ms).fadeIn(duration: 400.ms);
+  }
+}
+
 // ─── Transaction Detail Sheet ─────────────────────────────────────────────────
 class _TransactionDetail extends StatelessWidget {
   final TransactionModel transaction;
@@ -974,12 +1044,17 @@ class _TransactionDetail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isIncome = transaction.type == TransactionType.income;
-    final amountColor = isIncome
-        ? (isDark ? DarkColors.incomeGreen : LightColors.incomeGreen)
-        : transaction.type == TransactionType.transfer
-            ? (isDark ? DarkColors.transferColor : LightColors.transferColor)
-            : (isDark ? DarkColors.expenseRed : LightColors.expenseRed);
+    final type = transaction.type;
+    final isIncome = type.isInflow;
+    final amountColor = type.isDebt
+        ? (isDark ? DarkColors.debtColor : LightColors.debtColor)
+        : type == TransactionType.income
+            ? (isDark ? DarkColors.incomeGreen : LightColors.incomeGreen)
+            : type == TransactionType.transfer
+                ? (isDark
+                    ? DarkColors.transferColor
+                    : LightColors.transferColor)
+                : (isDark ? DarkColors.expenseRed : LightColors.expenseRed);
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -1001,7 +1076,27 @@ class _TransactionDetail extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            if (category != null)
+            if (type.isDebt) ...[
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: amountColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(TransactionTile.debtIcon(type),
+                    color: amountColor, size: 30),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                DebtLedger.describe(transaction),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ] else if (category != null)
               Container(
                 width: 60,
                 height: 60,

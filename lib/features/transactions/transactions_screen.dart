@@ -6,7 +6,7 @@ import '../../core/utils/formatters.dart';
 import '../../data/models/transaction_model.dart';
 import '../../shared/providers/app_providers.dart';
 import '../../shared/widgets/transaction_tile.dart';
-import 'add_transaction_screen.dart';
+import '../debts/debt_entry_sheet.dart';
 
 class TransactionsScreen extends ConsumerStatefulWidget {
   final VoidCallback onAddTransaction;
@@ -107,6 +107,15 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                           .read(transactionTypeFilterProvider.notifier)
                           .state = TransactionType.transfer,
                     ),
+                    // `lend` stands for every loan type in this filter.
+                    _FilterChip(
+                      label: 'Loans',
+                      selected: typeFilter == TransactionType.lend,
+                      color: const Color(0xFF0A6FD6),
+                      onTap: () => ref
+                          .read(transactionTypeFilterProvider.notifier)
+                          .state = TransactionType.lend,
+                    ),
                   ],
                 ),
               ),
@@ -189,8 +198,12 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
     return map.entries.map((e) {
       final total = e.value.fold<double>(
         0,
-        (sum, t) =>
-            t.type == TransactionType.expense ? sum - t.amount : sum + t.amount,
+        // Net cash for the day; transfers between own accounts are neutral.
+        (sum, t) => t.type == TransactionType.transfer
+            ? sum
+            : t.type.isInflow
+                ? sum + t.amount
+                : sum - t.amount,
       );
       return _DateGroup(dateLabel: e.key, transactions: e.value, total: total);
     }).toList();
@@ -221,7 +234,7 @@ class AddTransactionSheetProxy extends StatelessWidget {
       {super.key, required this.existingTransaction});
   @override
   Widget build(BuildContext context) {
-    return AddTransactionScreen(existingTransaction: existingTransaction);
+    return transactionEditorFor(existingTransaction);
   }
 }
 

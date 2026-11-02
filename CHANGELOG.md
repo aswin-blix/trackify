@@ -6,6 +6,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.6.0] — 2026-11-02
+
+### Added
+- **Lent & Borrowed** — record money you lend, borrow, get paid back or pay back, per person (Settings → Lent & Borrowed, or the dashboard card). Each person shows a running balance; partial repayments reduce it and a zero balance moves the person to *Settled*. A person screen lists the full history with the balance after each entry, with one-tap *Got paid back* / *Paid back* prefilled with the outstanding amount
+- Entries move money in or out of the chosen account but never count as income or expense, so analytics, budgets and monthly totals are unaffected. They appear in History (new *Loans* filter, searchable by name) and the CSV export (person in the Category column)
+- Optional due date on a loan, with a 10:00 reminder on that day; reminders are re-synced whenever the app opens, so a loan settled early never pings. Overdue loans are highlighted
+- In a shared household each member records their own loans; both phones show both sets, labelled by owner, with an *Everyone / You / partner* filter. Balances are kept per owner
+- The SMS inbox's add sheet has a **Loan** option (I lent / I paid back for debits, I borrowed / Paid back to me for credits)
+
+### Notes
+- New transaction types are appended to the Hive enum (indexes 3–6) and new fields `counterparty` (15) and `dueDate` (16) are added; existing data is unaffected. Update both phones in a household before recording loans: older versions read the new types as expenses
+
+---
+
 ## [1.5.0] — 2026-11-02
 
 ### Added

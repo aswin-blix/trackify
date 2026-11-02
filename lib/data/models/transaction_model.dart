@@ -11,6 +11,47 @@ enum TransactionType {
   income,
   @HiveField(2)
   transfer,
+
+  // ── Lent & borrowed ─────────────────────────────────────────────────────
+  // These move money between an account and a person. They change account
+  // balances but are never income or expense. Append only: Hive stores the
+  // index.
+
+  /// Money you gave someone; they owe you.
+  @HiveField(3)
+  lend,
+
+  /// Money someone gave you; you owe them.
+  @HiveField(4)
+  borrow,
+
+  /// Someone paid you back.
+  @HiveField(5)
+  collect,
+
+  /// You paid someone back.
+  @HiveField(6)
+  repay,
+}
+
+extension TransactionTypeDebt on TransactionType {
+  bool get isDebt => switch (this) {
+        TransactionType.lend ||
+        TransactionType.borrow ||
+        TransactionType.collect ||
+        TransactionType.repay =>
+          true,
+        _ => false,
+      };
+
+  /// True when money comes into the account.
+  bool get isInflow => switch (this) {
+        TransactionType.income ||
+        TransactionType.borrow ||
+        TransactionType.collect =>
+          true,
+        _ => false,
+      };
 }
 
 @HiveType(typeId: kTransactionTypeId)
@@ -65,6 +106,14 @@ class TransactionModel extends HiveObject {
   @HiveField(14)
   String? toAccountId;
 
+  /// The other person in a lend/borrow/collect/repay entry.
+  @HiveField(15)
+  String? counterparty;
+
+  /// When a lend or borrow is expected to be paid back.
+  @HiveField(16)
+  DateTime? dueDate;
+
   TransactionModel({
     required this.id,
     required this.amount,
@@ -81,6 +130,8 @@ class TransactionModel extends HiveObject {
     this.addedBy,
     this.accountId,
     this.toAccountId,
+    this.counterparty,
+    this.dueDate,
   }) : tags = tags ?? [];
 
   TransactionModel copyWith({
@@ -99,6 +150,8 @@ class TransactionModel extends HiveObject {
     String? addedBy,
     String? accountId,
     String? toAccountId,
+    String? counterparty,
+    DateTime? dueDate,
   }) {
     return TransactionModel(
       id: id ?? this.id,
@@ -116,6 +169,8 @@ class TransactionModel extends HiveObject {
       addedBy: addedBy ?? this.addedBy,
       accountId: accountId ?? this.accountId,
       toAccountId: toAccountId ?? this.toAccountId,
+      counterparty: counterparty ?? this.counterparty,
+      dueDate: dueDate ?? this.dueDate,
     );
   }
 
@@ -135,6 +190,8 @@ class TransactionModel extends HiveObject {
         'addedBy': addedBy,
         'accountId': accountId,
         'toAccountId': toAccountId,
+        if (counterparty != null) 'counterparty': counterparty,
+        if (dueDate != null) 'dueDate': dueDate!.toIso8601String(),
       };
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
@@ -157,6 +214,10 @@ class TransactionModel extends HiveObject {
       addedBy: json['addedBy'] as String?,
       accountId: json['accountId'] as String?,
       toAccountId: json['toAccountId'] as String?,
+      counterparty: json['counterparty'] as String?,
+      dueDate: json['dueDate'] != null
+          ? DateTime.tryParse(json['dueDate'] as String)
+          : null,
     );
   }
 }

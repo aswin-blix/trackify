@@ -6,6 +6,7 @@ import '../../data/models/transaction_model.dart';
 import '../../data/models/category_model.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/debt_ledger.dart';
 import '../../features/household/household_service.dart';
 
 class TransactionTile extends ConsumerWidget {
@@ -37,6 +38,11 @@ class TransactionTile extends ConsumerWidget {
         return isDark ? DarkColors.expenseRed : LightColors.expenseRed;
       case TransactionType.transfer:
         return isDark ? DarkColors.transferColor : LightColors.transferColor;
+      case TransactionType.lend ||
+            TransactionType.borrow ||
+            TransactionType.collect ||
+            TransactionType.repay:
+        return isDark ? DarkColors.debtColor : LightColors.debtColor;
     }
   }
 
@@ -48,14 +54,31 @@ class TransactionTile extends ConsumerWidget {
         return '-';
       case TransactionType.transfer:
         return '↔ ';
+      // Sign follows the account: money in or out.
+      case TransactionType.borrow || TransactionType.collect:
+        return '+';
+      case TransactionType.lend || TransactionType.repay:
+        return '-';
     }
   }
+
+  static IconData debtIcon(TransactionType type) => switch (type) {
+        TransactionType.lend => Icons.call_made_rounded,
+        TransactionType.borrow => Icons.call_received_rounded,
+        _ => Icons.handshake_rounded,
+      };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final catColor = category?.color ?? const Color(0xFF636E72);
-    final catIcon = category?.icon ?? Icons.receipt;
+    final isDebt = transaction.type.isDebt;
+    final catColor = isDebt
+        ? _amountColor(context)
+        : category?.color ?? const Color(0xFF636E72);
+    final catIcon =
+        isDebt ? debtIcon(transaction.type) : category?.icon ?? Icons.receipt;
+    final title =
+        isDebt ? DebtLedger.describe(transaction) : category?.name ?? 'Unknown';
 
     // Only labelled when the household has more than one member.
     final members = ref.watch(householdMembersProvider);
@@ -140,7 +163,7 @@ class TransactionTile extends ConsumerWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            category?.name ?? 'Unknown',
+                            title,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,

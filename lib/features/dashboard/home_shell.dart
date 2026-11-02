@@ -7,6 +7,7 @@ import '../../shared/providers/app_providers.dart';
 import '../../shared/widgets/app_bottom_nav.dart';
 import '../app_lock/app_lock_screen.dart';
 import '../household/household_sync.dart';
+import '../debts/debt_providers.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../transactions/transactions_screen.dart';
 import '../transactions/add_transaction_screen.dart';
@@ -73,6 +74,9 @@ class _HomeShellState extends ConsumerState<HomeShell>
   Future<void> _onForeground() async {
     await _postRecurring();
     await _syncSmsQuietly();
+    // Keep loan due reminders in line with what is still outstanding,
+    // including entries that arrived from a partner's phone.
+    await ref.read(debtReminderSyncProvider)();
   }
 
   Future<void> _postRecurring() async {

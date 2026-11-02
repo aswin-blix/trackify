@@ -112,6 +112,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
         return isDark ? DarkColors.incomeGreen : LightColors.incomeGreen;
       case TransactionType.transfer:
         return isDark ? DarkColors.transferColor : LightColors.transferColor;
+      // Loan entries are edited in DebtEntrySheet; see transactionEditorFor.
+      case TransactionType.lend ||
+            TransactionType.borrow ||
+            TransactionType.collect ||
+            TransactionType.repay:
+        return isDark ? DarkColors.debtColor : LightColors.debtColor;
     }
   }
 

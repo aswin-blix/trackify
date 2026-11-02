@@ -20,12 +20,18 @@ Map<String, double> computeAccountBalances(
 
   for (final t in transactions) {
     switch (t.type) {
-      case TransactionType.income:
+      // Lending and repaying move money out; borrowing and being paid back
+      // move it in. None of them are income or expense.
+      case TransactionType.income ||
+            TransactionType.borrow ||
+            TransactionType.collect:
         final acc = resolve(t.accountId);
         if (acc != null && result.containsKey(acc)) {
           result[acc] = result[acc]! + t.amount;
         }
-      case TransactionType.expense:
+      case TransactionType.expense ||
+            TransactionType.lend ||
+            TransactionType.repay:
         final acc = resolve(t.accountId);
         if (acc != null && result.containsKey(acc)) {
           result[acc] = result[acc]! - t.amount;

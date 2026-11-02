@@ -537,8 +537,11 @@ final filteredTransactionsProvider = Provider<List<TransactionModel>>((ref) {
   return all.where((t) {
     final matchesSearch = search.isEmpty ||
         t.note.toLowerCase().contains(search) ||
-        t.tags.any((tag) => tag.toLowerCase().contains(search));
-    final matchesType = typeFilter == null || t.type == typeFilter;
+        t.tags.any((tag) => tag.toLowerCase().contains(search)) ||
+        (t.counterparty?.toLowerCase().contains(search) ?? false);
+    final matchesType = typeFilter == null ||
+        t.type == typeFilter ||
+        (typeFilter == TransactionType.lend && t.type.isDebt);
     return matchesSearch && matchesType;
   }).toList();
 });
