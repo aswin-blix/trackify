@@ -33,17 +33,21 @@ lib/
 ├── core/
 │   ├── constants/     # App-wide constants, currencies, default data
 │   ├── theme/         # AppTheme, AppColors, gradients
-│   └── utils/         # SmsParser, formatters
+│   └── utils/         # SmsParser, Recurrence, DebtLedger, formatters
 ├── data/
-│   ├── models/        # Hive models + hand-written .g.dart adapters
+│   ├── models/        # Hive models; generated .g.dart adapters checked in
 │   └── repositories/  # Thin Hive box wrappers
 ├── features/          # One folder per screen/feature
+│   ├── accounts/
 │   ├── analytics/
 │   ├── app_lock/
 │   ├── backup/
 │   ├── budget/
 │   ├── dashboard/
+│   ├── debts/         # Lent & Borrowed
+│   ├── household/     # Optional shared tracking
 │   ├── onboarding/
+│   ├── recurring/
 │   ├── settings/
 │   ├── sms/
 │   ├── splash/
@@ -57,6 +61,8 @@ lib/
 ### Key Architecture Notes
 - **Hive adapters** — the `.g.dart` files are checked in. Only run `dart run build_runner build --delete-conflicting-outputs` after changing a `@HiveType` model, and never reuse a field number.
 - **State** uses `StateNotifierProvider`. Settings changes must produce a new `AppSettings` instance (clone via `fromJson`) for Riverpod to detect them.
+- **Transaction types** — Hive stores `TransactionType` by index: append new values, never reorder, and handle them in every `switch` (the analyzer flags non-exhaustive ones).
+- **SMS formats** — when a bank alert is missed or misread, add the (anonymised) message to `test/sms_parser_test.dart` first, then adjust `SmsParser`.
 - **Formatting** — CI runs `dart format --set-exit-if-changed`; run `dart format .` before pushing.
 - **App Lock** — wrap any biometric prompt in `AppLockGuard.run` so the system credential screen does not trigger the resume re-lock.
 - **Tab indices** in `HomeShell`: 0=Dashboard, 1=Transactions, 2=FAB (opens Add Transaction sheet), 3=Analytics, 4=Settings.

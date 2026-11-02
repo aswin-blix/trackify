@@ -73,13 +73,25 @@ Everything already on either phone is merged into the shared ledger. After
 that, each new entry is tagged with who added it, transaction tiles show a
 "You" / partner label, and Analytics gains a "Who Spent" card.
 
+**Lent & Borrowed** entries sync like any other transaction. Each partner
+records their own loans; both phones show both sets, labelled by owner, and
+balances are kept per owner ("Rahul owes you" and "Rahul owes Shyni" stay
+separate). Use the Everyone / You / partner filter on that screen.
+
+**Recurring rules** stay on the phone that created them. The entries they post
+sync normally, so a rule is never run twice across two phones.
+
+Keep both phones on the same app version. Loan entries (1.6.0+) are read as
+expenses by older builds.
+
 ## Data layout
 
 ```
 households/{id}
   name, inviteCode, ownerUid, memberIds[], members{uid: {name, photoUrl, joinedAt}}
   monthlyBudget, currency, currencySymbol, createdAt, updatedAt
-households/{id}/transactions/{txId}   TransactionModel JSON (no receipt path)
+households/{id}/transactions/{txId}   TransactionModel JSON (no receipt path); loans carry
+                                      type lend|borrow|collect|repay, counterparty, dueDate
 households/{id}/categories/{catId}    CategoryModel JSON
 households/{id}/accounts/{accId}      AccountModel JSON (opening balances are shared)
 invites/{code}                        { householdId, createdAt }
@@ -89,8 +101,9 @@ Hive stays the source of truth on each phone; Firestore is a mirror. Local
 writes are pushed through the Riverpod notifiers (`app_providers.dart`), and
 snapshot listeners in `household_sync.dart` write cloud changes back into Hive.
 Conflicts on a transaction resolve by `updatedAt` (last write wins); categories
-take the shared copy. Receipt photos, bank SMS, app lock and reminders never
-leave the phone.
+take the shared copy. Receipt photos, bank SMS, recurring rules, app lock and
+reminders never leave the phone. No Firestore rules change is needed for
+recurring or loans.
 
 ## Troubleshooting
 
@@ -101,3 +114,4 @@ leave the phone.
 | "Google did not return an ID token" | Google sign-in not enabled, or stale `google-services.json` without the web client |
 | "Not allowed" when joining | Rules not deployed, or household already has 5 members |
 | Entries never reach the partner | Rules not deployed (check Firestore → Rules → Monitor for denials) |
+| Partner sees your loans as expenses | Their phone is on a version older than 1.6.0 |

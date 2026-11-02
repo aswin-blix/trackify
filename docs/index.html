@@ -6,8 +6,8 @@
 
   <!-- Primary SEO -->
   <title>Trackify — Personal Finance Tracker | Offline-First, Open Source</title>
-  <meta name="description" content="Trackify is a free, open-source personal finance app for Android. Track income and expenses, read bank SMS automatically, set budgets, visualize spending, and optionally share one ledger with your partner — offline-first with zero data collection." />
-  <meta name="keywords" content="personal finance app, expense tracker, budget tracker, open source finance app, flutter finance app, offline expense tracker, bank SMS reader, free budget app android, couple expense tracker, shared budget app" />
+  <meta name="description" content="Trackify is a free, open-source personal finance app for Android. Track income and expenses, recurring bills and money lent or borrowed, read bank SMS automatically, set budgets, visualize spending, and optionally share one ledger with your partner — offline-first with zero data collection." />
+  <meta name="keywords" content="personal finance app, expense tracker, recurring expenses, money lent tracker, loan tracker, budget tracker, open source finance app, flutter finance app, offline expense tracker, bank SMS reader, free budget app android, couple expense tracker, shared budget app" />
   <meta name="author" content="Aswin Blix" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://aswinblix.github.io/trackify/" />
@@ -16,7 +16,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://aswinblix.github.io/trackify/" />
   <meta property="og:title" content="Trackify — Personal Finance Tracker" />
-  <meta property="og:description" content="Free, open-source Android app to track every rupee. Bank SMS auto-reader, budgets, analytics, biometric lock, optional partner sharing — offline-first." />
+  <meta property="og:description" content="Free, open-source Android app to track every rupee. Bank SMS auto-reader, recurring transactions, lent &amp; borrowed tracking, budgets, analytics, optional partner sharing — offline-first." />
   <meta property="og:image" content="https://aswinblix.github.io/trackify/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -28,7 +28,7 @@
   <meta name="twitter:site" content="@aswin-blix" />
   <meta name="twitter:creator" content="@aswin-blix" />
   <meta name="twitter:title" content="Trackify — Personal Finance Tracker" />
-  <meta name="twitter:description" content="Free, open-source Android app to track every rupee. Bank SMS auto-reader, budgets, analytics, biometric lock, optional partner sharing — offline-first." />
+  <meta name="twitter:description" content="Free, open-source Android app to track every rupee. Bank SMS auto-reader, recurring transactions, lent &amp; borrowed tracking, budgets, analytics, optional partner sharing — offline-first." />
   <meta name="twitter:image" content="https://aswinblix.github.io/trackify/assets/og-image.png" />
 
   <!-- Theme color for browser chrome -->
@@ -40,7 +40,7 @@
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "Trackify",
-    "description": "Free, open-source personal finance tracker for Android. Track income and expenses, auto-read bank SMS, set budgets, visualize spending, optionally share a ledger with your partner — offline-first.",
+    "description": "Free, open-source personal finance tracker for Android. Track income and expenses, recurring bills and loans, auto-read bank SMS, set budgets, visualize spending, optionally share a ledger with your partner — offline-first.",
     "url": "https://aswinblix.github.io/trackify/",
     "downloadUrl": "https://github.com/aswin-blix/trackify/releases/latest",
     "operatingSystem": "Android",
@@ -56,10 +56,12 @@
       "url": "https://github.com/aswin-blix"
     },
     "license": "https://opensource.org/licenses/MIT",
-    "softwareVersion": "1.4.0",
+    "softwareVersion": "1.6.0",
     "featureList": [
       "Expense and income tracking",
       "Accounts with opening balances and transfers",
+      "Recurring transactions",
+      "Lent and borrowed tracking with due-date reminders",
       "Bank SMS auto-reader",
       "Budget tracking with progress bars",
       "Analytics with charts",
@@ -475,6 +477,16 @@
         <p>Log income, expenses, and transfers with categories, notes, and tags. Cash, bank and wallet accounts with opening balances show your real total. Edit or delete anytime.</p>
       </article>
       <article class="feature-card fade-up">
+        <div class="feature-icon" style="background:rgba(255,142,83,.15)">🔁</div>
+        <h3>Recurring Transactions</h3>
+        <p>Rent, salary, subscriptions, EMIs: set Repeat once and Trackify adds each entry on its due date, catching up anything missed. Pause, resume or change the amount anytime.</p>
+      </article>
+      <article class="feature-card fade-up">
+        <div class="feature-icon" style="background:rgba(10,111,214,.18)">🤝</div>
+        <h3>Lent &amp; Borrowed</h3>
+        <p>Know who owes you and whom you owe. Running balance per person, partial repayments, one-tap settle and a reminder on the due date. Moves your account balance without counting as spending.</p>
+      </article>
+      <article class="feature-card fade-up">
         <div class="feature-icon" style="background:rgba(0,212,255,.15)">📊</div>
         <h3>Analytics & Charts</h3>
         <p>Bar charts, pie charts, and trend breakdowns. Week view shows a rolling last-7-days window so data is always visible.</p>
@@ -487,7 +499,7 @@
       <article class="feature-card fade-up">
         <div class="feature-icon" style="background:rgba(0,206,201,.15)">📱</div>
         <h3>SMS Bank Reader</h3>
-        <p>Automatically reads bank transaction SMS, parses the amount, merchant, and type — then lets you add it as a transaction in one tap. Never leaves your device.</p>
+        <p>Reads bank, card and UPI alerts from SBI, HDFC, ICICI, Axis, Kotak, PhonePe and more each time you open the app, picks out the amount, payee and direction, and skips OTPs, dues and declined payments. Add it in one tap, or mark it as a loan. Never leaves your device.</p>
       </article>
       <article class="feature-card fade-up">
         <div class="feature-icon" style="background:rgba(232,54,93,.15)">🔐</div>
@@ -502,7 +514,7 @@
       <article class="feature-card fade-up">
         <div class="feature-icon" style="background:rgba(232,67,147,.15)">👫</div>
         <h3>Shared Tracking</h3>
-        <p>Optional. One household, one income, one budget — two phones. Invite your partner with a 6-character code; every entry shows who added it. Receipts and bank SMS never leave your phone.</p>
+        <p>Optional. One household, one income, one budget — two phones. Invite your partner with a 6-character code; every entry shows who added it, and each partner's loans show on both phones. Receipts and bank SMS never leave your phone.</p>
       </article>
       <article class="feature-card fade-up">
         <div class="feature-icon" style="background:rgba(255,179,0,.15)">🌙</div>
@@ -544,7 +556,7 @@
         <div class="how-step fade-up">
           <div class="step-num">3</div>
           <h3>Add Transactions</h3>
-          <p>Tap the + button to log an expense or income. Or enable SMS Reader for automatic detection.</p>
+          <p>Tap the + button to log an expense or income. Set rent or subscriptions to repeat, or enable SMS Reader for automatic detection.</p>
         </div>
         <div class="how-step fade-up">
           <div class="step-num">4</div>
@@ -591,7 +603,9 @@
       <div class="tech-badge"><span class="tech-dot" style="background:#00D4FF"></span>fl_chart</div>
       <div class="tech-badge"><span class="tech-dot" style="background:#00E5A0"></span>flutter_animate</div>
       <div class="tech-badge"><span class="tech-dot" style="background:#FF4D6D"></span>local_auth</div>
-      <div class="tech-badge"><span class="tech-dot" style="background:#00CEC9"></span>flutter_sms_inbox</div>
+      <div class="tech-badge"><span class="tech-dot" style="background:#00CEC9"></span>Native SMS channel (Kotlin)</div>
+      <div class="tech-badge"><span class="tech-dot" style="background:#55EFC4"></span>WorkManager</div>
+      <div class="tech-badge"><span class="tech-dot" style="background:#E84393"></span>Firebase (optional sync)</div>
       <div class="tech-badge"><span class="tech-dot" style="background:#FFC107"></span>flutter_local_notifications</div>
       <div class="tech-badge"><span class="tech-dot" style="background:#FDCB6E"></span>flutter_timezone</div>
       <div class="tech-badge"><span class="tech-dot" style="background:#A29BFE"></span>Plus Jakarta Sans</div>

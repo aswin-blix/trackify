@@ -26,13 +26,15 @@ Beautiful glassmorphism UI · Riverpod state · Hive local database · Zero data
 | | Feature | Description |
 |---|---|---|
 | 💰 | **Transaction Tracking** | Log income, expenses, and transfers with categories, notes, and tags |
+| 🔁 | **Recurring Transactions** | Rent, salary, subscriptions, EMIs: pick Repeat (daily / weekly / monthly / yearly) and due entries are added automatically, catching up missed dates |
+| 🤝 | **Lent & Borrowed** | Track money lent to or borrowed from people: running balance per person, partial repayments, due-date reminders. Moves account balances without counting as income or expense |
 | 🏦 | **Accounts** | Cash, bank, wallets and cards with opening balances; real total balance and transfers between accounts |
 | 📊 | **Analytics** | Bar charts, pie charts, weekly/monthly/yearly breakdowns |
 | 🎯 | **Budget Tracking** | Set monthly budgets per category with live progress bars |
-| 📱 | **SMS Bank Reader** | Auto-reads bank transaction SMS — 100% local, never uploaded |
+| 📱 | **SMS Bank Reader** | Scans bank, card and UPI alerts (SBI, HDFC, ICICI, Axis, Kotak, PhonePe and more) on open; skips OTPs, dues, declines and promotions. 100% local, never uploaded |
 | 🔐 | **App Lock** | Biometric / device PIN gate on open and on background resume |
 | ☁️ | **Backup & Restore** | Export full data as JSON and restore from file; daily auto-backup runs in the background via WorkManager |
-| 👫 | **Shared Tracking** | Optional: one household, one budget, two phones. Google sign-in + Firestore, free tier. See [docs/SHARED_TRACKING_SETUP.md](docs/SHARED_TRACKING_SETUP.md) |
+| 👫 | **Shared Tracking** | Optional: one household, one budget, two phones. Each partner's loans are shown on both phones. Google sign-in + Firestore, free tier. See [docs/SHARED_TRACKING_SETUP.md](docs/SHARED_TRACKING_SETUP.md) |
 | 🌙 | **Dark / Light Mode** | Instant theme switching, follows system preference |
 | 💱 | **Multi-Currency** | INR, USD, EUR, GBP, JPY, AUD, CAD, SGD, AED |
 | ✨ | **Glassmorphism UI** | Frosted glass cards with spring animations throughout |
@@ -57,7 +59,7 @@ Beautiful glassmorphism UI · Riverpod state · Hive local database · Zero data
 | Animations | `flutter_animate` |
 | Typography | Google Fonts — Plus Jakarta Sans |
 | Biometric Auth | `local_auth` |
-| SMS Reading | `flutter_sms_inbox` |
+| SMS Reading | Native `MethodChannel` (`com.blixcode.trackify/sms`) in `MainActivity.kt` |
 | Notifications | `flutter_local_notifications`, `flutter_timezone`, `timezone` |
 | Background work | `workmanager` (daily auto-backup) |
 | File Operations | `path_provider`, `share_plus`, `file_picker` |
@@ -111,9 +113,9 @@ lib/
 ├── core/
 │   ├── constants/      # App-wide constants, currencies, default categories
 │   ├── theme/          # AppTheme, AppColors, gradients
-│   └── utils/          # SmsParser, formatters
+│   └── utils/          # SmsParser, Recurrence, DebtLedger, balance calculator, formatters
 ├── data/
-│   ├── models/         # Hive models + hand-written .g.dart adapters
+│   ├── models/         # Hive models; generated .g.dart adapters checked in (RecurringModel's adapter is hand-written)
 │   └── repositories/   # Thin Hive box wrappers
 ├── features/           # One folder per screen/feature
 │   ├── accounts/       # Manage accounts (cash, bank, wallets) and opening balances
@@ -122,15 +124,17 @@ lib/
 │   ├── backup/
 │   ├── budget/
 │   ├── dashboard/
+│   ├── debts/          # Lent & Borrowed: per-person balances, entry sheet, due reminders
 │   ├── household/      # Shared tracking: Firebase bootstrap, sync, invite flow
 │   ├── onboarding/
+│   ├── recurring/      # Recurring rules: list, pause/resume, edit, delete
 │   ├── settings/
 │   ├── sms/
 │   ├── splash/
 │   ├── tips/
 │   └── transactions/
 └── shared/
-    ├── providers/      # All Riverpod providers (settings, transactions, categories, accounts, SMS)
+    ├── providers/      # All Riverpod providers (settings, transactions, categories, accounts, recurring, SMS)
     └── widgets/        # Reusable widgets (GlassCard, TransactionTile, AccountPicker, etc.)
 ```
 
@@ -145,7 +149,10 @@ lib/
 - **App Lock** — `HomeShell` re-locks on resume using a went-to-background flag (not the previous lifecycle state). Wrap any biometric prompt in `AppLockGuard.run` so the system credential screen does not trigger a re-lock.
 - **Auto Backup** — a WorkManager periodic job (`core/services/backup_scheduler.dart`) writes the daily backup at the chosen time even when the app is closed. The background isolate only reads Hive and writes the file; it never writes a box the app may have open, and the app derives the last-backup time from the newest file. `BackupRepository.runAutoBackupIfDue` still runs on app open/resume as a safety net.
 - **Accounts** — balances are never stored. `computeAccountBalances` derives them from each account's opening balance plus every transaction; entries with a null `accountId` belong to the default account, so data from before accounts existed needs no migration.
-- **Shared tracking** — optional and opt-in. Hive stays the source of truth on each phone; `features/household/household_sync.dart` mirrors transactions, categories, accounts and the budget to Firestore and applies partner changes back (last write wins on `updatedAt`). Receipts, bank SMS, app lock and reminders never leave the phone. Setup in [docs/SHARED_TRACKING_SETUP.md](docs/SHARED_TRACKING_SETUP.md).
+- **SMS reader** — `MainActivity.kt` exposes a `queryInbox` method that reads only `_id, address, body, date` for the last 90 days on a background thread. `SmsSender` treats DLT headers (`JX-SBIUPI-S`) as company senders and skips personal numbers and `-P` promotional headers; senders outside `kDefaultBankSenders` must also use a bank verb and mention an account or card. `SmsParser` rules are covered by real (anonymised) alerts in `test/sms_parser_test.dart`; add a case there when a new bank format is missed. Messages are deduplicated by SMS id, and pending ones are re-parsed on each scan.
+- **Recurring transactions** — a `RecurringModel` rule numbers its occurrences from the start date; `Recurrence.occurrence` computes each one from the start (so the 31st clamps to short months and comes back). `RecurringNotifier.postDue` runs on app open/resume and posts through the normal transaction path with stable ids `rec_<rule>_<n>`, so an occurrence is never added twice and syncs like any entry. Rules stay on the phone that created them (no double posting in a household).
+- **Lent & Borrowed** — stored as ordinary transactions with types `lend`, `borrow`, `collect`, `repay` plus `counterparty` and `dueDate`. `DebtLedger.balances` groups them by (owner uid, person) so each partner keeps their own balances while both phones show both. Analytics and budgets only read `expense`/`income`, so loans never appear as spending. When adding a `TransactionType`, append it (Hive stores the index) and handle it in every `switch`; older app versions read unknown types as expenses.
+- **Shared tracking** — optional and opt-in. Hive stays the source of truth on each phone; `features/household/household_sync.dart` mirrors transactions, categories, accounts and the budget to Firestore and applies partner changes back (last write wins on `updatedAt`). Receipts, bank SMS, recurring rules, app lock and reminders never leave the phone. Setup in [docs/SHARED_TRACKING_SETUP.md](docs/SHARED_TRACKING_SETUP.md).
 - **Restore** — `BackupRepository.parseBackupFile` validates the whole file before any data is cleared, and a `pre_restore_*.json` snapshot is written first.
 - **Release signing** — `android/key.properties` (git-ignored, see `android/key.properties.example`). Without it, release builds fall back to the debug key and print a warning.
 - **Privacy** — `android:allowBackup` is off and `data_extraction_rules.xml` excludes everything, so the Hive database never reaches Google's cloud backup.
@@ -157,10 +164,10 @@ lib/
 
 | Permission | Why |
 |---|---|
-| `READ_SMS` | SMS Bank Reader — reads bank transaction messages locally. Google Play restricts this permission, so the app is distributed as a direct APK |
+| `READ_SMS` | SMS Bank Reader — reads the last 90 days of bank alerts locally. Google Play restricts this permission, so the app is distributed as a direct APK |
 | `READ_EXTERNAL_STORAGE` (≤ Android 12) | Picking a backup file to restore |
 | `USE_BIOMETRIC` / `USE_FINGERPRINT` | App Lock |
-| `POST_NOTIFICATIONS` | Daily reminder notifications |
+| `POST_NOTIFICATIONS` | Daily reminder and loan due-date notifications |
 | `RECEIVE_BOOT_COMPLETED` | Reschedule notifications after reboot |
 | `INTERNET` | Only used by the optional shared-tracking sync (Firebase). No other network calls |
 
@@ -183,10 +190,12 @@ Contributions are very welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) f
 
 ## Roadmap
 
+- [x] Lent & borrowed tracking per person (v1.6.0)
+- [x] Recurring / scheduled transactions (v1.5.0)
+- [x] SMS reader rewrite for real Indian bank formats (v1.5.0)
 - [x] Background auto-backup scheduler (WorkManager, v1.4.0)
 - [x] Multi-account support with opening balances and transfers (v1.4.0)
 - [x] Shared household tracking for partners (v1.3.0)
-- [ ] Recurring / scheduled transactions
 - [ ] Encrypt the Hive database at rest (`HiveAesCipher` + platform keystore)
 - [ ] Widgets (home screen balance widget)
 - [ ] iOS support
