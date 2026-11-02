@@ -16,6 +16,7 @@ import '../accounts/manage_accounts_screen.dart';
 import '../household/firebase_bootstrap.dart';
 import '../household/household_service.dart';
 import '../household/household_sync.dart';
+import '../recurring/recurring_screen.dart';
 import '../../core/services/backup_scheduler.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -138,6 +139,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => const ManageAccountsScreen(),
+                      ),
+                    ),
+                  ),
+                  _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.event_repeat_rounded,
+                    iconColor: const Color(0xFFFF8E53),
+                    title: 'Recurring',
+                    subtitle: _recurringSubtitle(),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const RecurringScreen(),
                       ),
                     ),
                   ),
@@ -380,6 +393,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return '${hh.name} · $n member${n == 1 ? '' : 's'}';
   }
 
+  String _recurringSubtitle() {
+    final active = ref.watch(recurringProvider).where((r) => r.active).length;
+    return active == 0
+        ? 'Rent, salary, subscriptions on a schedule'
+        : '$active active';
+  }
+
   Future<void> _toggleSmsReader(BuildContext context, bool enable) async {
     if (enable) {
       final service = ref.read(smsServiceProvider);
@@ -399,12 +419,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await ref.read(settingsProvider.notifier).setSmsReaderEnabled(true);
       // Auto-sync on first enable
       final settings = ref.read(settingsProvider);
-      final count = await service.syncSms(settings.knownSenderIds);
+      final result = await service.syncSms(settings.knownSenderIds);
       ref.read(smsProvider.notifier).refresh();
-      if (context.mounted && count > 0) {
+      if (context.mounted && result.added > 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Found $count bank transactions from SMS'),
+            content: Text('Found ${result.added} bank transactions from SMS'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -718,6 +738,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await ref.read(accountRepoProvider).deleteAll();
     await ref.read(accountRepoProvider).seedDefaults();
     await ref.read(smsRepoProvider).deleteAll();
+    await ref.read(recurringRepoProvider).deleteAll();
     await ref.read(settingsRepoProvider).reset();
     await ImageStore.delete(avatarPath);
 
@@ -726,6 +747,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     ref.read(categoryProvider.notifier).refresh();
     ref.read(accountProvider.notifier).refresh();
     ref.read(smsProvider.notifier).refresh();
+    ref.read(recurringProvider.notifier).refresh();
     ref.read(settingsProvider.notifier).reload();
 
     if (!context.mounted) return;

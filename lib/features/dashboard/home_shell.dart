@@ -35,6 +35,7 @@ class _HomeShellState extends ConsumerState<HomeShell>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(householdSyncProvider).ensureStarted();
       _runAutoBackup();
+      _onForeground();
     });
   }
 
@@ -62,8 +63,52 @@ class _HomeShellState extends ConsumerState<HomeShell>
         }
         ref.read(householdSyncProvider).ensureStarted();
         _runAutoBackup();
+        _onForeground();
       default:
         break;
+    }
+  }
+
+  /// Work that should happen whenever the user comes back to the app.
+  Future<void> _onForeground() async {
+    await _postRecurring();
+    await _syncSmsQuietly();
+  }
+
+  Future<void> _postRecurring() async {
+    final added = await ref.read(recurringProvider.notifier).postDue();
+    if (added == 0 || !mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Added $added recurring transaction'
+            '${added == 1 ? '' : 's'}'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> _syncSmsQuietly() async {
+    final settings = ref.read(settingsProvider);
+    if (!settings.smsReaderEnabled) return;
+    try {
+      final service = ref.read(smsServiceProvider);
+      if (!await service.hasPermission()) return;
+      final result = await service.syncSms(settings.knownSenderIds);
+      ref.read(smsProvider.notifier).refresh();
+      if (result.added > 0 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${result.added} new bank SMS to review'),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'Review',
+              onPressed: () => Navigator.of(context).pushNamed('/sms'),
+            ),
+          ),
+        );
+      }
+    } catch (e, stack) {
+      AppLogger.e('HomeShell', 'Background SMS scan failed', e, stack);
     }
   }
 

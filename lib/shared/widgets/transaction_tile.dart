@@ -126,7 +126,9 @@ class TransactionTile extends ConsumerWidget {
                   color: catColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(catIcon, color: catColor, size: 22),
+                child: Icon(catIcon,
+                    color: legibleOn(catColor, Theme.of(context).brightness),
+                    size: 22),
               ),
               const SizedBox(width: 12),
               // Info

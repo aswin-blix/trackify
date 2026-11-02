@@ -72,3 +72,17 @@ LinearGradient accentGradientLight() => const LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
+
+/// Bright accents (yellow, mint, teal) wash out on the pale light theme.
+/// In light mode this darkens any colour too bright to read as text or an
+/// icon on a near-white surface; dark mode and already-dark colours pass
+/// through unchanged.
+Color legibleOn(Color color, Brightness brightness) {
+  if (brightness == Brightness.dark) return color;
+  if (color.computeLuminance() < 0.25) return color;
+  final hsl = HSLColor.fromColor(color);
+  return hsl
+      .withLightness((hsl.lightness * 0.6).clamp(0.0, 0.4))
+      .withSaturation((hsl.saturation * 1.1).clamp(0.0, 1.0))
+      .toColor();
+}

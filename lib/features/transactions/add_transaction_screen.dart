@@ -8,8 +8,10 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/app_logger.dart';
 import '../../core/utils/image_store.dart';
+import '../../core/utils/recurrence.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/models/category_model.dart';
+import '../../data/models/recurring_model.dart';
 import '../../shared/providers/app_providers.dart';
 import '../../shared/widgets/glass_card.dart';
 import '../categories/manage_categories_screen.dart';
@@ -22,10 +24,14 @@ class AddTransactionScreen extends ConsumerStatefulWidget {
   /// Pre-selects a type when opening the sheet for a new transaction.
   final TransactionType? initialType;
 
+  /// Pre-selects a repeat schedule (used by the Recurring screen).
+  final RecurrenceFrequency? initialRepeat;
+
   const AddTransactionScreen({
     super.key,
     this.existingTransaction,
     this.initialType,
+    this.initialRepeat,
   });
 
   @override
@@ -47,6 +53,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
   bool _isSaving = false;
   bool _showSuccess = false;
 
+  /// Null = one-off. Only offered when creating, not editing.
+  RecurrenceFrequency? _repeat;
+
   late AnimationController _saveButtonController;
   late AnimationController _successController;
   late Animation<double> _buttonWidthFactor;
@@ -66,6 +75,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     _toAccountId = ex?.toAccountId;
     _selectedDate = ex?.date ?? DateTime.now();
     _receiptImagePath = ex?.receiptImagePath;
+    _repeat = ex == null ? widget.initialRepeat : null;
 
     _saveButtonController = AnimationController(
       vsync: this,
@@ -143,6 +153,12 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
       final ex = widget.existingTransaction;
       final now = DateTime.now();
+
+      if (ex == null && _repeat != null) {
+        await _saveRecurring(amount, accountId, tags, now);
+        return;
+      }
+
       final transaction = TransactionModel(
         id: ex?.id ?? const Uuid().v4(),
         amount: amount,
@@ -192,6 +208,54 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
     }
   }
 
+  Future<void> _saveRecurring(
+    double amount,
+    String? accountId,
+    List<String> tags,
+    DateTime now,
+  ) async {
+    final isTransfer = _selectedType == TransactionType.transfer;
+    final rule = RecurringModel(
+      id: const Uuid().v4(),
+      amount: amount,
+      type: _selectedType,
+      categoryId: _selectedCategoryId!,
+      note: _noteController.text.trim(),
+      tags: tags,
+      accountId: accountId,
+      toAccountId: isTransfer ? _toAccountId : null,
+      frequency: _repeat!,
+      startDate: _selectedDate,
+      createdAt: now,
+      updatedAt: now,
+    );
+    AppLogger.i('AddTransaction',
+        'Saving recurring rule id=${rule.id} ${rule.frequency.name}');
+    final posted = await ref.read(recurringProvider.notifier).add(rule);
+
+    HapticFeedback.mediumImpact();
+    _saveButtonController.reverse();
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() {
+      _isSaving = false;
+      _showSuccess = true;
+    });
+    _successController.forward();
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+    Navigator.of(context).pop(true);
+    final next = rule.nextDate;
+    messenger.showSnackBar(SnackBar(
+      behavior: SnackBarBehavior.floating,
+      content: Text(
+        '${rule.frequency.label} repeat saved'
+        '${posted > 0 ? ', $posted added now' : ''}. '
+        'Next on ${next.day}/${next.month}/${next.year}.',
+      ),
+    ));
+  }
+
   void _showError(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).clearSnackBars();
@@ -218,7 +282,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      // A repeat may start in the future; a one-off entry may not.
+      lastDate: _repeat != null
+          ? DateTime.now().add(const Duration(days: 365 * 2))
+          : DateTime.now(),
     );
     if (picked != null) {
       if (!mounted) return;
@@ -308,7 +375,10 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -429,14 +499,34 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                               onTap: _pickDate,
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          _ReceiptButton(
-                            imagePath: _receiptImagePath,
-                            onTap: _pickReceipt,
-                          ),
+                          if (_repeat == null) ...[
+                            const SizedBox(width: 12),
+                            _ReceiptButton(
+                              imagePath: _receiptImagePath,
+                              onTap: _pickReceipt,
+                            ),
+                          ],
                         ],
                       ),
                     ).animate(delay: 200.ms).fadeIn(duration: 300.ms),
+                    if (widget.existingTransaction == null) ...[
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: _RepeatPicker(
+                          value: _repeat,
+                          color: _typeColor,
+                          onChanged: (f) => setState(() {
+                            _repeat = f;
+                            // One-off entries can't be dated in the future.
+                            if (f == null &&
+                                _selectedDate.isAfter(DateTime.now())) {
+                              _selectedDate = DateTime.now();
+                            }
+                          }),
+                        ),
+                      ).animate(delay: 220.ms).fadeIn(duration: 300.ms),
+                    ],
                     const SizedBox(height: 32),
                     // Save button
                     Padding(
@@ -487,7 +577,9 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                                       : Text(
                                           widget.existingTransaction != null
                                               ? 'Update'
-                                              : 'Save Transaction',
+                                              : _repeat != null
+                                                  ? 'Save ${_repeat!.label} Repeat'
+                                                  : 'Save Transaction',
                                           style: GoogleFonts.plusJakartaSans(
                                             fontWeight: FontWeight.w700,
                                             fontSize: 16,
@@ -625,6 +717,10 @@ class _AmountField extends StatelessWidget {
               ],
               decoration: InputDecoration(
                 hintText: '0.00',
+                // The theme fills inputs white; here the card is the surface.
+                filled: false,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
@@ -797,14 +893,18 @@ class _CategoryPicker extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(cat.icon, color: cat.color, size: 24),
+                      Icon(cat.icon,
+                          color: legibleOn(
+                              cat.color, Theme.of(context).brightness),
+                          size: 24),
                       const SizedBox(height: 4),
                       Text(
                         cat.name.split(' ').first,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: cat.color,
+                          color: legibleOn(
+                              cat.color, Theme.of(context).brightness),
                         ),
                       ),
                     ],
@@ -851,6 +951,79 @@ class _DateButton extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ─── Repeat Picker ────────────────────────────────────────────────────────────
+class _RepeatPicker extends StatelessWidget {
+  final RecurrenceFrequency? value;
+  final Color color;
+  final ValueChanged<RecurrenceFrequency?> onChanged;
+
+  const _RepeatPicker({
+    required this.value,
+    required this.color,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final options = <RecurrenceFrequency?>[null, ...RecurrenceFrequency.values];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.repeat_rounded,
+                size: 16, color: onSurface.withValues(alpha: 0.6)),
+            const SizedBox(width: 6),
+            Text(
+              'Repeat',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: options.map((f) {
+            final selected = f == value;
+            return ChoiceChip(
+              label: Text(f?.label ?? 'Never'),
+              selected: selected,
+              onSelected: (_) => onChanged(f),
+              selectedColor: color.withValues(alpha: 0.18),
+              labelStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: selected ? color : onSurface.withValues(alpha: 0.75),
+              ),
+              side: BorderSide(
+                color: selected ? color : onSurface.withValues(alpha: 0.15),
+              ),
+              showCheckmark: false,
+            );
+          }).toList(),
+        ),
+        if (value != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            'Posted automatically on each due date when you open Trackify. '
+            'Manage in Settings > Recurring.',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 11,
+              color: onSurface.withValues(alpha: 0.5),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

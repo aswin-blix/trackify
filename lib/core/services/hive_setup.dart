@@ -4,6 +4,7 @@ import '../../data/models/account_model.dart';
 import '../../data/models/app_settings.dart';
 import '../../data/models/bank_sms_message.dart';
 import '../../data/models/category_model.dart';
+import '../../data/models/recurring_model.dart';
 import '../../data/models/transaction_model.dart';
 import '../constants/app_constants.dart';
 
@@ -40,6 +41,9 @@ class HiveSetup {
     if (!Hive.isAdapterRegistered(kAccountTypeId)) {
       Hive.registerAdapter(AccountModelAdapter());
     }
+    if (!Hive.isAdapterRegistered(kRecurringTypeId)) {
+      Hive.registerAdapter(RecurringModelAdapter());
+    }
   }
 
   /// Opens every box the app uses.
@@ -51,6 +55,7 @@ class HiveSetup {
       Hive.openBox<AppSettings>(kSettingsBox),
       Hive.openBox<bool>(kTipsFavoritesBox),
       Hive.openBox<AccountModel>(kAccountsBox),
+      Hive.openBox<RecurringModel>(kRecurringBox),
     ]);
   }
 
@@ -61,6 +66,7 @@ class HiveSetup {
       Hive.openBox<CategoryModel>(kCategoriesBox),
       Hive.openBox<AppSettings>(kSettingsBox),
       Hive.openBox<AccountModel>(kAccountsBox),
+      Hive.openBox<RecurringModel>(kRecurringBox),
     ]);
   }
 }

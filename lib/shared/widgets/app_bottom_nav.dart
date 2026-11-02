@@ -22,9 +22,12 @@ class _AppBottomNavState extends State<AppBottomNav>
 
   final _tabs = const [
     _TabItem(icon: Icons.home_rounded, label: 'Home'),
-    _TabItem(icon: Icons.receipt_long_rounded, label: 'Transactions'),
+    _TabItem(
+        icon: Icons.receipt_long_rounded,
+        label: 'Transactions',
+        short: 'History'),
     _TabItem(icon: Icons.add_circle_rounded, label: 'Add', isFab: true),
-    _TabItem(icon: Icons.bar_chart_rounded, label: 'Analytics'),
+    _TabItem(icon: Icons.bar_chart_rounded, label: 'Analytics', short: 'Stats'),
     _TabItem(icon: Icons.settings_rounded, label: 'Settings'),
   ];
 
@@ -69,91 +72,104 @@ class _AppBottomNavState extends State<AppBottomNav>
     // ~16dp with gestures. Edge-to-edge is enforced on Android 15+.
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, 0, 16, 16 + bottomInset),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            height: 72,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.white.withValues(alpha: 0.75),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.5),
-                width: 1.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
+    final bg = Theme.of(context).scaffoldBackgroundColor;
+
+    // The bar floats, so fade the page out behind it and the gap beneath it;
+    // otherwise list content shows through under the bar.
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [bg.withValues(alpha: 0), bg.withValues(alpha: 0.92), bg],
+          stops: const [0, 0.45, 1],
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomInset),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              height: 72,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.white.withValues(alpha: 0.75),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: isDark ? 0.12 : 0.5),
+                  width: 1.2,
                 ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(_tabs.length, (i) {
-                final tab = _tabs[i];
-                final isSelected = i == widget.currentIndex;
-                final controller = _iconControllers[i];
-
-                if (tab.isFab) {
-                  return _FabButton(
-                    onTap: () => widget.onTap(i),
-                    accent: accent,
-                  );
-                }
-
-                return GestureDetector(
-                  onTap: () => widget.onTap(i),
-                  behavior: HitTestBehavior.opaque,
-                  child: AnimatedBuilder(
-                    animation: controller,
-                    builder: (context, _) {
-                      final t = controller.value;
-                      return SizedBox(
-                        width: 56,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Transform.scale(
-                              scale: 1.0 + t * 0.22,
-                              child: Icon(
-                                tab.icon,
-                                size: 24,
-                                color: Color.lerp(
-                                  isDark
-                                      ? Colors.white.withValues(alpha: 0.4)
-                                      : Colors.black.withValues(alpha: 0.4),
-                                  accent,
-                                  t,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            AnimatedOpacity(
-                              opacity: isSelected ? 1.0 : 0.0,
-                              duration: const Duration(milliseconds: 200),
-                              child: Text(
-                                tab.label,
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: accent,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
                   ),
-                );
-              }),
+                ],
+              ),
+              // Equal-width slots keep the + exactly centred, and every tab
+              // always shows its label so all icons sit on one baseline.
+              child: Row(
+                children: List.generate(_tabs.length, (i) {
+                  final tab = _tabs[i];
+                  final controller = _iconControllers[i];
+
+                  if (tab.isFab) {
+                    return Expanded(
+                      child: Center(
+                        child: _FabButton(
+                          onTap: () => widget.onTap(i),
+                          accent: accent,
+                        ),
+                      ),
+                    );
+                  }
+
+                  final idle = isDark
+                      ? Colors.white.withValues(alpha: 0.5)
+                      : Colors.black.withValues(alpha: 0.5);
+                  return Expanded(
+                    child: Semantics(
+                      button: true,
+                      selected: i == widget.currentIndex,
+                      label: tab.label,
+                      child: GestureDetector(
+                        onTap: () => widget.onTap(i),
+                        behavior: HitTestBehavior.opaque,
+                        child: AnimatedBuilder(
+                          animation: controller,
+                          builder: (context, _) {
+                            final t = controller.value;
+                            final color = Color.lerp(idle, accent, t)!;
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(tab.icon, size: 24, color: color),
+                                const SizedBox(height: 4),
+                                Text(
+                                  tab.shortLabel,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10.5,
+                                    fontWeight: t > 0.5
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: color,
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ),
             ),
           ),
         ),
@@ -232,7 +248,17 @@ class _FabButtonState extends State<_FabButton>
 class _TabItem {
   final IconData icon;
   final String label;
+
+  /// Fits under the icon in a fifth of the bar.
+  final String? short;
   final bool isFab;
 
-  const _TabItem({required this.icon, required this.label, this.isFab = false});
+  const _TabItem({
+    required this.icon,
+    required this.label,
+    this.short,
+    this.isFab = false,
+  });
+
+  String get shortLabel => short ?? label;
 }

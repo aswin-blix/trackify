@@ -7,6 +7,7 @@ const String kSmsMessagesBox = 'sms_messages';
 const String kSettingsBox = 'settings';
 const String kTipsFavoritesBox = 'tips_favorites';
 const String kAccountsBox = 'accounts';
+const String kRecurringBox = 'recurring';
 
 // ─── Hive Type IDs ────────────────────────────────────────────────────────────
 const int kTransactionTypeId = 0;
@@ -18,6 +19,7 @@ const int kSmsStatusEnumId = 5;
 const int kCategoryTypeEnumId = 6;
 const int kAccountTypeId = 7;
 const int kAccountTypeEnumId = 8;
+const int kRecurringTypeId = 9;
 
 // ─── Animation Constants ──────────────────────────────────────────────────────
 const SpringDescription kSpringFast =
@@ -38,9 +40,10 @@ const Curve kCurveBounce = Curves.elasticOut;
 // ─── App Info ─────────────────────────────────────────────────────────────────
 const String kAppName = 'Trackify';
 // Keep in sync with the version in pubspec.yaml.
-const String kAppVersion = '1.4.0';
+const String kAppVersion = '1.5.0';
 // 2: backups carry an `accounts` list and transactions carry accountId.
-const int kBackupSchemaVersion = 2;
+// 3: backups carry a `recurring` list of scheduled-transaction rules.
+const int kBackupSchemaVersion = 3;
 const String kBackupFolder = 'TrackifyBackups';
 
 // ─── Accounts ─────────────────────────────────────────────────────────────────
@@ -63,22 +66,20 @@ const List<Map<String, String>> kCurrencies = [
 ];
 
 // ─── Known Bank SMS Senders ───────────────────────────────────────────────────
+// Brand part of DLT headers ("JX-SBIUPI-S" -> "SBIUPI"). Messages from these
+// are trusted; other alphanumeric senders are still scanned but must also
+// mention an account, card or wallet. Matching is a substring test.
 const List<String> kDefaultBankSenders = [
-  'HDFCBK',
-  'ICICIB',
-  'SBIINB',
-  'AXISBK',
-  'KOTAKB',
-  'INDUSB',
-  'YESBNK',
-  'PNBSMS',
-  'BOIIND',
-  'UNIONB',
-  'PAYTM',
-  'PHONEPE',
-  'GPAY',
-  'AMAZONP',
-  'CRED',
+  // SBI uses a different header per channel.
+  'SBIUPI', 'SBIINB', 'CBSSBI', 'ATMSBI', 'SBIBNK', 'SBICRD', 'SBIPSG',
+  'SBYONO',
+  'HDFCBK', 'ICICIB', 'ICICIT', 'AXISBK', 'KOTAKB', 'INDUSB', 'YESBNK',
+  'IDFCFB', 'FEDBNK', 'AUBANK', 'RBLBNK', 'BOBTXN', 'BOBSMS', 'CANBNK',
+  'PNBSMS', 'BOIIND', 'UNIONB', 'IOBCHN', 'INDBNK', 'UCOBNK', 'CENTBK',
+  'SIBSMS', 'KVBANK', 'CUBANK', 'SCBANK', 'CITIBK', 'HSBCIN', 'DBSBNK',
+  'IDBIBK', 'JKBANK', 'KBLBNK', 'EQUTAS', 'UJJIVN', 'AIRBNK', 'FINOBK',
+  'PAYTMB', 'JUPITR', 'FIMONY', 'ONECRD',
+  'PAYTM', 'PHONPE', 'GPAY', 'AMAZON', 'AMZNPY', 'MOBIKW', 'CRED',
 ];
 
 // ─── Notification IDs ─────────────────────────────────────────────────────────

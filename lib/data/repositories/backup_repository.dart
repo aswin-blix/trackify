@@ -5,10 +5,12 @@ import '../models/transaction_model.dart';
 import '../models/category_model.dart';
 import '../models/app_settings.dart';
 import '../models/account_model.dart';
+import '../models/recurring_model.dart';
 import 'transaction_repository.dart';
 import 'category_repository.dart';
 import 'settings_repository.dart';
 import 'account_repository.dart';
+import 'recurring_repository.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/utils/app_logger.dart';
 import '../../core/utils/formatters.dart';
@@ -27,6 +29,10 @@ class BackupContents {
   final List<CategoryModel> categories;
   final List<TransactionModel> transactions;
   final List<AccountModel> accounts;
+
+  /// Null when the file predates recurring rules (schema < 3); restore then
+  /// leaves the device's rules alone.
+  final List<RecurringModel>? recurring;
   final AppSettings? settings;
   final String? appVersion;
 
@@ -34,6 +40,7 @@ class BackupContents {
     required this.categories,
     required this.transactions,
     this.accounts = const [],
+    this.recurring,
     this.settings,
     this.appVersion,
   });
@@ -44,9 +51,10 @@ class BackupRepository {
   final CategoryRepository _catRepo;
   final SettingsRepository _settingsRepo;
   final AccountRepository _accRepo;
+  final RecurringRepository _recRepo;
 
-  BackupRepository(
-      this._txRepo, this._catRepo, this._settingsRepo, this._accRepo);
+  BackupRepository(this._txRepo, this._catRepo, this._settingsRepo,
+      this._accRepo, this._recRepo);
 
   static const String _backupPrefix = 'backup_';
   static const String _preRestorePrefix = 'pre_restore_';
@@ -63,6 +71,7 @@ class BackupRepository {
     final transactions = _txRepo.getAll();
     final categories = _catRepo.getAll();
     final accounts = _accRepo.getAll();
+    final recurring = _recRepo.getAll();
     final settings = _settingsRepo.settings;
 
     return {
@@ -73,10 +82,12 @@ class BackupRepository {
         'transactionCount': transactions.length,
         'categoryCount': categories.length,
         'accountCount': accounts.length,
+        'recurringCount': recurring.length,
       },
       'transactions': transactions.map((t) => t.toJson()).toList(),
       'categories': categories.map((c) => c.toJson()).toList(),
       'accounts': accounts.map((a) => a.toJson()).toList(),
+      'recurring': recurring.map((r) => r.toJson()).toList(),
       'settings': settings.toJson(),
     };
   }
@@ -213,6 +224,25 @@ class BackupRepository {
       }
     }
 
+    // Recurring rules arrived in schema 3.
+    List<RecurringModel>? recurring;
+    final rawRecurring = data['recurring'];
+    if (rawRecurring is List) {
+      recurring = [];
+      for (var i = 0; i < rawRecurring.length; i++) {
+        final r = rawRecurring[i];
+        if (r is! Map<String, dynamic>) {
+          throw BackupFormatException('Recurring rule #${i + 1} is malformed.');
+        }
+        try {
+          recurring.add(RecurringModel.fromJson(r));
+        } catch (e) {
+          throw BackupFormatException(
+              'Recurring rule #${i + 1} is malformed: $e');
+        }
+      }
+    }
+
     AppSettings? settings;
     final rawSettings = data['settings'];
     if (rawSettings is Map<String, dynamic>) {
@@ -230,6 +260,7 @@ class BackupRepository {
       categories: categories,
       transactions: transactions,
       accounts: accounts,
+      recurring: recurring,
       settings: settings,
       appVersion: version,
     );
@@ -269,6 +300,13 @@ class BackupRepository {
     }
     for (final t in contents.transactions) {
       await _txRepo.add(t);
+    }
+    final rules = contents.recurring;
+    if (rules != null) {
+      await _recRepo.deleteAll();
+      for (final r in rules) {
+        await _recRepo.save(r);
+      }
     }
 
     final restoredSettings = contents.settings;

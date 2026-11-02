@@ -6,6 +6,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.0] — 2026-11-02
+
+### Added
+- **Recurring transactions** — pick Repeat (Daily / Weekly / Monthly / Yearly) when adding a transaction, or use Settings → Recurring. Due entries are posted when the app opens or returns to the foreground, catching up any missed dates. Monthly rules set on the 29th–31st land on the last day of shorter months. Pausing stops posting; resuming skips the dates missed while paused. Posted entries use stable ids (`rec_<rule>_<n>`), so an occurrence is never added twice and they sync to a shared household like any other entry. Rules are included in backups (schema 3)
+- Bank SMS are scanned automatically when the app opens or resumes (if the SMS Reader is on), and when the SMS inbox screen opens
+
+### Fixed
+- **SMS sync missed most bank messages.** The sender allow-list lacked most real DLT headers (SBIUPI, CBSSBI, ATMSBI, SBICRD, ICICIT; and had `PHONEPE` where the header is `PHONPE`). Any alphanumeric sender is now scanned; senders not on the list must also use a bank verb and mention an account or card. Personal numbers and `-P` promotional headers are skipped
+- SBI UPI alerts ("debited by 75.00", no Rs/INR) are parsed; the transaction amount is chosen over "Avl Bal" amounts; HDFC multi-line UPI, card spends, ICICI, SBI CBS and PhonePe formats give correct payee names
+- OTPs, dues/overdue notices, "will be debited", collect requests, declined transactions, scheduled AutoPay notices, mandate registrations and credit-card bill-payment confirmations are no longer listed as transactions. Pending entries stored by the old parser are re-checked on the next scan
+- SMS are read through a small native channel (four columns, off the main thread, last 90 days) instead of `flutter_sms_inbox`, which read every column of the whole inbox on the UI thread
+- Light theme: yellow/mint category and quick-action colours are darkened for legibility; the amount field no longer shows a white box; the sheet handle is visible
+- Bottom navigation: every tab shows a label so the icons line up, the + button is exactly centred, and page content fades out behind the floating bar
+
+---
+
 ## [1.4.0] — 2026-11-01
 
 ### Added

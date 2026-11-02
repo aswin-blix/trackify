@@ -10,6 +10,7 @@ import '../../data/models/category_model.dart';
 import '../../data/models/account_model.dart';
 import '../../shared/widgets/account_picker.dart';
 import '../../shared/providers/app_providers.dart';
+import 'sms_service.dart';
 
 class SmsInboxScreen extends ConsumerWidget {
   const SmsInboxScreen({super.key});
@@ -191,23 +192,49 @@ class _SyncButton extends ConsumerStatefulWidget {
 class _SyncButtonState extends ConsumerState<_SyncButton> {
   bool _syncing = false;
 
-  Future<void> _sync() async {
-    setState(() => _syncing = true);
-    final settings = ref.read(settingsProvider);
+  @override
+  void initState() {
+    super.initState();
+    // Scan as soon as the inbox opens so new alerts show without a tap.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _sync(quiet: true));
+  }
+
+  Future<void> _sync({bool quiet = false}) async {
+    if (_syncing) return;
     final service = ref.read(smsServiceProvider);
-    final count = await service.syncSms(settings.knownSenderIds);
-    ref.read(smsProvider.notifier).refresh();
-    setState(() => _syncing = false);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(count > 0
-              ? 'Found $count new bank transactions'
-              : 'No new messages found'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    if (!await service.hasPermission()) {
+      if (quiet) return;
+      if (!await service.requestPermission()) {
+        _toast('SMS permission denied. Grant it in App info > Permissions.');
+        return;
+      }
     }
+    if (!ref.read(settingsProvider).smsReaderEnabled) {
+      await ref.read(settingsProvider.notifier).setSmsReaderEnabled(true);
+    }
+    if (!mounted) return;
+    setState(() => _syncing = true);
+    final result =
+        await service.syncSms(ref.read(settingsProvider).knownSenderIds);
+    ref.read(smsProvider.notifier).refresh();
+    if (!mounted) return;
+    setState(() => _syncing = false);
+    if (result.error != null) {
+      _toast('Could not read SMS: ${result.error}');
+    } else if (result.added > 0) {
+      _toast('Found ${result.added} new bank transaction'
+          '${result.added == 1 ? '' : 's'}');
+    } else if (!quiet) {
+      _toast('No new bank messages in the last '
+          '${SmsService.scanWindow.inDays} days');
+    }
+  }
+
+  void _toast(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
+    );
   }
 
   @override

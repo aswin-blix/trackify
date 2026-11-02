@@ -32,5 +32,7 @@ class SmsRepository {
 
   bool exists(String id) => _box.containsKey(id);
 
+  Future<void> delete(String id) async => _box.delete(id);
+
   Future<void> deleteAll() async => _box.clear();
 }

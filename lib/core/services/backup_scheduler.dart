@@ -2,6 +2,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:workmanager/workmanager.dart';
 
 import '../../data/repositories/account_repository.dart';
+import '../../data/repositories/recurring_repository.dart';
 import '../../data/repositories/backup_repository.dart';
 import '../../data/repositories/category_repository.dart';
 import '../../data/repositories/settings_repository.dart';
@@ -49,6 +50,7 @@ void backupCallbackDispatcher() {
         CategoryRepository(),
         settingsRepo,
         AccountRepository(),
+        RecurringRepository(),
       );
       final path = await repo.createBackup(recordInSettings: false);
       AppLogger.i(_tag, 'Background backup written to $path');

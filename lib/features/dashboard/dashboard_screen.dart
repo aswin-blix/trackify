@@ -684,14 +684,16 @@ class _QuickActions extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Icon(a.icon, color: a.color, size: 22),
+                  Icon(a.icon,
+                      color: legibleOn(a.color, Theme.of(context).brightness),
+                      size: 22),
                   const SizedBox(height: 4),
                   Text(
                     a.label,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: a.color,
+                      color: legibleOn(a.color, Theme.of(context).brightness),
                     ),
                   ),
                 ],

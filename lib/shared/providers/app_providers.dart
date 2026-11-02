@@ -7,6 +7,9 @@ import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/backup_repository.dart';
 import '../../data/repositories/sms_repository.dart';
 import '../../data/repositories/account_repository.dart';
+import '../../data/repositories/recurring_repository.dart';
+import '../../data/models/recurring_model.dart';
+import '../../core/utils/recurrence.dart';
 import '../../data/models/account_model.dart';
 import '../../core/utils/balance_calculator.dart';
 import '../../data/models/app_settings.dart';
@@ -33,12 +36,17 @@ final accountRepoProvider = Provider<AccountRepository>((ref) {
   return AccountRepository();
 });
 
+final recurringRepoProvider = Provider<RecurringRepository>((ref) {
+  return RecurringRepository();
+});
+
 final backupRepoProvider = Provider<BackupRepository>((ref) {
   return BackupRepository(
     ref.watch(transactionRepoProvider),
     ref.watch(categoryRepoProvider),
     ref.watch(settingsRepoProvider),
     ref.watch(accountRepoProvider),
+    ref.watch(recurringRepoProvider),
   );
 });
 
@@ -380,6 +388,107 @@ final accountBalancesProvider = Provider<Map<String, double>>((ref) {
 final totalBalanceProvider = Provider<double>(
   (ref) => totalBalance(ref.watch(accountBalancesProvider)),
 );
+
+// ─── Recurring Providers ──────────────────────────────────────────────────────
+class RecurringNotifier extends StateNotifier<List<RecurringModel>> {
+  final Ref _ref;
+  final RecurringRepository _repo;
+  bool _posting = false;
+
+  RecurringNotifier(this._ref, this._repo) : super(_repo.getAll());
+
+  void refresh() {
+    state = _repo.getAll();
+  }
+
+  /// Saves a new rule and posts any occurrence already due (a start date of
+  /// today or earlier posts the first one straight away).
+  Future<int> add(RecurringModel rule) async {
+    await _repo.save(rule);
+    refresh();
+    return postDue();
+  }
+
+  Future<void> update(RecurringModel rule) async {
+    rule.updatedAt = DateTime.now();
+    await _repo.save(rule);
+    refresh();
+  }
+
+  /// Pausing stops posting. Resuming skips the periods missed while paused
+  /// instead of back-filling them.
+  Future<void> setActive(String id, bool active) async {
+    final rule = _repo.getById(id);
+    if (rule == null || rule.active == active) return;
+    if (active) {
+      rule.postedCount = Recurrence.firstIndexAfter(
+        start: rule.startDate,
+        frequency: rule.frequency,
+        interval: rule.interval,
+        fromIndex: rule.postedCount,
+        now: DateTime.now(),
+      );
+    }
+    rule.active = active;
+    await update(rule);
+  }
+
+  /// Deletes the rule. Transactions it already posted are kept.
+  Future<void> delete(String id) async {
+    await _repo.delete(id);
+    refresh();
+  }
+
+  /// Posts every due occurrence of every active rule through the normal
+  /// transaction path (so they sync to a shared household like any entry).
+  /// Returns how many transactions were added.
+  Future<int> postDue({DateTime? now}) async {
+    if (_posting) return 0;
+    _posting = true;
+    var added = 0;
+    try {
+      final at = now ?? DateTime.now();
+      final txRepo = _ref.read(transactionRepoProvider);
+      final txNotifier = _ref.read(transactionProvider.notifier);
+      for (final rule in _repo.getAll()) {
+        if (!rule.active) continue;
+        final due = Recurrence.dueIndexes(
+          start: rule.startDate,
+          frequency: rule.frequency,
+          interval: rule.interval,
+          fromIndex: rule.postedCount,
+          now: at,
+          end: rule.endDate,
+        );
+        if (due.isEmpty) continue;
+        for (final i in due) {
+          final tx = rule.buildTransaction(i, now: at);
+          if (txRepo.getById(tx.id) == null) {
+            await txNotifier.add(tx);
+            added++;
+          }
+          rule.postedCount = i + 1;
+        }
+        await _repo.save(rule);
+      }
+    } catch (e, stack) {
+      AppLogger.e(
+          'RecurringNotifier', 'Posting due transactions failed', e, stack);
+    } finally {
+      _posting = false;
+      refresh();
+    }
+    if (added > 0) {
+      AppLogger.i('RecurringNotifier', 'Posted $added recurring transactions');
+    }
+    return added;
+  }
+}
+
+final recurringProvider =
+    StateNotifierProvider<RecurringNotifier, List<RecurringModel>>((ref) {
+  return RecurringNotifier(ref, ref.watch(recurringRepoProvider));
+});
 
 // ─── Selected Period Provider (for analytics) ──────────────────────────────
 enum AnalyticsPeriod { week, month, year }
