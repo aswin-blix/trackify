@@ -6,6 +6,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased]
+
+### Added
+- **ATM withdrawals from SMS** — the SMS inbox's add sheet has a **Transfer** option with From / To account pickers. Cash withdrawal alerts (ATM, cash WDL) open preset as a transfer from the bank account to **Cash**, so taking out cash is not counted as spending; log the cash as expenses from the Cash account when you spend it. On a credit SMS, Transfer presets a cash deposit (Cash → bank). Needs a Cash account; without one the alert opens as a normal expense
+
+---
+
 ## [1.6.0] — 2026-11-02
 
 ### Added
