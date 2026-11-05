@@ -243,4 +243,27 @@ void main() {
       expect(SmsSender.isTrusted('JM-JIONET-S', ['SBIUPI', 'HDFCBK']), isFalse);
     });
   });
+
+  group('cash withdrawal', () {
+    test('ATM and cash WDL alerts are withdrawals', () {
+      for (final body in [
+        'Dear SBI Customer, Rs.500 withdrawn at ICI ATM 1234SRY from A/cX1234 '
+            'on 05Nov26 Transaction Number 1234. Available Balance Rs.100.',
+        'Rs 2000.00 debited from A/c XX1234 for Cash Withdrawal at HDFC ATM',
+        'INR 1,000 debited from a/c XX12 on 05-11-26 ATM WDL Ref 99',
+      ]) {
+        expect(SmsParser.isCashWithdrawal(body), isTrue, reason: body);
+      }
+    });
+
+    test('UPI and card spends are not withdrawals', () {
+      for (final body in [
+        'Dear UPI user A/C X1234 debited by 75.00 on date 05Nov26 trf to '
+            'SHOP NAME Refno 1234',
+        'Rs.499 spent on HDFC Bank Card x1234 at AMAZON on 2026-11-05',
+      ]) {
+        expect(SmsParser.isCashWithdrawal(body), isFalse, reason: body);
+      }
+    });
+  });
 }

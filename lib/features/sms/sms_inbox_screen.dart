@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/sms_parser.dart';
 import '../../data/models/bank_sms_message.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/models/category_model.dart';
@@ -489,10 +490,36 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
   late TextEditingController _noteCtrl;
   CategoryModel? _category;
   String? _accountId;
+  String? _toAccountId;
   bool _saving = false;
 
   bool get _isLoan => _type.isDebt;
+  bool get _isTransfer => _type == TransactionType.transfer;
   bool get _isCredit => widget.sms.parsedType == 'credit';
+
+  /// The cash-in-hand account: the default Cash one, else any cash type.
+  String? get _cashAccountId {
+    final cash = widget.accounts.where((a) => a.type == AccountType.cash);
+    return cash.where((a) => a.id == kCashAccountId).firstOrNull?.id ??
+        cash.firstOrNull?.id;
+  }
+
+  /// Switch to a transfer between the SMS's bank account and cash: a debit
+  /// is a withdrawal (bank → cash), a credit a deposit (cash → bank).
+  void _startTransfer() {
+    _type = TransactionType.transfer;
+    final cash = _cashAccountId;
+    final bank = widget.defaultAccountId == cash
+        ? widget.accounts.where((a) => a.id != cash).firstOrNull?.id
+        : widget.defaultAccountId;
+    if (_isCredit) {
+      _accountId = cash;
+      _toAccountId = bank;
+    } else {
+      _accountId = bank;
+      _toAccountId = cash;
+    }
+  }
 
   @override
   void initState() {
@@ -507,6 +534,15 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
     _noteCtrl = TextEditingController(
       text: widget.sms.parsedMerchant ?? '',
     );
+    // An ATM withdrawal is not spending: the money moves to cash in hand
+    // and is logged as an expense when it is actually spent.
+    if (!_isCredit &&
+        _cashAccountId != null &&
+        widget.accounts.length > 1 &&
+        SmsParser.isCashWithdrawal(widget.sms.rawBody)) {
+      _startTransfer();
+      _noteCtrl.text = 'ATM withdrawal';
+    }
     final relevant = widget.categories
         .where((c) =>
             (_type == TransactionType.expense &&
@@ -574,14 +610,22 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
                   color: LightColors.expenseRed,
                   onTap: () => setState(() => _type = TransactionType.expense),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 _TypeButton(
                   label: 'Income',
                   selected: _type == TransactionType.income,
                   color: LightColors.incomeGreen,
                   onTap: () => setState(() => _type = TransactionType.income),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
+                // ATM withdrawal or cash deposit: between own accounts.
+                _TypeButton(
+                  label: 'Transfer',
+                  selected: _isTransfer,
+                  color: LightColors.transferColor,
+                  onTap: () => setState(_startTransfer),
+                ),
+                const SizedBox(width: 8),
                 // A UPI payment to a friend may be a loan, not a spend.
                 _TypeButton(
                   label: 'Loan',
@@ -633,13 +677,17 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
               textCapitalization:
                   _isLoan ? TextCapitalization.words : TextCapitalization.none,
               decoration: InputDecoration(
-                labelText: _isLoan ? 'Person' : 'Note / Merchant',
+                labelText: _isLoan
+                    ? 'Person'
+                    : _isTransfer
+                        ? 'Note'
+                        : 'Note / Merchant',
                 border:
                     OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
-            if (!_isLoan) const SizedBox(height: 12),
-            if (!_isLoan)
+            if (!_isLoan && !_isTransfer) const SizedBox(height: 12),
+            if (!_isLoan && !_isTransfer)
               DropdownButtonFormField<CategoryModel>(
                 initialValue: relevant.contains(_category) ? _category : null,
                 decoration: InputDecoration(
@@ -658,11 +706,25 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
             if (widget.accounts.length > 1) ...[
               const SizedBox(height: 12),
               AccountPicker(
-                label: 'Account',
+                label: _isTransfer ? 'From account' : 'Account',
                 accounts: widget.accounts,
                 selectedId: _accountId,
                 horizontalPadding: 0,
-                onSelect: (id) => setState(() => _accountId = id),
+                onSelect: (id) => setState(() {
+                  _accountId = id;
+                  if (_toAccountId == id) _toAccountId = null;
+                }),
+              ),
+            ],
+            if (_isTransfer && widget.accounts.length > 1) ...[
+              const SizedBox(height: 12),
+              AccountPicker(
+                label: 'To account',
+                accounts: widget.accounts,
+                selectedId: _toAccountId,
+                disabledId: _accountId,
+                horizontalPadding: 0,
+                onSelect: (id) => setState(() => _toAccountId = id),
               ),
             ],
             const SizedBox(height: 20),
@@ -697,6 +759,12 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
     );
   }
 
+  /// Transfers carry a category only because the model requires one.
+  String get _transferCategoryId =>
+      widget.categories.where((c) => c.id == 'others').firstOrNull?.id ??
+      widget.categories.firstOrNull?.id ??
+      'others';
+
   Future<void> _save() async {
     final amount = double.tryParse(_amountCtrl.text.replaceAll(',', ''));
     if (amount == null || amount <= 0) {
@@ -712,7 +780,20 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
       );
       return;
     }
-    if (!_isLoan && _category == null) {
+    if (_isTransfer &&
+        (_accountId == null ||
+            _toAccountId == null ||
+            _toAccountId == _accountId)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(widget.accounts.length < 2
+              ? 'Add a Cash account first (Settings > Accounts)'
+              : 'Pick two different accounts'),
+        ),
+      );
+      return;
+    }
+    if (!_isLoan && !_isTransfer && _category == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Select a category')),
       );
@@ -724,7 +805,11 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
       id: 'sms_${widget.sms.id}',
       amount: amount,
       type: _type,
-      categoryId: _isLoan ? kDebtCategoryId : _category!.id,
+      categoryId: _isLoan
+          ? kDebtCategoryId
+          : _isTransfer
+              ? _transferCategoryId
+              : _category!.id,
       note: _isLoan ? '' : text,
       counterparty: _isLoan ? text : null,
       date: widget.sms.parsedDate ?? now,
@@ -733,6 +818,7 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
       createdAt: now,
       updatedAt: now,
       accountId: _accountId,
+      toAccountId: _isTransfer ? _toAccountId : null,
     );
     await widget.onConfirm(tx);
   }

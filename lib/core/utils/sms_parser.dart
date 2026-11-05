@@ -222,6 +222,16 @@ class SmsParser {
     // account reference. Merchant receipts ("payment ... received") fail.
     return _bankVerb.hasMatch(body) && _accountMarker.hasMatch(body);
   }
+
+  static final _cashWithdrawal = RegExp(
+    r'\batm\b|\bcash\s*(?:withdrawal|withdrawn|wdl)\b|\batm\s*wdl\b|'
+    r'\bwithdrawn\s+(?:at|from)\b',
+    caseSensitive: false,
+  );
+
+  /// True when a debit [body] is a cash withdrawal (ATM, cash WDL). That
+  /// money moves to cash in hand; it is not spent yet.
+  static bool isCashWithdrawal(String body) => _cashWithdrawal.hasMatch(body);
 }
 
 class ParsedSms {
