@@ -18,6 +18,7 @@ import '../tips/tips_data.dart';
 import '../debts/debt_entry_sheet.dart';
 import '../debts/debt_providers.dart';
 import '../../core/utils/debt_ledger.dart';
+import '../../core/utils/investments.dart';
 import '../accounts/manage_accounts_screen.dart';
 import '../../data/models/account_model.dart';
 
@@ -59,8 +60,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final monthlyIncome = txNotifier.thisMonthIncome;
     final monthlyExpense = txNotifier.thisMonthExpense;
     final accounts = ref.watch(accountProvider);
-    final balances = ref.watch(accountBalancesProvider);
-    final balance = ref.watch(totalBalanceProvider);
+    final values = ref.watch(accountValuesProvider);
+    final portfolio = ref.watch(portfolioProvider);
+    final saved = ref.watch(thisMonthSavedProvider);
     final budgetRatio =
         settings.monthlyBudget != null && settings.monthlyBudget! > 0
             ? (monthlyExpense / settings.monthlyBudget!).clamp(0.0, 1.0)
@@ -162,7 +164,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
                       child: _BalanceCard(
-                        balance: balance,
+                        portfolio: portfolio,
+                        saved: saved,
                         income: monthlyIncome,
                         expense: monthlyExpense,
                         budgetRatio: budgetRatio,
@@ -177,7 +180,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         ),
                     _AccountsRow(
                       accounts: accounts,
-                      balances: balances,
+                      balances: values,
                       currencySymbol: symbol,
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
@@ -333,7 +336,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
 // ─── Balance Card ─────────────────────────────────────────────────────────────
 class _BalanceCard extends StatelessWidget {
-  final double balance;
+  final PortfolioSummary portfolio;
+
+  /// Net amount moved into savings this month; shown once there are
+  /// savings, investment or loan accounts.
+  final double saved;
   final double income;
   final double expense;
   final double budgetRatio;
@@ -341,7 +348,8 @@ class _BalanceCard extends StatelessWidget {
   final double? monthlyBudget;
 
   const _BalanceCard({
-    required this.balance,
+    required this.portfolio,
+    required this.saved,
     required this.income,
     required this.expense,
     required this.budgetRatio,
@@ -373,7 +381,7 @@ class _BalanceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Total Balance',
+            portfolio.hasBreakdown ? 'Available to spend' : 'Total Balance',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               color: Theme.of(context)
@@ -385,7 +393,7 @@ class _BalanceCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           AnimatedCounter(
-            value: balance,
+            value: portfolio.available,
             prefix: currencySymbol,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 36,
@@ -393,6 +401,10 @@ class _BalanceCard extends StatelessWidget {
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
+          if (portfolio.hasBreakdown) ...[
+            const SizedBox(height: 10),
+            _InvestedLine(portfolio: portfolio, currencySymbol: currencySymbol),
+          ],
           const SizedBox(height: 16),
           Text(
             'This month',
@@ -422,7 +434,7 @@ class _BalanceCard extends StatelessWidget {
               const SizedBox(width: 16),
               Expanded(
                 child: _IncomeExpenseItem(
-                  label: 'Expense',
+                  label: portfolio.hasBreakdown ? 'Spent' : 'Expense',
                   value: expense,
                   color:
                       isDark ? DarkColors.expenseRed : LightColors.expenseRed,
@@ -430,6 +442,21 @@ class _BalanceCard extends StatelessWidget {
                   currencySymbol: currencySymbol,
                 ),
               ),
+              if (portfolio.hasBreakdown) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _IncomeExpenseItem(
+                    label: _savedLabel(saved, income),
+                    value: saved.abs(),
+                    color:
+                        isDark ? DarkColors.savedColor : LightColors.savedColor,
+                    icon: saved < 0
+                        ? Icons.outbox_rounded
+                        : Icons.savings_rounded,
+                    currencySymbol: currencySymbol,
+                  ),
+                ),
+              ],
               if (monthlyBudget != null && monthlyBudget! > 0) ...[
                 const SizedBox(width: 16),
                 _BudgetRing(ratio: budgetRatio, accent: accent),
@@ -440,6 +467,77 @@ class _BalanceCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// "Invested ₹X +4.2% · Loans ₹Z · Net worth ₹Y" under the available
+/// balance; parts without accounts are left out.
+class _InvestedLine extends StatelessWidget {
+  final PortfolioSummary portfolio;
+  final String currencySymbol;
+
+  const _InvestedLine({required this.portfolio, required this.currencySymbol});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final ratio = portfolio.gainRatio;
+    final up = portfolio.gain >= 0;
+    final gainColor = up
+        ? (isDark ? DarkColors.incomeGreen : LightColors.incomeGreen)
+        : (isDark ? DarkColors.expenseRed : LightColors.expenseRed);
+    final label = GoogleFonts.plusJakartaSans(
+        fontSize: 12, color: onSurface.withValues(alpha: 0.6));
+    final value = GoogleFonts.plusJakartaSans(
+        fontSize: 13, fontWeight: FontWeight.w700, color: onSurface);
+
+    final owe = isDark ? DarkColors.expenseRed : LightColors.expenseRed;
+
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        if (portfolio.hasInvestments) ...[
+          Icon(Icons.savings_rounded,
+              size: 15, color: onSurface.withValues(alpha: 0.6)),
+          Text('Invested', style: label),
+          Text(
+              AppFormatters.formatAmountCompact(
+                  portfolio.investedValue, currencySymbol),
+              style: value),
+          if (ratio != null && portfolio.gain.abs() >= 1)
+            Text(
+              '${up ? '+' : '−'}${(ratio.abs() * 100).toStringAsFixed(1)}%',
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12, fontWeight: FontWeight.w700, color: gainColor),
+            ),
+          Text('·', style: label),
+        ],
+        if (portfolio.hasLoans && portfolio.loans < -0.5) ...[
+          Text('Loans', style: label),
+          Text(
+              AppFormatters.formatAmountCompact(
+                  portfolio.loans, currencySymbol),
+              style: value.copyWith(color: owe)),
+          Text('·', style: label),
+        ],
+        Text('Net worth', style: label),
+        Text(
+            AppFormatters.formatAmountCompact(
+                portfolio.netWorth, currencySymbol),
+            style: value),
+      ],
+    );
+  }
+}
+
+/// "Saved 25%" (share of income), or "Withdrawn" when more came out of
+/// savings than went in this month.
+String _savedLabel(double saved, double income) {
+  if (saved < 0) return 'Withdrawn';
+  if (income <= 0 || saved <= 0) return 'Saved';
+  return 'Saved ${(saved / income * 100).round()}%';
 }
 
 // ─── Accounts Row ─────────────────────────────────────────────────────────────
@@ -560,28 +658,36 @@ class _IncomeExpenseItem extends StatelessWidget {
               child: Icon(icon, size: 12, color: color),
             ),
             const SizedBox(width: 6),
-            Text(
-              label,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.6),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.6),
+                ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 4),
-        AnimatedCounter(
-          value: value,
-          prefix: currencySymbol,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: color,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: AnimatedCounter(
+            value: value,
+            prefix: currencySymbol,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+            decimalPlaces: 0,
           ),
-          decimalPlaces: 0,
         ),
       ],
     );

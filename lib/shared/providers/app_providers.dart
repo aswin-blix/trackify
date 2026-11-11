@@ -12,6 +12,8 @@ import '../../data/models/recurring_model.dart';
 import '../../core/utils/recurrence.dart';
 import '../../data/models/account_model.dart';
 import '../../core/utils/balance_calculator.dart';
+import '../../core/utils/investments.dart';
+import '../../core/utils/loans.dart';
 import '../../data/models/app_settings.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/models/category_model.dart';
@@ -170,14 +172,64 @@ final settingsProvider =
 class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
   final TransactionRepository _repo;
   final HouseholdSync _sync;
+  final Ref? _ref;
 
-  TransactionNotifier(this._repo, this._sync) : super(_repo.getAll());
+  TransactionNotifier(this._repo, this._sync, [this._ref])
+      : super(_repo.getAll());
 
   void refresh() {
     state = _repo.getAll();
   }
 
+  /// An EMI paid into a loan account that has an interest rate is saved as
+  /// two entries: the principal part as a transfer (lowering what is owed)
+  /// and the interest part as a "Loan Interest" expense from the paying
+  /// account. Entries synced from a partner's phone go straight to the
+  /// repository, so they are never split twice.
   Future<void> add(TransactionModel tx) async {
+    final interest = await _splitLoanPayment(tx);
+    if (interest != null) {
+      tx = tx.copyWith(amount: tx.amount - interest.amount);
+      await _addOne(interest);
+    }
+    await _addOne(tx);
+  }
+
+  /// The interest entry for [tx], or null when it is not an EMI into a loan
+  /// that charges interest.
+  Future<TransactionModel?> _splitLoanPayment(TransactionModel tx) async {
+    final ref = _ref;
+    final to = tx.toAccountId;
+    if (ref == null || tx.type != TransactionType.transfer || to == null) {
+      return null;
+    }
+    final loan = ref.read(accountProvider).where((a) => a.id == to).firstOrNull;
+    final rate = loan?.interestRate;
+    if (loan == null || !loan.type.isLoan || rate == null || rate <= 0) {
+      return null;
+    }
+    if (tx.accountId == loan.id) return null;
+    final owed =
+        -(ref.read(accountBalancesProvider)[loan.id] ?? loan.openingBalance);
+    final split =
+        splitEmi(payment: tx.amount, owed: owed, annualRatePercent: rate);
+    if (split.interest <= 0) return null;
+    await ref.read(categoryProvider.notifier).ensureLoanInterest();
+    return TransactionModel(
+      id: '${tx.id}_interest',
+      amount: split.interest,
+      type: TransactionType.expense,
+      categoryId: kLoanInterestCategoryId,
+      note: 'Interest · ${loan.name}',
+      date: tx.date,
+      createdAt: tx.createdAt,
+      updatedAt: tx.updatedAt,
+      accountId: tx.accountId,
+      isFromSms: tx.isFromSms,
+    );
+  }
+
+  Future<void> _addOne(TransactionModel tx) async {
     try {
       AppLogger.i('TransactionNotifier', 'Adding transaction id=${tx.id}');
       _sync.stamp(tx);
@@ -211,8 +263,13 @@ class TransactionNotifier extends StateNotifier<List<TransactionModel>> {
     try {
       AppLogger.i('TransactionNotifier', 'Deleting transaction id=$id');
       await _repo.delete(id);
+      // An EMI's interest entry goes with it.
+      final interestId = '${id}_interest';
+      final hasInterest = _repo.getById(interestId) != null;
+      if (hasInterest) await _repo.delete(interestId);
       refresh();
       _sync.deleteTransaction(id);
+      if (hasInterest) _sync.deleteTransaction(interestId);
     } catch (e, stack) {
       AppLogger.e('TransactionNotifier', 'Failed to delete transaction id=$id',
           e, stack);
@@ -249,6 +306,7 @@ final transactionProvider =
   return TransactionNotifier(
     ref.watch(transactionRepoProvider),
     ref.watch(householdSyncProvider),
+    ref,
   );
 });
 
@@ -279,6 +337,15 @@ class CategoryNotifier extends StateNotifier<List<CategoryModel>> {
     await _repo.delete(id);
     refresh();
     _sync.deleteCategory(id);
+  }
+
+  /// Creates the "Loan Interest" category the first time an EMI is split,
+  /// for installs seeded before it was a default.
+  Future<void> ensureLoanInterest() async {
+    if (_repo.getById(kLoanInterestCategoryId) != null) return;
+    final cat =
+        defaultCategories.firstWhere((c) => c.id == kLoanInterestCategoryId);
+    await add(cat.copyWith(sortOrder: state.length));
   }
 
   Future<void> reorder(List<String> orderedIds) async {
@@ -388,6 +455,38 @@ final accountBalancesProvider = Provider<Map<String, double>>((ref) {
 final totalBalanceProvider = Provider<double>(
   (ref) => totalBalance(ref.watch(accountBalancesProvider)),
 );
+
+/// What each account is worth today. Equal to the balance for everyday
+/// accounts; investments are valued by [investmentValue].
+final accountValuesProvider = Provider<Map<String, double>>((ref) {
+  final balances = ref.watch(accountBalancesProvider);
+  final now = DateTime.now();
+  return {
+    for (final a in ref.watch(accountProvider))
+      a.id: a.type.isInvestment
+          ? investmentValue(a, balances[a.id] ?? a.openingBalance, now)
+          : balances[a.id] ?? a.openingBalance,
+  };
+});
+
+/// Net amount put into savings, investments and loan principal this month.
+final thisMonthSavedProvider = Provider<double>((ref) {
+  final accounts = ref.watch(accountProvider);
+  final now = DateTime.now();
+  return savedBetween(
+    accounts,
+    ref.watch(transactionProvider),
+    from: DateTime(now.year, now.month, 1),
+    to: DateTime(now.year, now.month + 1, 0, 23, 59, 59),
+    defaultAccountId: accounts.where((a) => a.isDefault).firstOrNull?.id ??
+        accounts.firstOrNull?.id,
+  );
+});
+
+/// Available vs invested vs net worth, for the dashboard and Accounts.
+final portfolioProvider = Provider<PortfolioSummary>((ref) =>
+    summarisePortfolio(ref.watch(accountProvider),
+        ref.watch(accountBalancesProvider), DateTime.now()));
 
 // ─── Recurring Providers ──────────────────────────────────────────────────────
 class RecurringNotifier extends StateNotifier<List<RecurringModel>> {

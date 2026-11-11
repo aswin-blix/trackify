@@ -184,11 +184,19 @@ List<CategoryModel> get defaultCategories => [
         sortOrder: 8,
       ),
       CategoryModel(
+        id: 'loan_interest',
+        name: 'Loan Interest',
+        iconCodePoint: Icons.request_quote.codePoint,
+        colorHex: '#E17055',
+        type: CategoryType.expense,
+        sortOrder: 9,
+      ),
+      CategoryModel(
         id: 'others',
         name: 'Others',
         iconCodePoint: Icons.more_horiz.codePoint,
         colorHex: '#636E72',
         type: CategoryType.both,
-        sortOrder: 9,
+        sortOrder: 10,
       ),
     ];

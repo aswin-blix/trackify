@@ -24,13 +24,22 @@ class AccountModelAdapter extends TypeAdapter<AccountModel> {
       colorHex: fields[4] as String,
       sortOrder: fields[5] as int,
       isDefault: fields[6] as bool,
+      interestRate: fields[7] as double?,
+      startDate: fields[8] as DateTime?,
+      maturityDate: fields[9] as DateTime?,
+      marketValue: fields[10] as double?,
+      valueUpdatedAt: fields[11] as DateTime?,
+      valuedInvested: fields[12] as double?,
+      chitAmount: fields[13] as double?,
+      chitMonths: fields[14] as int?,
+      emiAmount: fields[15] as double?,
     );
   }
 
   @override
   void write(BinaryWriter writer, AccountModel obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,7 +53,25 @@ class AccountModelAdapter extends TypeAdapter<AccountModel> {
       ..writeByte(5)
       ..write(obj.sortOrder)
       ..writeByte(6)
-      ..write(obj.isDefault);
+      ..write(obj.isDefault)
+      ..writeByte(7)
+      ..write(obj.interestRate)
+      ..writeByte(8)
+      ..write(obj.startDate)
+      ..writeByte(9)
+      ..write(obj.maturityDate)
+      ..writeByte(10)
+      ..write(obj.marketValue)
+      ..writeByte(11)
+      ..write(obj.valueUpdatedAt)
+      ..writeByte(12)
+      ..write(obj.valuedInvested)
+      ..writeByte(13)
+      ..write(obj.chitAmount)
+      ..writeByte(14)
+      ..write(obj.chitMonths)
+      ..writeByte(15)
+      ..write(obj.emiAmount);
   }
 
   @override
@@ -75,6 +102,16 @@ class AccountTypeAdapter extends TypeAdapter<AccountType> {
         return AccountType.card;
       case 4:
         return AccountType.other;
+      case 5:
+        return AccountType.fixedDeposit;
+      case 6:
+        return AccountType.mutualFund;
+      case 7:
+        return AccountType.stocks;
+      case 8:
+        return AccountType.chit;
+      case 9:
+        return AccountType.loan;
       default:
         return AccountType.cash;
     }
@@ -97,6 +134,21 @@ class AccountTypeAdapter extends TypeAdapter<AccountType> {
         break;
       case AccountType.other:
         writer.writeByte(4);
+        break;
+      case AccountType.fixedDeposit:
+        writer.writeByte(5);
+        break;
+      case AccountType.mutualFund:
+        writer.writeByte(6);
+        break;
+      case AccountType.stocks:
+        writer.writeByte(7);
+        break;
+      case AccountType.chit:
+        writer.writeByte(8);
+        break;
+      case AccountType.loan:
+        writer.writeByte(9);
         break;
     }
   }

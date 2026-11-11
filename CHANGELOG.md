@@ -6,10 +6,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [Unreleased]
+## [1.7.0] — 2026-11-11
 
 ### Added
+- **Savings & investments** — four new account types: **Fixed Deposit**, **Mutual Fund**, **Stocks** and **Chit / Kuri**. Money goes in and out with ordinary transfers (a SIP is a monthly repeating transfer), so it never counts as spending. Each account's ledger balance is what you put in; its value is worked out per type:
+  - Fixed deposit: interest rate, start and maturity dates; the value grows with quarterly compounding (a cumulative FD) and stops at maturity, and the tile shows the maturity amount
+  - Mutual fund / stocks: type in the current value from your fund or broker app (⋮ → *Update value*); money added after an update counts at face value until the next one, so a fresh SIP never shows as a loss. One account per broker is enough
+  - Chit / kuri: chit amount, months and first month; the tile shows *Month 8 of 20 · ₹5K/month* and paid so far. Log the payout as a transfer out; after that the balance shows the instalments still owed
+- **Loans & EMIs** — a **Loan / EMI** account type for bank loans and product EMIs, entered as the amount still owed with the interest rate (0 for a no-cost EMI) and the monthly EMI. Pay each EMI as a transfer into the loan (optionally repeating monthly): Trackify books the interest part (owed × rate ÷ 12) as a **Loan Interest** expense and the rest lowers what you owe, matching the bank's reducing-balance schedule. The tile shows EMIs left and the expected end month. Deleting an EMI deletes its interest entry too
+- **Dashboard breakdown** — once you have savings, investment or loan accounts, the balance card shows **Available to spend**, with *Invested* (today's value and gain %), *Loans* and **Net worth** underneath, and a third monthly figure, **Saved**: money moved into savings, investments and loan principal this month, minus money taken out, with your savings rate as a share of income
+- Accounts screen groups *Savings & investments* and *Loans & EMIs*, and its summary shows net worth, available and invested
 - **ATM withdrawals from SMS** — the SMS inbox's add sheet has a **Transfer** option with From / To account pickers. Cash withdrawal alerts (ATM, cash WDL) open preset as a transfer from the bank account to **Cash**, so taking out cash is not counted as spending; log the cash as expenses from the Cash account when you spend it. On a credit SMS, Transfer presets a cash deposit (Cash → bank). Needs a Cash account; without one the alert opens as a normal expense
+
+### Notes
+- Account types 5–9 are appended to the Hive enum and account fields 7–15 are added; existing data is unaffected. A new default category `loan_interest` is created on first use for existing installs
+- Update both phones in a household before creating these accounts: 1.6.0 reads the new types as *Other*, and editing one there would drop the new details
+- Repeating rules stay on the phone that created them, so set up a repeating EMI or SIP on one phone only
 
 ---
 

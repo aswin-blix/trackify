@@ -16,6 +16,7 @@ class DarkColors {
   static const Color divider = Color(0x1AFFFFFF);
   static const Color transferColor = Color(0xFFFFB300);
   static const Color debtColor = Color(0xFF4DA3FF);
+  static const Color savedColor = Color(0xFF2DD4BF);
 }
 
 // ─── Light Mode Colors ────────────────────────────────────────────────────────
@@ -34,6 +35,7 @@ class LightColors {
   static const Color divider = Color(0x1A1A1A2E);
   static const Color transferColor = Color(0xFFFF8C00);
   static const Color debtColor = Color(0xFF0A6FD6);
+  static const Color savedColor = Color(0xFF0D7F75);
 }
 
 // ─── Category Colors ──────────────────────────────────────────────────────────
