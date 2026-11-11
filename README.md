@@ -29,13 +29,16 @@ Beautiful glassmorphism UI · Riverpod state · Hive local database · Zero data
 | 🔁 | **Recurring Transactions** | Rent, salary, subscriptions, EMIs: pick Repeat (daily / weekly / monthly / yearly) and due entries are added automatically, catching up missed dates |
 | 🤝 | **Lent & Borrowed** | Track money lent to or borrowed from people: running balance per person, partial repayments, due-date reminders. Moves account balances without counting as income or expense |
 | 🏦 | **Accounts** | Cash, bank, wallets and cards with opening balances; real total balance and transfers between accounts |
+| 📈 | **Savings & Investments** | Fixed deposits (value grows by the interest rate until maturity), mutual funds and stocks (type in today's value to see the gain), chit / kuri progress. Money moves in by transfer, so it never counts as spending |
+| 🧾 | **Loans & EMIs** | Bank loans and product EMIs as an amount owed. Each EMI is split automatically: interest becomes an expense, the rest lowers what you owe. Shows EMIs left and the end month |
+| 🧭 | **Net Worth & Saved** | Dashboard separates money available to spend from invested and owed, shows net worth, and a monthly Saved figure with your savings rate |
 | 📊 | **Analytics** | Bar charts, pie charts, weekly/monthly/yearly breakdowns |
 | 🎯 | **Budget Tracking** | Set monthly budgets per category with live progress bars |
 | 📱 | **SMS Bank Reader** | Scans bank, card and UPI alerts (SBI, HDFC, ICICI, Axis, Kotak, PhonePe and more) on open; skips OTPs, dues, declines and promotions. ATM withdrawals import as a transfer to Cash. 100% local, never uploaded |
 | 🔐 | **App Lock** | Biometric / device PIN gate on open and on background resume |
 | ☁️ | **Backup & Restore** | Export full data as JSON and restore from file; daily auto-backup runs in the background via WorkManager |
 | 👫 | **Shared Tracking** | Optional: one household, one budget, two phones. Each partner's loans are shown on both phones. Google sign-in + Firestore, free tier. See [docs/SHARED_TRACKING_SETUP.md](docs/SHARED_TRACKING_SETUP.md) |
-| 🌙 | **Dark / Light Mode** | Instant theme switching, follows system preference |
+| 🌙 | **Themes** | System, Light, Dark, or **HUD**: a futuristic look with cut-corner panels, a spending gauge, a month runway and fluid animations. Switch instantly in Settings |
 | 💱 | **Multi-Currency** | INR, USD, EUR, GBP, JPY, AUD, CAD, SGD, AED |
 | ✨ | **Glassmorphism UI** | Frosted glass cards with spring animations throughout |
 | 🚫 | **Offline First** | Zero network calls and zero telemetry unless you opt in to shared tracking |
@@ -144,6 +147,8 @@ lib/
 
 - **Hive adapters** — the `.g.dart` files are checked in. After changing a `@HiveType` model, run `dart run build_runner build --delete-conflicting-outputs` and review the diff; never change a field number.
 - **Settings state** — `AppSettings` is cloned via `fromJson`/`toJson` on every update so Riverpod detects the change. Mutation-in-place won't work.
+- **Savings, investments and loans** — these are account types (`AccountType.isInvestment` / `isLoan`). An account's ledger balance is what was put in (or minus what is owed); `core/utils/investments.dart` works out today's value per type and the available / invested / loans / net worth split, and `savedBetween` gives the monthly Saved figure. `TransactionNotifier.add` splits a transfer into a loan that has an interest rate into a principal transfer plus a `<id>_interest` expense in the `loan_interest` category (`core/utils/loans.dart`); entries synced from a partner bypass the notifier, so nothing is split twice. Gains are never posted as income.
+- **Themes** — `themeMode` 3 is the HUD look (`AppSettings.isHud`). `main.dart` sets `AppFonts.hud` and picks `AppTheme.hud()`; shared widgets (`GlassCard`, the bottom nav, `GradientBackground`) render their HUD variant from that flag, and `shared/widgets/hud.dart` holds the panel frame, backdrop and meters. Use `AppFonts.body(...)` for text, not `GoogleFonts` directly, so both looks get the right font. Screens that draw their own rounded containers still need a HUD pass (dashboard is done).
 - **Tab indices** in `HomeShell`: `0`=Dashboard, `1`=Transactions, `2`=FAB (opens sheet), `3`=Analytics, `4`=Settings.
 - **Notifications** — `NotificationService.init()` resolves the device IANA timezone with `flutter_timezone` before any `zonedSchedule` call; a fixed UTC-offset zone is only a fallback.
 - **App Lock** — `HomeShell` re-locks on resume using a went-to-background flag (not the previous lifecycle state). Wrap any biometric prompt in `AppLockGuard.run` so the system credential screen does not trigger a re-lock.
@@ -190,7 +195,11 @@ Contributions are very welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) f
 
 ## Roadmap
 
-- [x] ATM withdrawals from SMS as a transfer to Cash (unreleased)
+- [x] HUD theme: selectable futuristic look, dashboard first (v1.7.0)
+- [ ] HUD theme for the remaining screens (accounts, history, analytics, settings)
+- [ ] Recognise EMI and SIP debits in bank SMS
+- [x] Savings, investments, loans & EMIs, net worth and monthly Saved (v1.7.0)
+- [x] ATM withdrawals from SMS as a transfer to Cash (v1.7.0)
 - [x] Lent & borrowed tracking per person (v1.6.0)
 - [x] Recurring / scheduled transactions (v1.5.0)
 - [x] SMS reader rewrite for real Indian bank formats (v1.5.0)

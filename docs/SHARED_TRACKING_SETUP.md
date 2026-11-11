@@ -81,7 +81,9 @@ separate). Use the Everyone / You / partner filter on that screen.
 **Recurring rules** stay on the phone that created them. The entries they post
 sync normally, so a rule is never run twice across two phones.
 
-Keep both phones on the same app version. Loan entries (1.6.0+) are read as
+Keep both phones on the same app version. Savings, investment and loan
+accounts (1.7.0+) show as *Other* on an older version, and editing one there
+drops its details. Loan entries (1.6.0+) are read as
 expenses by older builds.
 
 ## Data layout
