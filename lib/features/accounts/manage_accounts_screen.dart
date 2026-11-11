@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -64,7 +64,7 @@ class ManageAccountsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(
           'Accounts',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+          style: AppFonts.body(fontWeight: FontWeight.w700),
         ),
       ),
       body: ListView(
@@ -94,7 +94,7 @@ class ManageAccountsScreen extends ConsumerWidget {
         icon: const Icon(Icons.add_rounded),
         label: Text(
           'Add Account',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+          style: AppFonts.body(fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -127,12 +127,12 @@ class ManageAccountsScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Delete "${a.name}"?',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+            style: AppFonts.body(fontWeight: FontWeight.w700)),
         content: Text(
           txCount == 0
               ? 'This account has no transactions.'
               : '$txCount transaction${txCount == 1 ? '' : 's'} will move to "${fallback?.name ?? 'the default account'}". The opening balance of "${a.name}" is dropped.',
-          style: GoogleFonts.plusJakartaSans(fontSize: 13),
+          style: AppFonts.body(fontSize: 13),
         ),
         actions: [
           TextButton(
@@ -165,9 +165,9 @@ class _SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final onSurface = Theme.of(context).colorScheme.onSurface;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final small = GoogleFonts.plusJakartaSans(
-        fontSize: 13, color: onSurface.withValues(alpha: 0.6));
-    final big = GoogleFonts.plusJakartaSans(
+    final small =
+        AppFonts.body(fontSize: 13, color: onSurface.withValues(alpha: 0.6));
+    final big = AppFonts.body(
         fontSize: 28, fontWeight: FontWeight.w800, color: onSurface);
 
     Widget figure(String label, double v, {String? extra, Color? extraColor}) =>
@@ -181,14 +181,14 @@ class _SummaryCard extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
                 child: Text(AppFormatters.formatAmountCompact(v, symbol),
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                         fontSize: 17,
                         fontWeight: FontWeight.w800,
                         color: v < 0 ? const Color(0xFFE8365D) : onSurface)),
               ),
               if (extra != null)
                 Text(extra,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: extraColor)),
@@ -249,7 +249,7 @@ class _SummaryCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Opening balances plus everything you have logged since.',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 12,
                     color: onSurface.withValues(alpha: 0.5),
                   ),
@@ -270,7 +270,7 @@ class _SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(4, 14, 4, 10),
       child: Text(
         text,
-        style: GoogleFonts.plusJakartaSans(
+        style: AppFonts.body(
           fontSize: 13,
           fontWeight: FontWeight.w700,
           color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
@@ -344,8 +344,7 @@ class _AccountTile extends StatelessWidget {
             Flexible(
               child: Text(
                 account.name,
-                style: GoogleFonts.plusJakartaSans(
-                    fontSize: 15, fontWeight: FontWeight.w700),
+                style: AppFonts.body(fontSize: 15, fontWeight: FontWeight.w700),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -359,7 +358,7 @@ class _AccountTile extends StatelessWidget {
                 ),
                 child: Text(
                   'Default',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: account.color,
@@ -373,7 +372,7 @@ class _AccountTile extends StatelessWidget {
           details ?? account.type.label,
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
               fontSize: 12, color: onSurface.withValues(alpha: 0.55)),
         ),
         trailing: Row(
@@ -387,7 +386,7 @@ class _AccountTile extends StatelessWidget {
                   account.type.isInvestment || account.type.isLoan
                       ? AppFormatters.formatAmountCompact(value, symbol)
                       : AppFormatters.formatAmount(value, symbol),
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: negative ? const Color(0xFFE8365D) : onSurface,
@@ -396,7 +395,7 @@ class _AccountTile extends StatelessWidget {
                 if (showGain)
                   Text(
                     '${gain >= 0 ? '+' : '−'}${AppFormatters.formatAmountCompact(gain, symbol)}',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: gainColor),
@@ -576,14 +575,14 @@ class _UpdateValueDialogState extends ConsumerState<_UpdateValueDialog> {
     final symbol = ref.read(settingsProvider).currencySymbol;
     return AlertDialog(
       title: Text('Update ${widget.account.name}',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+          style: AppFonts.body(fontWeight: FontWeight.w700)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Invested so far: ${AppFormatters.formatAmount(widget.invested, symbol)}',
-            style: GoogleFonts.plusJakartaSans(fontSize: 13),
+            style: AppFonts.body(fontSize: 13),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -865,7 +864,7 @@ class _AccountFormSheetState extends ConsumerState<_AccountFormSheet> {
     final symbol = ref.read(settingsProvider).currencySymbol;
     final owedEntry = _type.isLiabilityEntry;
     final text = _openingText;
-    final labelStyle = GoogleFonts.plusJakartaSans(
+    final labelStyle = AppFonts.body(
         fontSize: 13,
         fontWeight: FontWeight.w600,
         color: onSurface.withValues(alpha: 0.6));
@@ -894,7 +893,7 @@ class _AccountFormSheetState extends ConsumerState<_AccountFormSheet> {
                   ? label
                   : '$label\n${AppFormatters.formatDateShort(value)} ${value.year}',
               textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(fontSize: 12),
+              style: AppFonts.body(fontSize: 12),
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
@@ -937,7 +936,7 @@ class _AccountFormSheetState extends ConsumerState<_AccountFormSheet> {
           'account; turn on Repeat monthly to log it automatically. Trackify '
           'books the interest part as a "Loan Interest" expense and the rest '
           'lowers what you owe.',
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
               fontSize: 12, color: onSurface.withValues(alpha: 0.5)),
         ),
       ],
@@ -1009,7 +1008,7 @@ class _AccountFormSheetState extends ConsumerState<_AccountFormSheet> {
         const SizedBox(height: 6),
         Text(
           'When you get the payout, add a Transfer from this chit to your bank.',
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
               fontSize: 12, color: onSurface.withValues(alpha: 0.5)),
         ),
       ],
@@ -1023,7 +1022,7 @@ class _AccountFormSheetState extends ConsumerState<_AccountFormSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F1428) : const Color(0xFFF8FAFF),
+        color: isDark ? darkSheetColor : const Color(0xFFF8FAFF),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SingleChildScrollView(
@@ -1044,7 +1043,7 @@ class _AccountFormSheetState extends ConsumerState<_AccountFormSheet> {
             const SizedBox(height: 16),
             Text(
               widget.existing != null ? 'Edit Account' : 'New Account',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                   fontSize: 18, fontWeight: FontWeight.w800, color: onSurface),
             ),
             const SizedBox(height: 16),

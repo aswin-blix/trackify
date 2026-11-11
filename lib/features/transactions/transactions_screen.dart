@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../core/utils/formatters.dart';
 import '../../data/models/transaction_model.dart';
 import '../../shared/providers/app_providers.dart';
@@ -48,7 +48,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Text(
                 'Transactions',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   fontSize: 24,
                   fontWeight: FontWeight.w800,
                   color: Theme.of(context).colorScheme.onSurface,
@@ -142,7 +142,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                 children: [
                                   Text(
                                     group.dateLabel,
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: AppFonts.body(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
                                       color: Theme.of(context)
@@ -153,7 +153,7 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                                   ),
                                   Text(
                                     '$symbol${group.total.abs().toStringAsFixed(2)}',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: AppFonts.body(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                       color: Theme.of(context)
@@ -277,7 +277,7 @@ class _FilterChip extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: selected ? Colors.white : chipColor,
@@ -307,7 +307,7 @@ class _EmptyTransactions extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'No transactions found',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Theme.of(context)

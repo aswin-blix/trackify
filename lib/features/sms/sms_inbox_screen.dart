@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
@@ -59,7 +59,7 @@ class SmsInboxScreen extends ConsumerWidget {
                         children: [
                           Text(
                             'SMS Bank Reader',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFonts.body(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
                             ),
@@ -67,7 +67,7 @@ class SmsInboxScreen extends ConsumerWidget {
                           if (pending.isNotEmpty)
                             Text(
                               '${pending.length} pending',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFonts.body(
                                 fontSize: 12,
                                 color: Theme.of(context).colorScheme.primary,
                               ),
@@ -100,7 +100,7 @@ class SmsInboxScreen extends ConsumerWidget {
                         const SizedBox(height: 16),
                         Text(
                           'No bank SMS found',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: Theme.of(context)
@@ -113,7 +113,7 @@ class SmsInboxScreen extends ConsumerWidget {
                         Text(
                           'Tap sync to read SMS from your bank senders',
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 13,
                             color: Theme.of(context)
                                 .colorScheme
@@ -266,7 +266,7 @@ class _SyncButtonState extends ConsumerState<_SyncButton> {
                   const SizedBox(width: 4),
                   Text(
                     'Sync',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: Theme.of(context).colorScheme.primary,
@@ -328,7 +328,7 @@ class _SmsTile extends StatelessWidget {
                   ),
                   child: Text(
                     sms.sender,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: const Color(0xFF00CEC9),
@@ -339,7 +339,7 @@ class _SmsTile extends StatelessWidget {
                 if (sms.parsedAmount != null)
                   Text(
                     '₹${sms.parsedAmount!.toStringAsFixed(0)}',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                       color: amountColor,
@@ -351,7 +351,7 @@ class _SmsTile extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 sms.parsedMerchant!,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
@@ -362,7 +362,7 @@ class _SmsTile extends StatelessWidget {
               sms.rawBody,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 12,
                 color: Theme.of(context)
                     .colorScheme
@@ -373,7 +373,7 @@ class _SmsTile extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               DateFormat('d MMM yyyy, hh:mm a').format(sms.receivedAt),
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 11,
                 color: Theme.of(context)
                     .colorScheme
@@ -402,7 +402,7 @@ class _SmsTile extends StatelessWidget {
                       ),
                       child: Text(
                         'Dismiss',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: Theme.of(context)
@@ -427,7 +427,7 @@ class _SmsTile extends StatelessWidget {
                       ),
                       child: Text(
                         'Add Transaction',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                         ),
@@ -448,7 +448,7 @@ class _SmsTile extends StatelessWidget {
                 ),
                 child: Text(
                   isAdded ? 'Added' : 'Dismissed',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: isAdded ? LightColors.incomeGreen : Colors.grey,
@@ -574,7 +574,7 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1F3A) : Colors.white,
+        color: isDark ? darkDialogColor : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SingleChildScrollView(
@@ -595,7 +595,7 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
             const SizedBox(height: 16),
             Text(
               'Add Transaction from SMS',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
               ),
@@ -748,7 +748,7 @@ class _AddFromSmsSheetState extends State<_AddFromSmsSheet> {
                       )
                     : Text(
                         'Add Transaction',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                             fontWeight: FontWeight.w700, fontSize: 15),
                       ),
               ),
@@ -856,7 +856,7 @@ class _TypeButton extends StatelessWidget {
           child: Center(
             child: Text(
               label,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: selected ? color : Colors.grey,

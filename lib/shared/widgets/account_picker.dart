@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import '../../data/models/account_model.dart';
 
 /// Horizontal row of account chips with a title, used wherever a
@@ -44,7 +44,7 @@ class AccountPicker extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: onSurface.withValues(alpha: 0.6),
@@ -59,7 +59,7 @@ class AccountPicker extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         'Manage',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: primary,
@@ -113,7 +113,7 @@ class AccountPicker extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           a.name,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 13,
                             fontWeight:
                                 selected ? FontWeight.w700 : FontWeight.w500,

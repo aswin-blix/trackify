@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_fonts.dart';
+import 'hud.dart';
 
 /// Paints the app's themed background gradient behind [child].
 ///
@@ -12,6 +14,7 @@ class GradientBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (AppFonts.hud) return HudBackdrop(child: child);
     return Container(
       decoration: BoxDecoration(
         gradient: isDark ? darkBackgroundGradient() : lightBackgroundGradient(),

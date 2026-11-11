@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:local_auth/local_auth.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -145,7 +145,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
 
                   Text(
                     'Trackify',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
                     ),
@@ -155,7 +155,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
 
                   Text(
                     'Authenticate to continue',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 15,
                       color: Theme.of(context)
                           .colorScheme
@@ -186,7 +186,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                         child: Text(
                           _errorMessage!,
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 13,
                             color: Colors.red,
                           ),
@@ -199,7 +199,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                       icon: const Icon(Icons.fingerprint_rounded),
                       label: Text(
                         'Unlock',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontWeight: FontWeight.w700,
                           fontSize: 15,
                         ),

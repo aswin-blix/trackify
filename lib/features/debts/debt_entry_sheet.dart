@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
@@ -223,7 +223,7 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F1428) : const Color(0xFFF8FAFF),
+        color: isDark ? darkSheetColor : const Color(0xFFF8FAFF),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -253,7 +253,7 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
                         widget.existing == null
                             ? 'Lent & Borrowed'
                             : 'Edit entry',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
                           color: onSurface,
@@ -291,7 +291,7 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
                         onSelected: (_) => setState(() => _type = t),
                         selectedColor: color.withValues(alpha: 0.16),
                         showCheckmark: false,
-                        labelStyle: GoogleFonts.plusJakartaSans(
+                        labelStyle: AppFonts.body(
                           fontSize: 13,
                           fontWeight:
                               t == _type ? FontWeight.w700 : FontWeight.w500,
@@ -366,7 +366,7 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
                     FilteringTextInputFormatter.allow(
                         RegExp(r'^\d*\.?\d{0,2}')),
                   ],
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                     color: onSurface,
@@ -431,7 +431,7 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
                 child: Text(
                   'Changes the account balance, but never counts as income '
                   'or expense.',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 11,
                     color: onSurface.withValues(alpha: 0.5),
                   ),
@@ -460,7 +460,7 @@ class _DebtEntrySheetState extends ConsumerState<DebtEntrySheet> {
                           )
                         : Text(
                             widget.existing == null ? 'Save' : 'Update',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFonts.body(
                                 fontWeight: FontWeight.w700, fontSize: 16),
                           ),
                   ),
@@ -523,11 +523,11 @@ class _DateField extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(label,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.body(
                           fontSize: 11,
                           color: onSurface.withValues(alpha: 0.55))),
                   Text(value,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.body(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: onSurface)),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'tips_data.dart';
 
 final _favoriteTipsProvider = StateProvider<Set<String>>((ref) => {});
@@ -54,7 +54,7 @@ class _TipsScreenState extends ConsumerState<TipsScreen>
                   Expanded(
                     child: Text(
                       'Money Tips',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.body(
                         fontSize: 24,
                         fontWeight: FontWeight.w800,
                         color: Theme.of(context).colorScheme.onSurface,
@@ -106,7 +106,7 @@ class _TipsScreenState extends ConsumerState<TipsScreen>
                             ? 'No saved tips yet.\nSwipe tips to bookmark them!'
                             : 'No tips in this category.',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 15,
                           color: Theme.of(context)
                               .colorScheme
@@ -245,7 +245,7 @@ class _TipCard extends StatelessWidget {
                   ),
                   child: Text(
                     _categoryLabel,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       color: _categoryColor,
@@ -255,7 +255,7 @@ class _TipCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   tip.text,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 14,
                     height: 1.5,
                     color: Theme.of(context).colorScheme.onSurface,
@@ -311,7 +311,7 @@ class _CategoryChip extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: selected ? Colors.white : accent,

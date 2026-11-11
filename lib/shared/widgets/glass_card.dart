@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../../core/theme/app_fonts.dart';
+import 'hud.dart';
 
 class GlassCard extends StatefulWidget {
   final Widget child;
@@ -101,51 +103,73 @@ class _GlassCardState extends State<GlassCard>
             ),
           );
         },
-        child: Container(
-          margin: widget.margin,
-          width: widget.width,
-          height: widget.height,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(widget.borderRadius),
-            boxShadow: [
-              widget.shadow ??
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(widget.borderRadius),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(
-                sigmaX: widget.blur,
-                sigmaY: widget.blur,
-              ),
-              child: Container(
-                padding: widget.padding,
+        child: AppFonts.hud
+            ? _hud()
+            : Container(
+                margin: widget.margin,
+                width: widget.width,
+                height: widget.height,
                 decoration: BoxDecoration(
-                  gradient: widget.gradient ??
-                      LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.white.withValues(alpha: defaultOpacity + 0.05),
-                          Colors.white.withValues(alpha: defaultOpacity),
-                        ],
-                      ),
                   borderRadius: BorderRadius.circular(widget.borderRadius),
-                  border: Border.all(
-                    color: defaultBorderColor,
-                    width: 1.2,
+                  boxShadow: [
+                    widget.shadow ??
+                        BoxShadow(
+                          color: Colors.black
+                              .withValues(alpha: isDark ? 0.3 : 0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(widget.borderRadius),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                      sigmaX: widget.blur,
+                      sigmaY: widget.blur,
+                    ),
+                    child: Container(
+                      padding: widget.padding,
+                      decoration: BoxDecoration(
+                        gradient: widget.gradient ??
+                            LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Colors.white
+                                    .withValues(alpha: defaultOpacity + 0.05),
+                                Colors.white.withValues(alpha: defaultOpacity),
+                              ],
+                            ),
+                        borderRadius:
+                            BorderRadius.circular(widget.borderRadius),
+                        border: Border.all(
+                          color: defaultBorderColor,
+                          width: 1.2,
+                        ),
+                      ),
+                      child: widget.child,
+                    ),
                   ),
                 ),
-                child: widget.child,
               ),
-            ),
-          ),
-        ),
+      ),
+    );
+  }
+
+  /// Dark theme: the same card as a cut-corner HUD panel. Small radii map
+  /// to small corner cuts; a caller's strong border colour marks it selected.
+  Widget _hud() {
+    final border = widget.borderColor;
+    return Container(
+      margin: widget.margin,
+      width: widget.width,
+      height: widget.height,
+      child: HudFrame(
+        padding: widget.padding,
+        cut: (widget.borderRadius * 0.7).clamp(6.0, 14.0),
+        lineColor: border != null && border.a > 0.5 ? border : null,
+        child: widget.child,
       ),
     );
   }

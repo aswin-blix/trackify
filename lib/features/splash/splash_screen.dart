@@ -1,7 +1,7 @@
 import 'dart:math';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/providers/app_providers.dart';
 
@@ -153,7 +153,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           child: Text(
                             'Track every rupee,\nown your future.',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFonts.body(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                               color: isDark

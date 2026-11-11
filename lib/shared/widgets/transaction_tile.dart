@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/models/category_model.dart';
 import '../../core/utils/formatters.dart';
@@ -164,7 +164,7 @@ class TransactionTile extends ConsumerWidget {
                         Flexible(
                           child: Text(
                             title,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFonts.body(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: Theme.of(context).colorScheme.onSurface,
@@ -187,7 +187,7 @@ class TransactionTile extends ConsumerWidget {
                             ),
                             child: Text(
                               addedByLabel,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFonts.body(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                                 color: Theme.of(context).colorScheme.primary,
@@ -201,7 +201,7 @@ class TransactionTile extends ConsumerWidget {
                       const SizedBox(height: 2),
                       Text(
                         transaction.note,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 12,
                           color: Theme.of(context)
                               .colorScheme
@@ -221,7 +221,7 @@ class TransactionTile extends ConsumerWidget {
                 children: [
                   Text(
                     '${_amountPrefix()}${AppFormatters.formatAmount(transaction.amount, currencySymbol)}',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
                       color: _amountColor(context),
@@ -230,7 +230,7 @@ class TransactionTile extends ConsumerWidget {
                   const SizedBox(height: 2),
                   Text(
                     AppFormatters.formatTime(transaction.date),
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 11,
                       color: Theme.of(context)
                           .colorScheme

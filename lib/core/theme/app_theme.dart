@@ -75,6 +75,133 @@ class AppTheme {
     );
   }
 
+  // ─── HUD Theme ───────────────────────────────────────────────────────────────
+  static ThemeData hud() {
+    final base = ThemeData.dark();
+    const line = BorderSide(color: HudColors.glassBorder, width: 1.2);
+    BeveledRectangleBorder cut(double r, [BorderSide side = BorderSide.none]) =>
+        BeveledRectangleBorder(
+            borderRadius: BorderRadius.circular(r), side: side);
+    final buttonText = GoogleFonts.orbitron(
+        fontWeight: FontWeight.w700, fontSize: 12, letterSpacing: 2);
+    return base.copyWith(
+      scaffoldBackgroundColor: HudColors.backgroundStart,
+      colorScheme: const ColorScheme.dark(
+        primary: HudColors.accent,
+        secondary: HudColors.accentSecondary,
+        surface: HudColors.cardSurface,
+        error: HudColors.expenseRed,
+        onPrimary: HudColors.onAccent,
+        onSecondary: HudColors.onAccent,
+        onSurface: HudColors.textPrimary,
+      ),
+      textTheme: GoogleFonts.rajdhaniTextTheme(base.textTheme).apply(
+        bodyColor: HudColors.textPrimary,
+        displayColor: HudColors.textPrimary,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
+        titleTextStyle: GoogleFonts.orbitron(
+          color: HudColors.textPrimary,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 2,
+        ),
+        iconTheme: const IconThemeData(color: HudColors.accent),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: HudColors.accent,
+          foregroundColor: HudColors.onAccent,
+          disabledBackgroundColor: HudColors.glassBorder,
+          shape: cut(8),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          textStyle: buttonText,
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: HudColors.accent,
+          textStyle: GoogleFonts.rajdhani(
+              fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: 0.5),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: HudColors.textPrimary,
+          side: line,
+          shape: cut(8),
+        ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: HudColors.accentSecondary,
+        foregroundColor: const Color(0xFF2A1500),
+        elevation: 0,
+        shape: cut(12),
+        extendedTextStyle: buttonText,
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: HudColors.cardSurface,
+        selectedColor: HudColors.accent.withValues(alpha: 0.22),
+        side: line,
+        shape: cut(7),
+        showCheckmark: false,
+        labelStyle: GoogleFonts.rajdhani(
+          color: HudColors.textPrimary,
+          fontWeight: FontWeight.w700,
+          fontSize: 15,
+        ),
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: HudColors.accent,
+        linearTrackColor: HudColors.divider,
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: HudColors.cardSurface,
+        shape: cut(8, line),
+      ),
+      inputDecorationTheme: _buildInputTheme(
+        HudColors.glassSurface,
+        HudColors.glassBorder,
+        HudColors.textPrimary,
+        HudColors.textSecondary,
+        HudColors.accent,
+        hud: true,
+      ),
+      dividerTheme: const DividerThemeData(color: HudColors.divider, space: 1),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: HudColors.backgroundEnd,
+        modalBackgroundColor: HudColors.backgroundEnd,
+        shape: const BeveledRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: HudColors.cardSurface,
+        shape: cut(14, line),
+        titleTextStyle: GoogleFonts.orbitron(
+          color: HudColors.textPrimary,
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1,
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: HudColors.cardSurface,
+        contentTextStyle: GoogleFonts.rajdhani(
+          color: HudColors.textPrimary,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
+        shape: cut(8, line),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   // ─── Light Theme ────────────────────────────────────────────────────────────
   static ThemeData light() {
     final base = ThemeData.light();
@@ -189,26 +316,32 @@ class AppTheme {
     Color border,
     Color text,
     Color hint,
-    Color focus,
-  ) {
+    Color focus, {
+    bool hud = false,
+  }) {
+    final radius = BorderRadius.circular(hud ? 3 : 14);
+    final hintStyle = hud
+        ? GoogleFonts.rajdhani(
+            color: hint, fontSize: 15, fontWeight: FontWeight.w600)
+        : GoogleFonts.plusJakartaSans(color: hint, fontSize: 14);
     return InputDecorationTheme(
       filled: true,
       fillColor: fill,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: radius,
         borderSide: BorderSide(color: border, width: 1.2),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: radius,
         borderSide: BorderSide(color: border, width: 1.2),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: radius,
         borderSide: BorderSide(color: focus, width: 1.8),
       ),
-      hintStyle: GoogleFonts.plusJakartaSans(color: hint, fontSize: 14),
-      labelStyle: GoogleFonts.plusJakartaSans(color: hint, fontSize: 14),
+      hintStyle: hintStyle,
+      labelStyle: hintStyle,
     );
   }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -34,7 +34,7 @@ class RecurringScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(
           'Recurring',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+          style: AppFonts.body(fontWeight: FontWeight.w700),
         ),
       ),
       body: rules.isEmpty
@@ -56,7 +56,7 @@ class RecurringScreen extends ConsumerWidget {
                     children: [
                       Text(
                         'Recurring expenses per month',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 13,
                           color: onSurface.withValues(alpha: 0.6),
                         ),
@@ -64,7 +64,7 @@ class RecurringScreen extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Text(
                         AppFormatters.formatAmount(monthly, symbol),
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
                           color: onSurface,
@@ -74,7 +74,7 @@ class RecurringScreen extends ConsumerWidget {
                       Text(
                         'Entries are added on their due date each time you '
                         'open Trackify.',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 12,
                           color: onSurface.withValues(alpha: 0.5),
                         ),
@@ -93,7 +93,7 @@ class RecurringScreen extends ConsumerWidget {
         icon: const Icon(Icons.add_rounded),
         label: Text(
           'Add Recurring',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+          style: AppFonts.body(fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -140,7 +140,7 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'No recurring transactions',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: onSurface,
@@ -152,7 +152,7 @@ class _EmptyState extends StatelessWidget {
               'adds them on schedule. You can also pick Repeat when adding '
               'any transaction.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 13,
                 color: onSurface.withValues(alpha: 0.6),
               ),
@@ -221,7 +221,7 @@ class _RuleTile extends ConsumerWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontWeight: FontWeight.w700,
               fontSize: 14,
               color: onSurface,
@@ -229,7 +229,7 @@ class _RuleTile extends ConsumerWidget {
           ),
           subtitle: Text(
             '${rule.frequency.describe(rule.interval)} · $status',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 12,
               color: onSurface.withValues(alpha: 0.55),
             ),
@@ -239,7 +239,7 @@ class _RuleTile extends ConsumerWidget {
             children: [
               Text(
                 '$sign${AppFormatters.formatAmount(rule.amount, symbol)}',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   fontWeight: FontWeight.w800,
                   fontSize: 14,
                   color: color,
@@ -315,7 +315,7 @@ class _RuleTile extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Change amount',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+            style: AppFonts.body(fontWeight: FontWeight.w700)),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -350,7 +350,7 @@ class _RuleTile extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Delete this repeat?',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+            style: AppFonts.body(fontWeight: FontWeight.w700)),
         content: const Text(
             'No more entries will be added. Ones already added stay in your '
             'transactions.'),

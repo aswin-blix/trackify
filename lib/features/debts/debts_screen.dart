@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -56,7 +56,7 @@ class DebtsScreen extends ConsumerWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text('Lent & Borrowed',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+            style: AppFonts.body(fontWeight: FontWeight.w700)),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
@@ -109,7 +109,7 @@ class DebtsScreen extends ConsumerWidget {
                   tilePadding: const EdgeInsets.symmetric(horizontal: 4),
                   title: Text(
                     'Settled (${settled.length})',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
                       color: onSurface.withValues(alpha: 0.7),
@@ -129,7 +129,7 @@ class DebtsScreen extends ConsumerWidget {
         onPressed: () => showDebtEntrySheet(context),
         icon: const Icon(Icons.add_rounded),
         label: Text('New entry',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+            style: AppFonts.body(fontWeight: FontWeight.w600)),
       ),
     );
   }
@@ -164,7 +164,7 @@ class _SummaryCard extends StatelessWidget {
                 Flexible(
                   child: Text(label,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.body(
                           fontSize: 12,
                           color: onSurface.withValues(alpha: 0.6))),
                 ),
@@ -172,7 +172,7 @@ class _SummaryCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 AppFormatters.formatAmount(v, symbol),
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
                   color: v > 0 ? c : onSurface.withValues(alpha: 0.4),
@@ -219,14 +219,14 @@ class _Empty extends StatelessWidget {
               size: 56, color: onSurface.withValues(alpha: 0.25)),
           const SizedBox(height: 16),
           Text('Nothing lent or borrowed',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                   fontSize: 16, fontWeight: FontWeight.w700, color: onSurface)),
           const SizedBox(height: 8),
           Text(
             'Record money you lend or borrow and Trackify keeps a running '
             'balance per person, with a reminder on the due date.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
                 fontSize: 13, color: onSurface.withValues(alpha: 0.6)),
           ),
         ],
@@ -294,7 +294,7 @@ class _PersonTile extends ConsumerWidget {
             child: Text(p.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
                     color: onSurface)),
@@ -306,7 +306,7 @@ class _PersonTile extends ConsumerWidget {
         ]),
         subtitle: Text(
           '$status$due',
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
             fontSize: 12,
             color: overdue ? red : onSurface.withValues(alpha: 0.55),
             fontWeight: overdue ? FontWeight.w600 : FontWeight.w400,
@@ -314,7 +314,7 @@ class _PersonTile extends ConsumerWidget {
         ),
         trailing: Text(
           AppFormatters.formatAmount(p.net.abs(), symbol),
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
               fontWeight: FontWeight.w800, fontSize: 15, color: color),
         ),
       ),
@@ -336,7 +336,7 @@ class _OwnerBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(name,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
               fontSize: 10, fontWeight: FontWeight.w700, color: primary)),
     );
   }
@@ -392,8 +392,7 @@ class PersonDebtScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(b.name,
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+        title: Text(b.name, style: AppFonts.body(fontWeight: FontWeight.w700)),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
@@ -408,12 +407,12 @@ class PersonDebtScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(headline,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                         fontSize: 13, color: onSurface.withValues(alpha: 0.7))),
                 const SizedBox(height: 4),
                 Text(
                   AppFormatters.formatAmount(b.net.abs(), symbol),
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                       fontSize: 30, fontWeight: FontWeight.w800, color: color),
                 ),
                 if (b.dueDate != null && !b.isSettled) ...[
@@ -421,7 +420,7 @@ class PersonDebtScreen extends ConsumerWidget {
                   Text(
                     '${b.isOverdue(DateTime.now()) ? 'Overdue since' : 'Due'} '
                     '${DateFormat('d MMM yyyy').format(b.dueDate!)}',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: b.isOverdue(DateTime.now())
@@ -433,7 +432,7 @@ class PersonDebtScreen extends ConsumerWidget {
                 if (!isMine) ...[
                   const SizedBox(height: 6),
                   Text("$ownerName's entries. Only they can add to them.",
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.body(
                           fontSize: 11,
                           color: onSurface.withValues(alpha: 0.5))),
                 ],
@@ -478,7 +477,7 @@ class PersonDebtScreen extends ConsumerWidget {
           ],
           const SizedBox(height: 16),
           Text('History',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                   fontWeight: FontWeight.w700,
                   fontSize: 14,
                   color: onSurface.withValues(alpha: 0.7))),
@@ -496,7 +495,7 @@ class PersonDebtScreen extends ConsumerWidget {
                   : null,
               title: Text(
                 DebtLedger.describe(t),
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                     color: onSurface),
@@ -508,7 +507,7 @@ class PersonDebtScreen extends ConsumerWidget {
                 ].join(' · '),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                     fontSize: 12, color: onSurface.withValues(alpha: 0.55)),
               ),
               trailing: Column(
@@ -518,7 +517,7 @@ class PersonDebtScreen extends ConsumerWidget {
                   Text(
                     '${DebtLedger.effect(t) > 0 ? '+' : '−'}'
                     '${AppFormatters.formatAmount(t.amount, symbol)}',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                         fontWeight: FontWeight.w700,
                         fontSize: 14,
                         color: DebtLedger.effect(t) > 0 ? green : red),
@@ -527,7 +526,7 @@ class PersonDebtScreen extends ConsumerWidget {
                     after.abs() < 0.005
                         ? 'settled'
                         : 'balance ${AppFormatters.formatAmount(after.abs(), symbol)}',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                         fontSize: 11, color: onSurface.withValues(alpha: 0.5)),
                   ),
                 ],

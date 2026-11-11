@@ -1,9 +1,9 @@
 import 'dart:io';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/utils/formatters.dart';
 import '../../data/repositories/backup_repository.dart';
@@ -112,7 +112,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Restore Backup?',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+            style: AppFonts.body(fontWeight: FontWeight.w700)),
         content: const Text(
             'This will replace ALL current data with the backup. This cannot be undone.'),
         actions: [
@@ -179,7 +179,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                               children: [
                                 Text(
                                   'Manual Backup',
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: AppFonts.body(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -187,7 +187,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                                 if (settings.lastBackupAt != null)
                                   Text(
                                     'Last: ${AppFormatters.formatDateTime(settings.lastBackupAt!)}',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style: AppFonts.body(
                                       fontSize: 12,
                                       color: Theme.of(context)
                                           .colorScheme
@@ -206,7 +206,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Text(
                             _backupStatus!,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFonts.body(
                               fontSize: 12,
                               color: _backupStatus!.contains('failed')
                                   ? const Color(0xFFE8365D)
@@ -277,14 +277,14 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                             children: [
                               Text(
                                 'Restore from File',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: AppFonts.body(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
                               Text(
                                 'A snapshot of current data is saved first',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: AppFonts.body(
                                   fontSize: 12,
                                   color: Theme.of(context)
                                       .colorScheme
@@ -327,7 +327,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
                   child: Text(
                     'Backup History',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -346,7 +346,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                             color: Color(0xFF6C63FF)),
                         title: Text(
                           name,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),

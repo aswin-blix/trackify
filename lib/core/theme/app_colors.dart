@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_fonts.dart';
 
 // ─── Dark Mode Colors ─────────────────────────────────────────────────────────
 class DarkColors {
@@ -17,6 +18,30 @@ class DarkColors {
   static const Color transferColor = Color(0xFFFFB300);
   static const Color debtColor = Color(0xFF4DA3FF);
   static const Color savedColor = Color(0xFF2DD4BF);
+}
+
+// ─── HUD Colors ───────────────────────────────────────────────────────────────
+class HudColors {
+  // The HUD theme (Settings > Theme > HUD): deep teal ground, cyan lines,
+  // amber as the second accent. See lib/shared/widgets/hud.dart.
+  static const Color backgroundStart = Color(0xFF041418);
+  static const Color backgroundEnd = Color(0xFF06191E);
+  static const Color accent = Color(0xFF3FF0FF);
+  static const Color accentSecondary = Color(0xFFFFB347);
+  static const Color incomeGreen = Color(0xFF4DFFB8);
+  static const Color expenseRed = Color(0xFFFF8A9C);
+  static const Color textPrimary = Color(0xFFEAFCFF);
+  static const Color textSecondary = Color(0xFF8FD3DE);
+  static const Color glassSurface = Color(0xFF0A2A30);
+  static const Color glassBorder = Color(0xFF14707F);
+  static const Color cardSurface = Color(0xFF0A2A30);
+  static const Color divider = Color(0x2E3FF0FF);
+  static const Color transferColor = Color(0xFFFFD166);
+  static const Color debtColor = Color(0xFF7FB8FF);
+  static const Color savedColor = Color(0xFFFFB347);
+
+  /// Text and icons on top of the bright accent.
+  static const Color onAccent = Color(0xFF04252B);
 }
 
 // ─── Light Mode Colors ────────────────────────────────────────────────────────
@@ -90,3 +115,10 @@ Color legibleOn(Color color, Brightness brightness) {
       .withSaturation((hsl.saturation * 1.1).clamp(0.0, 1.0))
       .toColor();
 }
+
+/// Background of bottom sheets and dialogs on a dark screen, for whichever
+/// dark look is active.
+Color get darkSheetColor =>
+    AppFonts.hud ? HudColors.backgroundEnd : const Color(0xFF0F1428);
+Color get darkDialogColor =>
+    AppFonts.hud ? HudColors.cardSurface : const Color(0xFF1A1F3A);

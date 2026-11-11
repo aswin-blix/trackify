@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../core/utils/formatters.dart';
 
 class BudgetProgressBar extends StatefulWidget {
@@ -99,7 +99,7 @@ class _BudgetProgressBarState extends State<BudgetProgressBar>
                   children: [
                     Text(
                       widget.label,
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.body(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: Theme.of(context).colorScheme.onSurface,
@@ -117,7 +117,7 @@ class _BudgetProgressBarState extends State<BudgetProgressBar>
                         ),
                         child: Text(
                           'Over',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             color: const Color(0xFFE8365D),
@@ -130,7 +130,7 @@ class _BudgetProgressBarState extends State<BudgetProgressBar>
                 Text(
                   '${AppFormatters.formatAmountCompact(widget.spent, widget.currencySymbol)} / '
                   '${AppFormatters.formatAmountCompact(widget.budget, widget.currencySymbol)}',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: Theme.of(context)
@@ -185,7 +185,7 @@ class _BudgetProgressBarState extends State<BudgetProgressBar>
               children: [
                 Text(
                   AppFormatters.formatPercentage(_ratio * 100),
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: currentColor,

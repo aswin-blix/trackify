@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 
 class SectionHeader extends StatelessWidget {
   final String title;
@@ -22,7 +22,7 @@ class SectionHeader extends StatelessWidget {
         children: [
           Text(
             title,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: Theme.of(context).colorScheme.onSurface,
@@ -33,7 +33,7 @@ class SectionHeader extends StatelessWidget {
               onTap: onAction,
               child: Text(
                 actionLabel!,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: Theme.of(context).colorScheme.primary,

@@ -19,7 +19,7 @@ class AppSettings extends HiveObject {
   String currencySymbol; // '₹', '$', etc.
 
   @HiveField(4)
-  int themeMode; // 0=system, 1=light, 2=dark
+  int themeMode; // 0=system, 1=light, 2=dark, 3=HUD
 
   @HiveField(5)
   bool notificationEnabled;
@@ -91,11 +91,15 @@ class AppSettings extends HiveObject {
     this.householdId,
   }) : knownSenderIds = knownSenderIds ?? List.from(kDefaultBankSenders);
 
+  /// The HUD look: its own dark theme with cut-corner panels.
+  bool get isHud => themeMode == 3;
+
   ThemeMode get resolvedThemeMode {
     switch (themeMode) {
       case 1:
         return ThemeMode.light;
       case 2:
+      case 3:
         return ThemeMode.dark;
       default:
         return ThemeMode.system;

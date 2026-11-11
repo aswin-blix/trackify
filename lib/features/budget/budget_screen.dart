@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/category_model.dart';
 import '../../shared/providers/app_providers.dart';
 import '../../shared/widgets/glass_card.dart';
@@ -62,7 +62,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     Expanded(
                       child: Text(
                         'Budget',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
                           color: Theme.of(context).colorScheme.onSurface,
@@ -93,7 +93,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                         children: [
                           Text(
                             'Monthly Budget',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFonts.body(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: Theme.of(context)
@@ -115,7 +115,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                                 budgetRatio >= 1.0
                                     ? '⚠ Overspent'
                                     : '⚠ Near Limit',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: AppFonts.body(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                   color: const Color(0xFFE8365D),
@@ -131,7 +131,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                           AnimatedCounter(
                             value: monthlyExpense,
                             prefix: symbol,
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFonts.body(
                               fontSize: 32,
                               fontWeight: FontWeight.w800,
                               color: Theme.of(context).colorScheme.onSurface,
@@ -143,7 +143,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                             padding: const EdgeInsets.only(bottom: 4),
                             child: Text(
                               '/ $symbol${monthlyBudget.toStringAsFixed(0)}',
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFonts.body(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                                 color: Theme.of(context)
@@ -167,7 +167,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                         monthlyBudget > monthlyExpense
                             ? '$symbol${(monthlyBudget - monthlyExpense).toStringAsFixed(0)} left to spend'
                             : '$symbol${(monthlyExpense - monthlyBudget).toStringAsFixed(0)} over budget',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                           color: budgetRatio >= 1.0
@@ -190,7 +190,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                 child: Text(
                   'Category Budgets',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: Theme.of(context).colorScheme.onSurface,
@@ -280,7 +280,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
       builder: (ctx) => AlertDialog(
         title: Text(
           'Monthly Budget',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+          style: AppFonts.body(fontWeight: FontWeight.w700),
         ),
         content: TextField(
           controller: controller,
@@ -318,7 +318,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
       builder: (ctx) => AlertDialog(
         title: Text(
           'Budget for ${cat.name}',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+          style: AppFonts.body(fontWeight: FontWeight.w700),
         ),
         content: TextField(
           controller: controller,

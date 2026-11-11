@@ -1,8 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../core/utils/formatters.dart';
 import '../../data/models/transaction_model.dart';
 import '../../shared/providers/app_providers.dart';
@@ -118,7 +118,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen>
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                 child: Text(
                   'Analytics',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
                     color: Theme.of(context).colorScheme.onSurface,
@@ -174,7 +174,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen>
                       children: [
                         Text(
                           'Who Spent',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: Theme.of(context).colorScheme.onSurface,
@@ -225,7 +225,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen>
                       children: [
                         Text(
                           'Spending by Category',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: Theme.of(context).colorScheme.onSurface,
@@ -267,7 +267,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen>
                       children: [
                         Text(
                           'Category Breakdown',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: Theme.of(context).colorScheme.onSurface,
@@ -310,7 +310,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen>
                         _tabController.index == 0
                             ? 'Weekly Overview'
                             : 'Monthly Overview',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: Theme.of(context).colorScheme.onSurface,
@@ -362,7 +362,7 @@ class _PeriodTabs extends StatelessWidget {
         unselectedLabelColor:
             Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
         dividerColor: Colors.transparent,
-        labelStyle: GoogleFonts.plusJakartaSans(
+        labelStyle: AppFonts.body(
           fontSize: 13,
           fontWeight: FontWeight.w700,
         ),
@@ -421,7 +421,7 @@ class _SummaryCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   fontSize: 13,
                   color: Theme.of(context)
                       .colorScheme
@@ -435,7 +435,7 @@ class _SummaryCard extends StatelessWidget {
           AnimatedCounter(
             value: value,
             prefix: symbol,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: color,
@@ -514,7 +514,7 @@ class _DonutChart extends StatelessWidget {
                         const SizedBox(width: 6),
                         Text(
                           item.label.split(' ').first,
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                             color: Theme.of(context)
@@ -612,7 +612,7 @@ class _CategoryBreakdownRowState extends State<_CategoryBreakdownRow>
                 children: [
                   Text(
                     widget.name,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: Theme.of(context).colorScheme.onSurface,
@@ -621,7 +621,7 @@ class _CategoryBreakdownRowState extends State<_CategoryBreakdownRow>
                   Text(
                     AppFormatters.formatAmountCompact(
                         widget.amount, widget.symbol),
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: widget.color,
@@ -685,8 +685,7 @@ class _MonthlyBarChart extends StatelessWidget {
             touchTooltipData: BarTouchTooltipData(
               getTooltipItem: (group, gi, rod, ri) => BarTooltipItem(
                 '$symbol${rod.toY.toStringAsFixed(0)}',
-                GoogleFonts.plusJakartaSans(
-                    color: Colors.white, fontWeight: FontWeight.w700),
+                AppFonts.body(color: Colors.white, fontWeight: FontWeight.w700),
               ),
             ),
           ),
@@ -706,7 +705,7 @@ class _MonthlyBarChart extends StatelessWidget {
                   final date = DateTime(now.year, now.month - (5 - idx));
                   return Text(
                     AppFormatters.formatMonthShort(date).split(' ').first,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 11,
                       color: Theme.of(context)
                           .colorScheme
@@ -792,8 +791,7 @@ class _WeeklyBarChart extends StatelessWidget {
             touchTooltipData: BarTouchTooltipData(
               getTooltipItem: (group, gi, rod, ri) => BarTooltipItem(
                 '$symbol${rod.toY.toStringAsFixed(0)}',
-                GoogleFonts.plusJakartaSans(
-                    color: Colors.white, fontWeight: FontWeight.w700),
+                AppFonts.body(color: Colors.white, fontWeight: FontWeight.w700),
               ),
             ),
           ),
@@ -813,7 +811,7 @@ class _WeeklyBarChart extends StatelessWidget {
                   final day = today.subtract(Duration(days: 6 - idx));
                   return Text(
                     dayNames[day.weekday - 1],
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 11,
                       color: Theme.of(context)
                           .colorScheme

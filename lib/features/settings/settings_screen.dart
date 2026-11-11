@@ -1,8 +1,8 @@
 import 'dart:io';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:local_auth/local_auth.dart';
 import '../../core/constants/app_constants.dart';
@@ -45,7 +45,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                 child: Text(
                   'Settings',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
                     color: Theme.of(context).colorScheme.onSurface,
@@ -81,12 +81,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       settings.userName.isNotEmpty
                           ? settings.userName
                           : 'Set your name',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.body(
                           fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
                       'Tap to edit profile',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12),
+                      style: AppFonts.body(fontSize: 12),
                     ),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () => _editName(context),
@@ -108,6 +108,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     subtitle: switch (settings.themeMode) {
                       1 => 'Light',
                       2 => 'Dark',
+                      3 => 'HUD',
                       _ => 'System',
                     },
                     onTap: () => _pickTheme(context, settings.themeMode),
@@ -350,7 +351,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     children: [
                       Text(
                         kAppName,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: Theme.of(context)
@@ -361,7 +362,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                       Text(
                         'Version $kAppVersion',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 13,
                           color: Theme.of(context)
                               .colorScheme
@@ -374,7 +375,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         FirebaseBootstrap.available
                             ? 'Offline-first • Sharing is optional'
                             : '100% offline • No data collected',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 12,
                           color: Theme.of(context)
                               .colorScheme
@@ -525,7 +526,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Your Name',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+            style: AppFonts.body(fontWeight: FontWeight.w700)),
         content: TextField(controller: ctrl, autofocus: true),
         actions: [
           TextButton(
@@ -543,12 +544,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _pickTheme(BuildContext context, int current) async {
-    final options = ['System', 'Light', 'Dark'];
+    final options = ['System', 'Light', 'Dark', 'HUD (futuristic)'];
     final result = await showDialog<int>(
       context: context,
       builder: (ctx) => SimpleDialog(
-        title: Text('Theme',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+        title: Text('Theme', style: AppFonts.body(fontWeight: FontWeight.w700)),
         children: options
             .asMap()
             .entries
@@ -577,8 +577,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final result = await showDialog<Map<String, String>>(
       context: context,
       builder: (ctx) => SimpleDialog(
-        title: Text('Currency',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+        title:
+            Text('Currency', style: AppFonts.body(fontWeight: FontWeight.w700)),
         children: kCurrencies
             .map((c) => SimpleDialogOption(
                   onPressed: () => Navigator.pop(ctx, c),
@@ -706,7 +706,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Clear All Data?',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+            style: AppFonts.body(fontWeight: FontWeight.w700)),
         content: const Text(
             'This will permanently delete all transactions, categories, and settings.'),
         actions: [
@@ -730,7 +730,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Are you sure?',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+            style: AppFonts.body(fontWeight: FontWeight.w700)),
         content: const Text('This action CANNOT be undone.'),
         actions: [
           TextButton(
@@ -829,7 +829,7 @@ class _SettingsGroup extends StatelessWidget {
           padding: margin.add(const EdgeInsets.only(bottom: 8)),
           child: Text(
             title,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 12,
               fontWeight: FontWeight.w700,
               color: Theme.of(context).colorScheme.primary,
@@ -880,7 +880,7 @@ class _SettingsTile extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: GoogleFonts.plusJakartaSans(
+        style: AppFonts.body(
           fontSize: 14,
           fontWeight: FontWeight.w600,
           color: titleColor ?? Theme.of(context).colorScheme.onSurface,
@@ -889,7 +889,7 @@ class _SettingsTile extends StatelessWidget {
       subtitle: subtitle != null
           ? Text(
               subtitle!,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 12,
                 color: Theme.of(context)
                     .colorScheme
@@ -943,7 +943,7 @@ class _SettingsSwitchTile extends StatelessWidget {
       ),
       title: Text(
         title,
-        style: GoogleFonts.plusJakartaSans(
+        style: AppFonts.body(
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
@@ -951,7 +951,7 @@ class _SettingsSwitchTile extends StatelessWidget {
       subtitle: subtitle != null
           ? Text(
               subtitle!,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 12,
                 color: Theme.of(context)
                     .colorScheme

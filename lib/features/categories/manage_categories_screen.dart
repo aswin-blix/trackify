@@ -1,7 +1,8 @@
+import 'package:trackify/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:uuid/uuid.dart';
 import '../../data/models/category_model.dart';
 import '../../shared/providers/app_providers.dart';
@@ -206,7 +207,7 @@ class ManageCategoriesScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(
           'Manage Categories',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+          style: AppFonts.body(fontWeight: FontWeight.w700),
         ),
         actions: [
           IconButton(
@@ -244,7 +245,7 @@ class ManageCategoriesScreen extends ConsumerWidget {
                   Text(
                     'No custom categories yet.\nTap + to create one.',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 14,
                       color: Theme.of(context)
                           .colorScheme
@@ -270,7 +271,7 @@ class ManageCategoriesScreen extends ConsumerWidget {
         icon: const Icon(Icons.add_rounded),
         label: Text(
           'Add Category',
-          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+          style: AppFonts.body(fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -292,10 +293,10 @@ class ManageCategoriesScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Delete "${category.name}"?',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+            style: AppFonts.body(fontWeight: FontWeight.w700)),
         content: Text(
           'This will not delete existing transactions using this category.',
-          style: GoogleFonts.plusJakartaSans(fontSize: 13),
+          style: AppFonts.body(fontSize: 13),
         ),
         actions: [
           TextButton(
@@ -349,12 +350,11 @@ class _CategoryTile extends StatelessWidget {
       ),
       title: Text(
         category.name,
-        style: GoogleFonts.plusJakartaSans(
-            fontSize: 14, fontWeight: FontWeight.w600),
+        style: AppFonts.body(fontSize: 14, fontWeight: FontWeight.w600),
       ),
       subtitle: Text(
         typeLabel,
-        style: GoogleFonts.plusJakartaSans(
+        style: AppFonts.body(
             fontSize: 12,
             color:
                 Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
@@ -399,7 +399,7 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
       child: Text(
         title.toUpperCase(),
-        style: GoogleFonts.plusJakartaSans(
+        style: AppFonts.body(
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.2,
@@ -481,7 +481,7 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F1428) : const Color(0xFFF8FAFF),
+        color: isDark ? darkSheetColor : const Color(0xFFF8FAFF),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.only(
@@ -522,7 +522,7 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
                           widget.existing != null
                               ? 'Edit Category'
                               : 'New Category',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                           ),
@@ -576,7 +576,7 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
                       children: [
                         Text(
                           'TYPE',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 1.2,
@@ -627,7 +627,7 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
                       children: [
                         Text(
                           'COLOR',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 1.2,
@@ -693,7 +693,7 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
                       children: [
                         Text(
                           'ICON',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 1.2,
@@ -798,7 +798,7 @@ class _CategoryFormSheetState extends ConsumerState<_CategoryFormSheet> {
                                 widget.existing != null
                                     ? 'Update Category'
                                     : 'Create Category',
-                                style: GoogleFonts.plusJakartaSans(
+                                style: AppFonts.body(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 15,
                                 ),
@@ -854,7 +854,7 @@ class _TypeChip extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: selected ? Colors.white : color,
@@ -923,7 +923,7 @@ class _IconPickerDialogState extends State<_IconPickerDialog>
                   Expanded(
                     child: Text(
                       'Choose Icon',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.body(
                         fontSize: 17,
                         fontWeight: FontWeight.w800,
                       ),
@@ -971,9 +971,9 @@ class _IconPickerDialogState extends State<_IconPickerDialog>
                 controller: _tabController,
                 isScrollable: true,
                 tabAlignment: TabAlignment.start,
-                labelStyle: GoogleFonts.plusJakartaSans(
-                    fontSize: 12, fontWeight: FontWeight.w600),
-                unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontSize: 12),
+                labelStyle:
+                    AppFonts.body(fontSize: 12, fontWeight: FontWeight.w600),
+                unselectedLabelStyle: AppFonts.body(fontSize: 12),
                 tabs: keys.map((k) => Tab(text: k)).toList(),
               ),
               Expanded(
@@ -1016,7 +1016,7 @@ class _IconGrid extends StatelessWidget {
       return Center(
         child: Text(
           'No icons found',
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
               color: Theme.of(context)
                   .colorScheme
                   .onSurface

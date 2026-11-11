@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:uuid/uuid.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
@@ -356,7 +356,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F1428) : const Color(0xFFF8FAFF),
+        color: isDark ? darkSheetColor : const Color(0xFFF8FAFF),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: DraggableScrollableSheet(
@@ -400,7 +400,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                             widget.existingTransaction != null
                                 ? 'Edit Transaction'
                                 : 'Add Transaction',
-                            style: GoogleFonts.plusJakartaSans(
+                            style: AppFonts.body(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
                               color: Theme.of(context).colorScheme.onSurface,
@@ -586,7 +586,7 @@ class _AddTransactionScreenState extends ConsumerState<AddTransactionScreen>
                                               : _repeat != null
                                                   ? 'Save ${_repeat!.label} Repeat'
                                                   : 'Save Transaction',
-                                          style: GoogleFonts.plusJakartaSans(
+                                          style: AppFonts.body(
                                             fontWeight: FontWeight.w700,
                                             fontSize: 16,
                                           ),
@@ -666,7 +666,7 @@ class _TypeToggle extends StatelessWidget {
                 child: Text(
                   t.label,
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: isSelected
@@ -706,7 +706,7 @@ class _AmountField extends StatelessWidget {
         children: [
           Text(
             currencySymbol,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 28,
               fontWeight: FontWeight.w700,
               color: typeColor,
@@ -730,7 +730,7 @@ class _AmountField extends StatelessWidget {
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
-                hintStyle: GoogleFonts.plusJakartaSans(
+                hintStyle: AppFonts.body(
                   fontSize: 32,
                   color: Theme.of(context)
                       .colorScheme
@@ -738,7 +738,7 @@ class _AmountField extends StatelessWidget {
                       .withValues(alpha: 0.3),
                 ),
               ),
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 32,
                 fontWeight: FontWeight.w800,
                 color: Theme.of(context).colorScheme.onSurface,
@@ -775,7 +775,7 @@ class _CategoryPicker extends StatelessWidget {
             children: [
               Text(
                 'Category',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: Theme.of(context)
@@ -797,7 +797,7 @@ class _CategoryPicker extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       'Manage',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.body(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: Theme.of(context).colorScheme.primary,
@@ -856,7 +856,7 @@ class _CategoryPicker extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           'New',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: AppFonts.body(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
                             color: Theme.of(context)
@@ -906,7 +906,7 @@ class _CategoryPicker extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         cat.name.split(' ').first,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: legibleOn(
@@ -948,7 +948,7 @@ class _DateButton extends StatelessWidget {
           Expanded(
             child: Text(
               '${date.day}/${date.month}/${date.year}  ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: Theme.of(context).colorScheme.onSurface,
@@ -987,7 +987,7 @@ class _RepeatPicker extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               'Repeat',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: onSurface.withValues(alpha: 0.7),
@@ -1006,7 +1006,7 @@ class _RepeatPicker extends StatelessWidget {
               selected: selected,
               onSelected: (_) => onChanged(f),
               selectedColor: color.withValues(alpha: 0.18),
-              labelStyle: GoogleFonts.plusJakartaSans(
+              labelStyle: AppFonts.body(
                 fontSize: 12,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 color: selected ? color : onSurface.withValues(alpha: 0.75),
@@ -1023,7 +1023,7 @@ class _RepeatPicker extends StatelessWidget {
           Text(
             'Posted automatically on each due date when you open Trackify. '
             'Manage in Settings > Recurring.',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 11,
               color: onSurface.withValues(alpha: 0.5),
             ),

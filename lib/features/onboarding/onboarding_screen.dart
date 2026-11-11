@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/services/notification_service.dart';
@@ -140,7 +140,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       onPressed: _finish,
                       child: Text(
                         'Skip',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
                         ),
@@ -264,7 +264,7 @@ class _WelcomePage extends StatelessWidget {
           const SizedBox(height: 32),
           Text(
             'Welcome to Trackify',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 28,
               fontWeight: FontWeight.w800,
               color: Theme.of(context).colorScheme.onSurface,
@@ -274,7 +274,7 @@ class _WelcomePage extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'Take control of your finances with beautiful, private expense tracking.',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 15,
               color: Theme.of(context)
                   .colorScheme
@@ -292,7 +292,7 @@ class _WelcomePage extends StatelessWidget {
               children: [
                 Text(
                   "What's your name?",
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.onSurface,
@@ -306,7 +306,7 @@ class _WelcomePage extends StatelessWidget {
                     hintText: 'Enter your name',
                     prefixIcon: Icon(Icons.person_outline_rounded),
                   ),
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
@@ -348,7 +348,7 @@ class _BudgetPage extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             'Set Your Budget',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 28,
               fontWeight: FontWeight.w800,
               color: Theme.of(context).colorScheme.onSurface,
@@ -357,7 +357,7 @@ class _BudgetPage extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Set a monthly spending goal and preferred currency.',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 15,
               color: Theme.of(context)
                   .colorScheme
@@ -376,7 +376,7 @@ class _BudgetPage extends StatelessWidget {
                 // Currency selector
                 Text(
                   'Currency',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context)
@@ -396,7 +396,7 @@ class _BudgetPage extends StatelessWidget {
                             value: c['code'],
                             child: Text(
                               '${c['symbol']} ${c['name']}',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 14),
+                              style: AppFonts.body(fontSize: 14),
                             ),
                           ))
                       .toList(),
@@ -413,7 +413,7 @@ class _BudgetPage extends StatelessWidget {
                   children: [
                     Text(
                       'Monthly Budget',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.body(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: Theme.of(context)
@@ -424,7 +424,7 @@ class _BudgetPage extends StatelessWidget {
                     ),
                     Text(
                       '$currencySymbol${budget.toStringAsFixed(0)}',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: AppFonts.body(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
                         color: Theme.of(context).colorScheme.primary,
@@ -473,7 +473,7 @@ class _BalancesPage extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             'What do you have today?',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 28,
               fontWeight: FontWeight.w800,
               color: Theme.of(context).colorScheme.onSurface,
@@ -483,8 +483,7 @@ class _BalancesPage extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Enter your current cash and bank balance so Trackify can show your real total. You can add more accounts later, or leave these blank.',
-            style: GoogleFonts.plusJakartaSans(
-                fontSize: 15, color: muted, height: 1.5),
+            style: AppFonts.body(fontSize: 15, color: muted, height: 1.5),
             textAlign: TextAlign.center,
           ).animate(delay: 100.ms).fadeIn(duration: 400.ms),
           const SizedBox(height: 32),
@@ -551,7 +550,7 @@ class _PermissionsPage extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             'Stay on Track',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 28,
               fontWeight: FontWeight.w800,
               color: Theme.of(context).colorScheme.onSurface,
@@ -560,7 +559,7 @@ class _PermissionsPage extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Enable reminders and optionally let Trackify scan your bank SMS — all stays on your device.',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 15,
               color: Theme.of(context)
                   .colorScheme
@@ -641,7 +640,7 @@ class _PermissionTile extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).colorScheme.onSurface,
@@ -650,7 +649,7 @@ class _PermissionTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 12,
                     color: Theme.of(context)
                         .colorScheme

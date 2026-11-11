@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/theme/app_colors.dart';
+import '../../shared/widgets/gradient_background.dart';
 import '../../core/utils/app_logger.dart';
 import '../../data/models/transaction_model.dart';
 import '../../shared/providers/app_providers.dart';
@@ -167,15 +167,9 @@ class _HomeShellState extends ConsumerState<HomeShell>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       extendBody: true,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient:
-              isDark ? darkBackgroundGradient() : lightBackgroundGradient(),
-        ),
+      body: GradientBackground(
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
           transitionBuilder: (child, animation) {

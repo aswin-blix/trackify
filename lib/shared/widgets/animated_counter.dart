@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 
 class AnimatedCounter extends StatefulWidget {
   final double value;
@@ -80,7 +80,7 @@ class _AnimatedCounterState extends State<AnimatedCounter>
         return Text(
           '${widget.prefix}$display${widget.suffix}',
           style: widget.style ??
-              GoogleFonts.plusJakartaSans(
+              AppFonts.body(
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
                 color: Theme.of(context).colorScheme.onSurface,

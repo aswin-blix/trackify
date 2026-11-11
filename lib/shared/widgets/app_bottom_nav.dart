@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../core/theme/app_fonts.dart';
+import 'hud.dart';
 
 class AppBottomNav extends StatefulWidget {
   final int currentIndex;
@@ -71,6 +72,8 @@ class _AppBottomNavState extends State<AppBottomNav>
     // Sit above the system navigation bar: ~48dp with 3-button navigation,
     // ~16dp with gestures. Edge-to-edge is enforced on Android 15+.
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+
+    if (AppFonts.hud) return _buildHud(bottomInset);
 
     final bg = Theme.of(context).scaffoldBackgroundColor;
 
@@ -153,7 +156,7 @@ class _AppBottomNavState extends State<AppBottomNav>
                                   tab.shortLabel,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.plusJakartaSans(
+                                  style: AppFonts.body(
                                     fontSize: 10.5,
                                     fontWeight: t > 0.5
                                         ? FontWeight.w700
@@ -169,6 +172,140 @@ class _AppBottomNavState extends State<AppBottomNav>
                     ),
                   );
                 }),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// HUD look: a flat bar with a line on top, a bright marker over the
+  /// active tab, and an amber diamond for Add.
+  Widget _buildHud(double bottomInset) {
+    return Container(
+      height: 64 + bottomInset,
+      padding: EdgeInsets.only(bottom: bottomInset),
+      decoration: const BoxDecoration(
+        color: Hud.bgRaised,
+        border: Border(top: BorderSide(color: Hud.line, width: 1.5)),
+      ),
+      child: Row(
+        children: List.generate(_tabs.length, (i) {
+          final tab = _tabs[i];
+          if (tab.isFab) {
+            return Expanded(
+              child: Center(
+                child: OverflowBox(
+                  maxHeight: 96,
+                  child: Transform.translate(
+                    offset: const Offset(0, -16),
+                    child: _HudAddButton(onTap: () => widget.onTap(i)),
+                  ),
+                ),
+              ),
+            );
+          }
+          final controller = _iconControllers[i];
+          return Expanded(
+            child: Semantics(
+              button: true,
+              selected: i == widget.currentIndex,
+              label: tab.label,
+              child: GestureDetector(
+                onTap: () => widget.onTap(i),
+                behavior: HitTestBehavior.opaque,
+                child: AnimatedBuilder(
+                  animation: controller,
+                  builder: (context, _) {
+                    final t = controller.value;
+                    final color = Color.lerp(Hud.muted, Hud.cyan, t)!;
+                    return Column(
+                      children: [
+                        FractionallySizedBox(
+                          widthFactor: 0.2 + 0.5 * t,
+                          child: Container(
+                            height: 3.5,
+                            color: Hud.cyan.withValues(alpha: t),
+                          ),
+                        ),
+                        const Spacer(),
+                        Icon(tab.icon, size: 22, color: color),
+                        const SizedBox(height: 4),
+                        Text(
+                          tab.shortLabel.toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppFonts.label(color: color, fontSize: 8.5),
+                        ),
+                        const Spacer(),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+/// Amber diamond that breathes slowly.
+class _HudAddButton extends StatefulWidget {
+  final VoidCallback onTap;
+  const _HudAddButton({required this.onTap});
+
+  @override
+  State<_HudAddButton> createState() => _HudAddButtonState();
+}
+
+class _HudAddButtonState extends State<_HudAddButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2400),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final still = MediaQuery.disableAnimationsOf(context);
+    return Semantics(
+      button: true,
+      label: 'Add transaction',
+      child: GestureDetector(
+        onTap: widget.onTap,
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox(
+          width: 64,
+          height: 64,
+          child: AnimatedBuilder(
+            animation: _c,
+            builder: (context, child) => Transform.scale(
+              scale:
+                  still ? 1 : 1 + 0.08 * Curves.easeInOut.transform(_c.value),
+              child: child,
+            ),
+            child: Center(
+              child: Transform.rotate(
+                angle: 0.785398,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  color: Hud.amber,
+                  child: Transform.rotate(
+                    angle: -0.785398,
+                    child: const Icon(Icons.add_rounded,
+                        color: Color(0xFF2A1500), size: 26),
+                  ),
+                ),
               ),
             ),
           ),

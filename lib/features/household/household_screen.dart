@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../core/constants/app_constants.dart';
@@ -62,8 +62,7 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(title,
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700)),
+        title: Text(title, style: AppFonts.body(fontWeight: FontWeight.w700)),
         content: Text(body),
         actions: [
           TextButton(
@@ -100,7 +99,7 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
                   ),
                   Text(
                     'Shared Tracking',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
                       color: onSurface,
@@ -300,7 +299,7 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9\- ]')),
               ],
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 4,
@@ -377,7 +376,7 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
                 Expanded(
                   child: SelectableText(
                     hh.inviteCode,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 30,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 6,
@@ -496,7 +495,7 @@ class _HouseholdScreenState extends ConsumerState<HouseholdScreen> {
 
 // ─── Widgets ──────────────────────────────────────────────────────────────────
 
-TextStyle _bodyStyle(BuildContext context) => GoogleFonts.plusJakartaSans(
+TextStyle _bodyStyle(BuildContext context) => AppFonts.body(
       fontSize: 13,
       height: 1.4,
       color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65),
@@ -537,7 +536,7 @@ class _Card extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: Theme.of(context).colorScheme.onSurface,
@@ -623,8 +622,8 @@ class _AccountCard extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14, fontWeight: FontWeight.w700),
+                  style:
+                      AppFonts.body(fontSize: 14, fontWeight: FontWeight.w700),
                 ),
                 if (user.email != null)
                   Text(
@@ -670,7 +669,7 @@ class _MemberRow extends StatelessWidget {
             backgroundImage: photo != null ? NetworkImage(photo) : null,
             child: photo == null
                 ? Text(member.initial,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                         fontWeight: FontWeight.w700, color: primary))
                 : null,
           ),
@@ -678,8 +677,7 @@ class _MemberRow extends StatelessWidget {
           Expanded(
             child: Text(
               member.name,
-              style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14, fontWeight: FontWeight.w600),
+              style: AppFonts.body(fontSize: 14, fontWeight: FontWeight.w600),
             ),
           ),
           if (isOwner) _Chip('Owner', const Color(0xFFFF8E53)),
@@ -709,7 +707,7 @@ class _Chip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: GoogleFonts.plusJakartaSans(
+        style: AppFonts.body(
             fontSize: 11, fontWeight: FontWeight.w700, color: color),
       ),
     );
@@ -751,7 +749,7 @@ class _SyncLine extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
               fontSize: 12, fontWeight: FontWeight.w600, color: color),
         ),
       ],

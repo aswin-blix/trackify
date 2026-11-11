@@ -1,9 +1,9 @@
 import 'dart:io';
+import 'package:trackify/core/theme/app_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/utils/image_store.dart';
@@ -20,6 +20,7 @@ import '../debts/debt_providers.dart';
 import '../../core/utils/debt_ledger.dart';
 import '../../core/utils/investments.dart';
 import '../accounts/manage_accounts_screen.dart';
+import 'dashboard_hud.dart';
 import '../../data/models/account_model.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -101,83 +102,119 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 bottom: false,
                 child: Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${AppFormatters.formatGreeting()},',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 14,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.6),
-                                ),
-                              ),
-                              Text(
-                                settings.userName.isNotEmpty
-                                    ? '${settings.userName} 👋'
-                                    : 'Welcome 👋',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w800,
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (ImageStore.exists(settings.avatarPath))
-                            CircleAvatar(
-                              radius: 22,
-                              backgroundImage:
-                                  FileImage(File(settings.avatarPath!)),
-                            )
-                          else
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    accent,
-                                    Theme.of(context).colorScheme.secondary,
-                                  ],
-                                ),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.person_rounded,
-                                  color: Colors.white, size: 22),
-                            ),
-                        ],
-                      ),
-                    ).animate(delay: 0.ms).fadeIn(duration: 400.ms).slideY(
-                        begin: -0.3,
-                        end: 0,
-                        duration: 400.ms,
-                        curve: Curves.easeOutExpo),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-                      child: _BalanceCard(
-                        portfolio: portfolio,
-                        saved: saved,
-                        income: monthlyIncome,
-                        expense: monthlyExpense,
-                        budgetRatio: budgetRatio,
-                        currencySymbol: symbol,
-                        monthlyBudget: settings.monthlyBudget,
-                      ),
-                    ).animate(delay: 60.ms).fadeIn(duration: 500.ms).scale(
-                          begin: const Offset(0.92, 0.92),
-                          end: const Offset(1, 1),
-                          duration: 500.ms,
-                          curve: Curves.easeOutExpo,
+                    if (AppFonts.hud) ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                        child: HudDashHeader(
+                          name: settings.userName,
+                          dailySpend:
+                              dailySpendThisMonth(transactions, DateTime.now()),
                         ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                        child: HudBalancePanel(
+                          portfolio: portfolio,
+                          income: monthlyIncome,
+                          expense: monthlyExpense,
+                          saved: saved,
+                          monthlyBudget: settings.monthlyBudget,
+                          symbol: symbol,
+                        ),
+                      ),
+                      if (portfolio.hasBreakdown)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                          child: HudNetWorthBar(
+                            portfolio: portfolio,
+                            symbol: symbol,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const ManageAccountsScreen(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 14),
+                    ] else ...[
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${AppFormatters.formatGreeting()},',
+                                  style: AppFonts.body(
+                                    fontSize: 14,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.6),
+                                  ),
+                                ),
+                                Text(
+                                  settings.userName.isNotEmpty
+                                      ? '${settings.userName} 👋'
+                                      : 'Welcome 👋',
+                                  style: AppFonts.body(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (ImageStore.exists(settings.avatarPath))
+                              CircleAvatar(
+                                radius: 22,
+                                backgroundImage:
+                                    FileImage(File(settings.avatarPath!)),
+                              )
+                            else
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      accent,
+                                      Theme.of(context).colorScheme.secondary,
+                                    ],
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.person_rounded,
+                                    color: Colors.white, size: 22),
+                              ),
+                          ],
+                        ),
+                      ).animate(delay: 0.ms).fadeIn(duration: 400.ms).slideY(
+                          begin: -0.3,
+                          end: 0,
+                          duration: 400.ms,
+                          curve: Curves.easeOutExpo),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                        child: _BalanceCard(
+                          portfolio: portfolio,
+                          saved: saved,
+                          income: monthlyIncome,
+                          expense: monthlyExpense,
+                          budgetRatio: budgetRatio,
+                          currencySymbol: symbol,
+                          monthlyBudget: settings.monthlyBudget,
+                        ),
+                      ).animate(delay: 60.ms).fadeIn(duration: 500.ms).scale(
+                            begin: const Offset(0.92, 0.92),
+                            end: const Offset(1, 1),
+                            duration: 500.ms,
+                            curve: Curves.easeOutExpo,
+                          ),
+                    ],
                     _AccountsRow(
                       accounts: accounts,
                       balances: values,
@@ -382,7 +419,7 @@ class _BalanceCard extends StatelessWidget {
         children: [
           Text(
             portfolio.hasBreakdown ? 'Available to spend' : 'Total Balance',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 13,
               color: Theme.of(context)
                   .colorScheme
@@ -395,7 +432,7 @@ class _BalanceCard extends StatelessWidget {
           AnimatedCounter(
             value: portfolio.available,
             prefix: currencySymbol,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 36,
               fontWeight: FontWeight.w800,
               color: Theme.of(context).colorScheme.onSurface,
@@ -408,7 +445,7 @@ class _BalanceCard extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'This month',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.4,
@@ -486,9 +523,9 @@ class _InvestedLine extends StatelessWidget {
     final gainColor = up
         ? (isDark ? DarkColors.incomeGreen : LightColors.incomeGreen)
         : (isDark ? DarkColors.expenseRed : LightColors.expenseRed);
-    final label = GoogleFonts.plusJakartaSans(
-        fontSize: 12, color: onSurface.withValues(alpha: 0.6));
-    final value = GoogleFonts.plusJakartaSans(
+    final label =
+        AppFonts.body(fontSize: 12, color: onSurface.withValues(alpha: 0.6));
+    final value = AppFonts.body(
         fontSize: 13, fontWeight: FontWeight.w700, color: onSurface);
 
     final owe = isDark ? DarkColors.expenseRed : LightColors.expenseRed;
@@ -509,7 +546,7 @@ class _InvestedLine extends StatelessWidget {
           if (ratio != null && portfolio.gain.abs() >= 1)
             Text(
               '${up ? '+' : '−'}${(ratio.abs() * 100).toStringAsFixed(1)}%',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                   fontSize: 12, fontWeight: FontWeight.w700, color: gainColor),
             ),
           Text('·', style: label),
@@ -601,14 +638,14 @@ class _AccountsRow extends StatelessWidget {
                     children: [
                       Text(
                         a.name,
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 11,
                           color: onSurface.withValues(alpha: 0.55),
                         ),
                       ),
                       Text(
                         AppFormatters.formatAmountCompact(bal, currencySymbol),
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: bal < 0 ? const Color(0xFFE8365D) : onSurface,
@@ -663,7 +700,7 @@ class _IncomeExpenseItem extends StatelessWidget {
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   fontSize: 12,
                   color: Theme.of(context)
                       .colorScheme
@@ -681,7 +718,7 @@ class _IncomeExpenseItem extends StatelessWidget {
           child: AnimatedCounter(
             value: value,
             prefix: currencySymbol,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 15,
               fontWeight: FontWeight.w700,
               color: color,
@@ -723,7 +760,7 @@ class _BudgetRing extends StatelessWidget {
           ),
           Text(
             '${(ratio * 100).toStringAsFixed(0)}%',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 10,
               fontWeight: FontWeight.w700,
               color: color,
@@ -801,7 +838,7 @@ class _QuickActions extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     a.label,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: legibleOn(a.color, Theme.of(context).brightness),
@@ -856,7 +893,7 @@ class _MiniBarChart extends StatelessWidget {
       children: [
         Text(
           '7-Day Spending',
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: Theme.of(context).colorScheme.onSurface,
@@ -875,7 +912,7 @@ class _MiniBarChart extends StatelessWidget {
                     final val = rod.toY;
                     return BarTooltipItem(
                       '$currencySymbol${val.toStringAsFixed(0)}',
-                      GoogleFonts.plusJakartaSans(
+                      AppFonts.body(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
                         fontSize: 12,
@@ -901,7 +938,7 @@ class _MiniBarChart extends StatelessWidget {
                       final day = now.subtract(Duration(days: daysAgo));
                       return Text(
                         AppFormatters.formatDayShort(day),
-                        style: GoogleFonts.plusJakartaSans(
+                        style: AppFonts.body(
                           fontSize: 10,
                           color: Theme.of(context)
                               .colorScheme
@@ -990,7 +1027,7 @@ class _TipCard extends StatelessWidget {
               children: [
                 Text(
                   '💡 Tip of the Day',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: const Color(0xFF6C63FF),
@@ -999,7 +1036,7 @@ class _TipCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   tip,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 13,
                     color: Theme.of(context)
                         .colorScheme
@@ -1038,7 +1075,7 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'No transactions yet',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Theme.of(context)
@@ -1050,7 +1087,7 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Tap + to add your first transaction',
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontSize: 13,
               color: Theme.of(context)
                   .colorScheme
@@ -1091,10 +1128,10 @@ class _DebtSummaryCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                       fontSize: 11, color: onSurface.withValues(alpha: 0.6))),
               Text(AppFormatters.formatAmount(v, symbol),
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                       fontSize: 16,
                       fontWeight: FontWeight.w800,
                       color: v > 0 ? c : onSurface.withValues(alpha: 0.4))),
@@ -1123,7 +1160,7 @@ class _DebtSummaryCard extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text('$overdue overdue',
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                         fontSize: 11, fontWeight: FontWeight.w700, color: red)),
               ),
             Icon(Icons.chevron_right_rounded,
@@ -1165,7 +1202,7 @@ class _TransactionDetail extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F1428) : const Color(0xFFF8FAFF),
+        color: isDark ? darkSheetColor : const Color(0xFFF8FAFF),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SafeArea(
@@ -1196,7 +1233,7 @@ class _TransactionDetail extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 DebtLedger.describe(transaction),
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: Theme.of(context).colorScheme.onSurface,
@@ -1215,7 +1252,7 @@ class _TransactionDetail extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               '${isIncome ? '+' : transaction.type == TransactionType.transfer ? '↔ ' : '-'}${AppFormatters.formatAmount(transaction.amount, '')}',
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 36,
                 fontWeight: FontWeight.w800,
                 color: amountColor,
@@ -1224,7 +1261,7 @@ class _TransactionDetail extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               AppFormatters.formatDateTime(transaction.date),
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 13,
                 color: Theme.of(context)
                     .colorScheme
@@ -1246,7 +1283,7 @@ class _TransactionDetail extends StatelessWidget {
                   const SizedBox(width: 6),
                   Text(
                     accountLabel!,
-                    style: GoogleFonts.plusJakartaSans(
+                    style: AppFonts.body(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: Theme.of(context)
@@ -1262,7 +1299,7 @@ class _TransactionDetail extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 transaction.note,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   fontSize: 15,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),

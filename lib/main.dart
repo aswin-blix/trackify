@@ -1,3 +1,4 @@
+import 'core/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -100,11 +101,14 @@ class TrackifyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
 
+    // Set before any screen builds so text styles pick the right fonts.
+    AppFonts.hud = settings.isHud;
+
     return MaterialApp(
       title: kAppName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      darkTheme: settings.isHud ? AppTheme.hud() : AppTheme.dark(),
       themeMode: settings.resolvedThemeMode,
       initialRoute: '/',
       routes: {
